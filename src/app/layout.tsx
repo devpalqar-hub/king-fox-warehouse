@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
