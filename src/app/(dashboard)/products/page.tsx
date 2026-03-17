@@ -4,14 +4,53 @@ import React from 'react';
 import styles from './products.module.css';
 import { Search, Plus, Upload, Edit2, Trash2, ChevronDown, X } from 'lucide-react';
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getProducts } from "@/services/product.service";
+import { Product } from "@/types/product";
+import { getCategories } from "@/services/category.service";
+import { Category } from "@/types/category";
+
 const ProductsPage = () => {
+
   const router = useRouter();
-  const products = [
-    { id: 1, name: 'Nike Air Max 270', sku: 'NK-AM270-001', category: 'Footwear', brand: 'Nike', price: '$150.00 - $180.00', variants: '8 Variants', status: 'Active', image: '👟' },
-    { id: 2, name: 'Bose QuietComfort 45', sku: 'B-C45-BL', category: 'Electronics', brand: 'Bose', price: '$329.00', variants: '2 Variants', status: 'Active', image: '🎧' },
-    { id: 3, name: 'Minimalist Watch', sku: 'MW-LV-01', category: 'Accessories', brand: 'MVMT', price: '$95.00', variants: '3 Variants', status: 'Draft', image: '⌚' },
-    { id: 4, name: 'Classic Aviators', sku: 'RB-AV-GLD', category: 'Apparel', brand: 'Ray-Ban', price: '$165.00', variants: '5 Variants', status: 'Active', image: '🕶️' },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [search, setSearch] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryId, setCategoryId] = useState("");
+  useEffect(() => {
+  const fetchProducts = async () => {
+    const data = await getProducts();
+    setProducts(data);
+  };
+
+  fetchProducts();
+}, []);
+
+// Fetch Products When Searching
+useEffect(() => {
+
+  const delay = setTimeout(() => {
+    const fetchProducts = async () => {
+      const data = await getProducts({
+        search,
+        categoryId
+      });
+      setProducts(data);
+    };
+    fetchProducts();
+  }, 500);
+  return () => clearTimeout(delay);
+}, [search, categoryId]);
+
+useEffect(() => {
+  const fetchCategories = async () => {
+    const data = await getCategories();
+    setCategories(data);
+  };
+
+  fetchCategories();
+}, []);
+
 
   return (
     <div className={styles.container}>
@@ -34,11 +73,22 @@ const ProductsPage = () => {
         <div className={styles.searchRow}>
           <div className={styles.searchWrapper}>
             <Search className={styles.searchIcon} size={18} />
-            <input type="text" placeholder="Search by name, SKU, or brand..." />
+            <input
+                type="text"
+                placeholder="Search by name, SKU, or brand..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                />
           </div>
           <div className={styles.selectWrapper}>
-            <select>
-              <option>All Categories</option>
+            <select onChange={(e) => setCategoryId(e.target.value)}>
+                <option value="">All Categories</option>
+
+                {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                    {category.name}
+                    </option>
+                ))}
             </select>
             <ChevronDown className={styles.selectArrow} size={16} />
           </div>
@@ -71,41 +121,70 @@ const ProductsPage = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td>
-                  <div className={styles.productCell}>
-                    <div className={styles.productImg}>{product.image}</div>
-                    <div>
-                      <div className={styles.productName}>{product.name}</div>
-                      <div className={styles.productSku}>SKU: {product.sku}</div>
-                    </div>
-                  </div>
-                </td>
-                <td><span className={styles.categoryBadge}>{product.category}</span></td>
-                <td className={styles.textMuted}>{product.brand}</td>
-                <td className={styles.priceText}>{product.price}</td>
-                <td className={styles.textMuted}>{product.variants}</td>
-                <td>
-                  <div className={`${styles.status} ${styles[product.status.toLowerCase()]}`}>
-                    <span className={styles.dot}></span> {product.status}
-                  </div>
-                </td>
-                <td>
-                  <div className={styles.actions}>
-                    <div className={styles.actions}>
-                    <Edit2
-                        size={18}
-                        className={styles.editIcon}
-                        onClick={() => router.push("/products/editproduct")}
-                    />
-                    </div>
-                    <Trash2 size={18} className={styles.deleteIcon} />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+  {products.map((product) => {
+
+    const prices = product.variants?.map(v => Number(v.sellingPrice)) || [];
+
+    const minPrice = prices.length ? Math.min(...prices) : 0;
+    const maxPrice = prices.length ? Math.max(...prices) : 0;
+
+    return (
+      <tr key={product.id}>
+        <td>
+          <div className={styles.productCell}>
+            <div className={styles.productImg}>
+              {product.images?.length ? (
+                <img src={product.images[0]} width={40} />
+              ) : (
+                "📦"
+              )}
+            </div>
+
+            <div>
+              <div className={styles.productName}>{product.name}</div>
+              <div className={styles.productSku}>
+                SKU: {product.variants?.[0]?.sku || "N/A"}
+              </div>
+            </div>
+          </div>
+        </td>
+
+        <td>
+          <span className={styles.categoryBadge}>
+            {product.category?.name}
+          </span>
+        </td>
+
+        <td className={styles.textMuted}>{product.brand?.name}</td>
+
+        <td className={styles.priceText}>
+          ${minPrice} - ${maxPrice}
+        </td>
+
+        <td className={styles.textMuted}>
+          {product.variants?.length || 0} Variants
+        </td>
+
+        <td>
+          <div className={`${styles.status} ${styles.active}`}>
+            <span className={styles.dot}></span> Active
+          </div>
+        </td>
+
+        <td>
+          <div className={styles.actions}>
+            <Edit2
+              size={18}
+              className={styles.editIcon}
+              onClick={() => router.push(`/products/editproduct/${product.id}`)}
+            />
+            <Trash2 size={18} className={styles.deleteIcon} />
+          </div>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
         </table>
 
         {/* Pagination */}

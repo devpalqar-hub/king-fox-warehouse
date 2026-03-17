@@ -6,6 +6,10 @@
   display: flex;
   flex-direction: column;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 101;
 }
 
 /* ---------- Logo Section ---------- */

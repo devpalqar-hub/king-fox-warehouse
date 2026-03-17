@@ -1,10 +1,119 @@
 "use client"
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import React from 'react';
 import { Info, ChevronDown, X,Image, Plus,Bold, Italic, List, Link ,FileText,Ruler, LayoutGrid,ShieldCheck, Eraser} from 'lucide-react';
 import styles from './addproduct.module.css';
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import { getBrands } from "@/services/brand.service";
+import { getCategories } from "@/services/category.service";
+import { Brand } from "@/types/brand";
+import { Category } from "@/types/category";
+
+import { createProduct } from "@/services/product-create.service";
+import { useRef } from "react"
+
+
 export default function AddProductPage() {
   const router = useRouter();
+  const [metaDescription, setMetaDescription] = useState("");
+  const [name, setName] = useState("");
+const [description, setDescription] = useState("");
+const [brandId, setBrandId] = useState("");
+const [categoryId, setCategoryId] = useState("");
+const [brands, setBrands] = useState<Brand[]>([]);
+const [categories, setCategories] = useState<Category[]>([]);
+const [materialFabric, setMaterialFabric] = useState("");
+const [sizeGuide, setSizeGuide] = useState("");
+const [careInstructions, setCareInstructions] = useState("");
+const [images, setImages] = useState<string[]>([]);
+const productEditor = useRef<any>(null)
+const materialEditor = useRef<any>(null)
+const sizeEditor = useRef<any>(null)
+const careEditor = useRef<any>(null)
+
+
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const files = e.target.files;
+
+  if (!files) return;
+
+  const newImages = Array.from(files).map((file) =>
+    URL.createObjectURL(file)
+  );
+
+  setImages((prev) => [...prev, ...newImages]);
+};
+
+const removeImage = (index: number) => {
+  setImages((prev) => prev.filter((_, i) => i !== index));
+};
+const handleSaveProduct = async () => {
+
+  if (!name || !brandId || !categoryId) {
+    alert("Please fill required fields");
+    return;
+  }
+
+  const payload = {
+    name,
+    description,
+    brandId: Number(brandId),
+    categoryId: Number(categoryId),
+    images: [],
+    metaInfo: [
+  {
+    title: "Product Details",
+    text: metaDescription || "Product details",
+    imageUrl: ""
+  },
+  {
+    title: "Material & Fabric",
+    text: materialFabric || "Material information",
+    imageUrl: ""
+  },
+  {
+    title: "Size Guide",
+    text: sizeGuide || "Size guide",
+    imageUrl: ""
+  },
+  {
+    title: "Care Instructions",
+    text: careInstructions || "Care instructions",
+    imageUrl: ""
+  }
+],
+    tagIds: []
+  };
+
+  try {
+    const product = await createProduct(payload);
+    router.push(`/products/addvariation?productId=${product.id}`);
+  } catch (err) {
+    console.error("Create product error:", err);
+  }
+};
+
+useEffect(() => {
+
+  const fetchData = async () => {
+    try {
+
+      const brandData = await getBrands();
+      const categoryData = await getCategories();
+
+      setBrands(brandData);
+      setCategories(categoryData);
+
+    } catch (error) {
+      console.error("Dropdown fetch error:", error);
+    }
+  };
+
+  fetchData();
+
+}, []);
   return (
     <>
     <div className={styles.container}>
@@ -23,23 +132,40 @@ export default function AddProductPage() {
 
         <div className={styles.formGroup}>
           <label>Product Name</label>
-          <input type="text" placeholder="UrbanFit Premium Cotton T-Shirt" />
+          <input
+  type="text"
+  placeholder="UrbanFit Premium Cotton T-Shirt"
+  value={name}
+  onChange={(e) => setName(e.target.value)}
+/>
         </div>
 
         <div className={styles.formGroup}>
           <label>Short Description</label>
-          <textarea 
-            placeholder="Experience ultimate comfort with our premium, ethically sourced cotton blend. Designed for the modern urban lifestyle."
-            rows={4}
-          />
+          <textarea
+  placeholder="Experience ultimate comfort..."
+  rows={4}
+  value={description}
+  onChange={(e) => setDescription(e.target.value)}
+/>
         </div>
 
         <div className={styles.row}>
           <div className={styles.formGroup}>
             <label>Brand</label>
             <div className={styles.selectWrapper}>
-              <select defaultValue="ThreadCo">
-                <option value="ThreadCo">ThreadCo</option>
+              <select
+                value={brandId}
+                onChange={(e) => setBrandId(e.target.value)}
+              >
+                <option value="">Select Brand</option>
+
+                {brands.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}
+                  </option>
+                ))}
+
               </select>
               <ChevronDown className={styles.selectIcon} size={18} />
             </div>
@@ -48,8 +174,18 @@ export default function AddProductPage() {
           <div className={styles.formGroup}>
             <label>Category</label>
             <div className={styles.selectWrapper}>
-              <select defaultValue="T-shirts">
-                <option value="T-shirts">T-shirts</option>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">Select Category</option>
+
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+
               </select>
               <ChevronDown className={styles.selectIcon} size={18} />
             </div>
@@ -76,38 +212,43 @@ export default function AddProductPage() {
         </div>
 
         <div className={styles.galleryGrid}>
-          {/* Example Images */}
-          <div className={styles.imagePreview}>
-            <button className={styles.removeBtn}>
-                <X size={14}/>
-            </button>
-            <img src="/api/placeholder/150/150" alt="Model" />
-            </div>
 
-            <div className={styles.imagePreview}>
-            <button className={styles.removeBtn}>
-                <X size={14}/>
-            </button>
-            <img src="/api/placeholder/150/150" alt="Texture" />
-            </div>
-             <div className={styles.imagePreview}>
-                <button className={styles.removeBtn}>
-                    <X size={14}/>
-                </button>
-                <img src="/api/placeholder/150/150" alt="Model" />
-            </div>
-          {/* Add More Button */}
-          <button className={styles.addMoreButton}>
-            <Plus size={24} />
-            <span>Add More</span>
-          </button>
-        </div>
+  {images.map((img, index) => (
+    <div key={index} className={styles.imagePreview}>
+      <button
+        className={styles.removeBtn}
+        onClick={() => removeImage(index)}
+      >
+        <X size={14}/>
+      </button>
+
+      <img src={img} alt="preview" />
+    </div>
+  ))}
+
+  <label className={styles.addMoreButton}>
+    <Plus size={24} />
+    <span>Add More</span>
+
+    <input
+      type="file"
+      multiple
+      accept="image/*"
+      onChange={handleImageUpload}
+      hidden
+    />
+  </label>
+
+</div>
 
         <p className={styles.helpText}>
           Drag and drop to reorder images. Supported formats: JPG, PNG, WEBP (Max 5MB each)
         </p>
       </section>
-      <section className={styles.formCard}>
+    
+{/* 3. PRODUCT META INFORMATION */}
+<section className={styles.formCard}>
+
   <div className={styles.sectionTitle}>
     <div className={styles.iconCircle}>
       <FileText size={18} />
@@ -115,140 +256,140 @@ export default function AddProductPage() {
     <h2>3. Product Meta Information</h2>
   </div>
 
-  <div className={styles.editorContainer}>
-    <div className={styles.editorHeader}>
-      <span className={styles.editorLabel}>PRODUCT DETAILS</span>
-      <div className={styles.editorToolbar}>
-        <button type="button"><Bold size={16} /></button>
-        <button type="button"><Italic size={16} /></button>
-        <button type="button"><List size={16} /></button>
-        <button type="button"><Link size={16} /></button>
-      </div>
-    </div>
-    <div className={styles.editorContent}>
-      <textarea 
-        placeholder="Our UrbanFit Premium T-Shirt is the cornerstone of any modern wardrobe..."
-        className={styles.editorTextArea}
-        rows={6}
-      />
-    </div>
-  </div>
-</section>
-{/* --- Section 4: Material & Fabric --- */}
-<section className={styles.formCard}>
-  <div className={styles.sectionTitle}>
-    <div className={styles.iconCircle}>
-      <List size={18} />
-    </div>
-    <h2>4. Material & Fabric</h2>
-  </div>
 
-  <div className={styles.materialEditor}>
-    {/* Header with Tool Buttons */}
-    <div className={styles.materialHeader}>
-      <span className={styles.materialLabel}>MATERIAL & FABRIC</span>
-      <div className={styles.materialToolbar}>
-        <button type="button"><Bold size={14} /></button>
-        <button type="button"><List size={14} /></button>
-        <button type="button"><Image size={14} /></button>
-      </div>
-    </div>
+  {/* PRODUCT DETAILS */}
+  <div className={styles.metaCard}>
+    <div className={styles.metaHeader}>
+      <span>PRODUCT DETAILS</span>
+      <div className={styles.metaToolbar}>
+  <button onClick={()=>productEditor.current?.editor.chain().focus().toggleBold().run()}>
+    <Bold size={16}/>
+  </button>
 
-    {/* Content Area */}
-    <div className={styles.materialContent}>
-      <p className={styles.materialText}>
-        We source our cotton exclusively from partners who prioritize environmental sustainability and ethical labor practices.
-      </p>
+  <button onClick={()=>productEditor.current?.editor.chain().focus().toggleItalic().run()}>
+    <Italic size={16}/>
+  </button>
+
+  <button onClick={()=>productEditor.current?.editor.chain().focus().toggleBulletList().run()}>
+    <List size={16}/>
+  </button>
+
+  <button
+    onClick={()=>{
+      const url = prompt("Enter URL")
+      if(url) productEditor.current?.editor.chain().focus().setLink({href:url}).run()
+    }}
+  >
+    <Link size={16}/>
+  </button>
+</div>
       
-      <div className={styles.materialImageContainer}>
-        <img 
-          src="/api/placeholder/800/200" 
-          alt="Cotton Field" 
-          className={styles.bannerImage} 
-        />
-      </div>
-
-      <p className={styles.materialText}>
-        <strong>Composition:</strong> 95% Organic Supima Cotton, 5% Elastane for superior shape retention.
-      </p>
     </div>
-  </div>
-</section>
 
-{/* --- Section 5: Size Guide --- */}
-<section className={styles.formCard}>
-  <div className={styles.sectionTitle}>
-    <div className={styles.iconCircle}>
-      <Ruler size={18} />
-    </div>
-    <h2>5. Size Guide</h2>
+    <RichTextEditor
+  ref={productEditor}
+  value={metaDescription}
+  onChange={setMetaDescription}
+/>
   </div>
 
-  <div className={styles.sizeGuideContainer}>
-    <div className={styles.sizeGuideHeader}>
-      <span className={styles.sizeGuideLabel}>SIZE GUIDE</span>
-      <div className={styles.sizeGuideToolbar}>
-        <button type="button"><LayoutGrid size={16} /></button>
-        <button type="button"><Info size={16} /></button>
-      </div>
-    </div>
-    
-    <div className={styles.sizeGuideContent}>
-      <p className={styles.sizeDescription}>
-        Standard athletic fit. If you prefer a loose "oversized" look, we recommend sizing up one step.
-      </p>
+
+  {/* MATERIAL & FABRIC */}
+  <div className={styles.metaCard}>
+    <div className={styles.metaHeader}>
+      <span>MATERIAL & FABRIC</span>
+      <div className={styles.metaToolbar}>
+  <button onClick={()=>materialEditor.current?.editor.chain().focus().toggleBold().run()}>
+    <Bold size={16}/>
+  </button>
+
+  <button onClick={()=>materialEditor.current?.editor.chain().focus().toggleBulletList().run()}>
+    <List size={16}/>
+  </button>
+
+  <button
+onClick={()=>{
+  const url = prompt("Enter image URL")
+  if(url){
+    materialEditor.current?.editor
+      .chain()
+      .focus()
+      .setImage({src:url})
+      .run()
+  }
+}}
+>
+<Image size={16}/>
+</button>
+</div>
       
-      <table className={styles.sizeTable}>
-        <thead>
-          <tr>
-            <th>Size</th>
-            <th>Chest (in)</th>
-            <th>Length (in)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Small</td>
-            <td>36-38</td>
-            <td>27</td>
-          </tr>
-          <tr>
-            <td>Medium</td>
-            <td>39-41</td>
-            <td>28</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
-  </div>
-</section>
-<section className={styles.formCard}>
-  <div className={styles.sectionTitle}>
-    <div className={styles.iconCircle}>
-      <ShieldCheck size={18} />
-    </div>
-    <h2>6. Care Instructions</h2>
+
+    <RichTextEditor
+  ref={materialEditor}
+  value={materialFabric}
+  onChange={setMaterialFabric}
+/>
   </div>
 
-  <div className={styles.careContainer}>
-    <div className={styles.careHeader}>
-      <span className={styles.careLabel}>CARE INSTRUCTIONS</span>
-      <div className={styles.careToolbar}>
-        <button type="button"><Eraser size={16} /></button>
-      </div>
+
+  {/* SIZE GUIDE */}
+  <div className={styles.metaCard}>
+    <div className={styles.metaHeader}>
+      <span>SIZE GUIDE</span>
+      <div className={styles.metaToolbar}>
+  <button
+onClick={()=>{
+  sizeEditor.current?.editor
+    ?.chain()
+    .focus()
+    .insertTable({
+      rows:3,
+      cols:3,
+      withHeaderRow:true
+    })
+    .run()
+}}
+>
+<LayoutGrid size={16}/>
+</button>
+
+  <button>
+    <Info size={16}/>
+  </button>
+</div>
+      
     </div>
-    
-    <div className={styles.careContent}>
-      <p className={styles.careText}>
-        To maintain the premium finish of your UrbanFit t-shirt:
-      </p>
-      <ul className={styles.careList}>
-        <li>Machine wash cold with like colors.</li>
-        <li>Tumble dry low or air dry to conserve energy and preserve fiber strength.</li>
-        <li>Iron on medium heat if needed; avoid ironing direct graphics.</li>
-      </ul>
-    </div>
+
+    <RichTextEditor
+  ref={sizeEditor}
+  value={sizeGuide}
+  onChange={setSizeGuide}
+/>
   </div>
+
+
+  {/* CARE INSTRUCTIONS */}
+  <div className={styles.metaCard}>
+    <div className={styles.metaHeader}>
+      <span>CARE INSTRUCTIONS</span>
+      <div className={styles.metaToolbar}>
+  <button
+    onClick={()=>careEditor.current?.editor.chain().focus().clearNodes().unsetAllMarks().run()}
+  >
+    <Eraser size={16}/>
+  </button>
+</div>
+      
+    </div>
+
+    <RichTextEditor
+  ref={careEditor}
+  value={careInstructions}
+  onChange={setCareInstructions}
+/>
+  </div>
+
 </section>
 <section className={styles.bannerContainer}>
         
@@ -263,7 +404,7 @@ export default function AddProductPage() {
         {/* Right Side: Button */}
         <button 
             className={styles.ctaButton}
-            onClick={() => router.push("/products/addvariation")}
+            onClick={handleSaveProduct}
             >
             Save & Next: Variations
         </button>
