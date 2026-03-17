@@ -1,22 +1,25 @@
-import React from 'react';
-import styles from './category.module.css';
+"use client";
 
-interface Category {
-  id: number;
-  name: string;
-  productCount: number;
-}
+import React, { useEffect, useState } from "react";
+import styles from "./category.module.css";
 
-const categories: Category[] = [
-  { id: 1, name: 'T-Shirts', productCount: 120 },
-  { id: 2, name: 'Sarees', productCount: 85 },
-  { id: 3, name: 'Ethnic Wear', productCount: 150 },
-  { id: 4, name: 'Footwear', productCount: 60 },
-  { id: 5, name: 'Accessories', productCount: 210 },
-  { id: 6, name: 'Home Decor', productCount: 45 },
-];
+import { getCategories } from "@/services/category.service";
+import { Category } from "@/types/category";
+
 
 export default function CategoryPage() {
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  useEffect(() => {
+
+  const fetchCategories = async () => {
+    const data = await getCategories();
+    setCategories(data);
+  };
+
+  fetchCategories();
+
+}, []);
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -33,7 +36,7 @@ export default function CategoryPage() {
         {categories.map((category) => (
           <div key={category.id} className={styles.card}>
             <h3>{category.name}</h3>
-            <p>{category.productCount} Products</p>
+            <p>Category ID: {category.id}</p>
           </div>
         ))}
       </div>

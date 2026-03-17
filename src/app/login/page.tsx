@@ -3,12 +3,36 @@ import React from 'react';
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Eye, ArrowRight } from 'lucide-react';
 import styles from './login.module.css';
+import { useState } from "react";
+import { loginRequest } from "@/services/auth.service";
+import { useAuth } from "@/auth/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const handleLogin = () => {
-  router.push("/dashboard");
+  
+  const { login } = useAuth();
+
+const [email, setEmail] = useState("");
+const [password, setPassword] = useState("");
+const handleLogin = async () => {
+
+  try {
+
+    const data = await loginRequest(email, password);
+
+    // save token
+    login(data.access_token, data.user);
+
+    router.push("/dashboard");
+
+  } catch (error) {
+
+    alert("Login failed");
+
+  }
+
 };
+
   return (
     <div className={styles.container}>
       <div className={styles.card}>
@@ -24,7 +48,12 @@ export default function LoginPage() {
             <label>Email Address</label>
             <div className={styles.inputWrapper}>
               <Mail className={styles.icon} size={20}/>
-              <input type="email" placeholder="admin@store.com"/>
+              <input
+                type="email"
+                placeholder="admin@store.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                />
             </div>
           </div>
 
@@ -37,7 +66,12 @@ export default function LoginPage() {
 
             <div className={styles.inputWrapper}>
               <Lock className={styles.icon} size={20}/>
-              <input type="password" placeholder="••••••••"/>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                />
               <button type="button" className={styles.eyeButton}>
                 <Eye size={20}/>
               </button>

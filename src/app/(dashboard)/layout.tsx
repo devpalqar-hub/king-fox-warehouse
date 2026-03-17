@@ -1,3 +1,6 @@
+"use client";
+
+import AuthGuard from "@/auth/AuthGuard";
 import Header from "@/components/header/header";
 import Sidebar from "@/components/sidebar/sidebar";
 
@@ -7,21 +10,24 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ display: "flex" }}>
-      
-      {/* Sidebar */}
-      <Sidebar />
-
-      <div style={{ flex: 1 }}>
+    <AuthGuard>
+      <div style={{ display: "flex" }}>
         
-        {/* Header */}
-        <Header />
+        {/* Sidebar */}
+        <Sidebar />
 
-        {/* Page content */}
-        <main style={{ width: "100%" }}>
+        <div style={{ flex: 1 }}>
+          
+          {/* Header */}
+          <Header />
+
+          {/* Page content */}
+          <main style={{ width: "100%" }}>
             {children}
-        </main>
+          </main>
+
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }
