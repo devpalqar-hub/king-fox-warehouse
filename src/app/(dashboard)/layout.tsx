@@ -11,21 +11,28 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthGuard>
-      <div style={{ display: "flex" }}>
-        
+      <div>
         {/* Sidebar */}
         <Sidebar />
 
-        <div style={{ flex: 1 }}>
-          
+        {/* Main Area */}
+        <div
+          style={{
+            marginLeft: "300px", 
+          }}
+        >
           {/* Header */}
           <Header />
 
-          {/* Page content */}
-          <main style={{ width: "100%" }}>
+          {/* Content */}
+          <main
+            style={{
+              marginTop: "85px",
+              padding: "24px",
+            }}
+          >
             {children}
           </main>
-
         </div>
       </div>
     </AuthGuard>

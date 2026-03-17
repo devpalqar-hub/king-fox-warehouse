@@ -1,12 +1,17 @@
 .header {
   height: 85px;
-  width: 100%;
+  width: calc(100% - 300px); 
+  margin-left: 300px; 
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
   background-color: #ffffff;
   border-bottom: 1px solid #f0f0f0;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
 }
 
 .searchContainer {

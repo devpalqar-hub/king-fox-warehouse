@@ -18,7 +18,7 @@ import {
 
   const menuItems = [
   { name: 'Dashboard', icon: <LayoutDashboard size={22} />, path: '/dashboard' },
-  { name: 'Warehouse', icon: <Warehouse size={22} />, path: '/warehouse' },
+  { name: 'Inventory', icon: <Warehouse size={22} />, path: '/inventory' },
   { name: 'Products', icon: <Package size={22} />, path: '/products' },
   { name: 'Category', icon: <Tag size={22} />, path: '/category' },
   { name: 'Stocks', icon: <Store size={22} />, path: '/stocks' },
