@@ -162,7 +162,10 @@
   padding: 14px;
   color: #64748b;
 }
-
+.scheduled {
+  background: #fef3c7;
+  color: #d97706;
+}
 /* Responsive */
 @media (max-width: 900px) {
   .statsGrid {

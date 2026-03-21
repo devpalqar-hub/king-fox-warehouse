@@ -1,60 +1,67 @@
 "use client";
 
 import styles from "./luckydraw.module.css";
-import { Plus, Calendar, Ticket, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Calendar, Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCampaigns } from "@/services/luckydraw.service";
+import { useToast } from "@/components/toast/ToastProvider";
 
 const LuckyDrawPage = () => {
   const [activeTab, setActiveTab] = useState("all");
+  const [campaigns, setCampaigns] = useState<any[]>([]);
+  const { showToast } = useToast();
 
-  const campaigns = [
-    {
-      title: "Kingfox Summer Lucky Draw 2025",
-      status: "active",
-      vouchers: 500,
-      redeemed: 124,
-      percent: 25,
-      date: "Apr 1, 2025 — Jul 31, 2025",
-    },
-    {
-      title: "Winter Gala 2024",
-      status: "completed",
-      vouchers: 1000,
-      redeemed: 1000,
-      percent: 100,
-      date: "Nov 1, 2024 — Dec 31, 2024",
-    },
-    {
-      title: "Spring Pop-up Extravaganza",
-      status: "draft",
-      vouchers: 200,
-      redeemed: 0,
-      percent: 0,
-      date: "May 1, 2025 — May 15, 2025",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await getCampaigns();
+      setCampaigns(data);
+    };
+
+    fetchData();
+  }, []);
+
+  // 🔥 map API → UI
+  const mappedCampaigns = campaigns.map((c) => {
+    const percent = c.totalVouchersLimit
+      ? Math.round((c.vouchersIssued / c.totalVouchersLimit) * 100)
+      : 0;
+
+    return {
+      id: c.id,
+      title: c.name,
+      description: c.description,
+      status: c.status.toLowerCase(),
+      vouchers: c.totalVouchersLimit,
+      redeemed: c.vouchersIssued,
+      percent,
+      date: `${new Date(c.startDate).toLocaleDateString()} — ${new Date(
+        c.endDate,
+      ).toLocaleDateString()}`,
+    };
+  });
+
+  const filtered = mappedCampaigns.filter((c) =>
+    activeTab === "all" ? true : c.status === activeTab,
+  );
 
   return (
     <div className={styles.container}>
-      {/* Stats */}
+      {/* Stats (can be dynamic later) */}
       <section className={styles.statsGrid}>
         <div className={styles.statCard}>
-          <p>Total Participants</p>
-          <h2>24.5k</h2>
-          <span className={styles.positive}>+12%</span>
+          <p>Total Campaigns</p>
+          <h2>{campaigns.length}</h2>
         </div>
 
         <div className={styles.statCard}>
-          <p>Voucher Redemption Rate</p>
-          <h2>68.2%</h2>
-          <span className={styles.positive}>+4.3%</span>
+          <p>Total Vouchers</p>
+          <h2>{campaigns.reduce((acc, c) => acc + c.totalVouchersLimit, 0)}</h2>
         </div>
 
         <div className={styles.statCard}>
-          <p>Total Campaign Value</p>
-          <h2>$128k</h2>
-          <span className={styles.muted}>Target: $150k</span>
+          <p>Issued</p>
+          <h2>{campaigns.reduce((acc, c) => acc + c.vouchersIssued, 0)}</h2>
         </div>
       </section>
 
@@ -62,11 +69,11 @@ const LuckyDrawPage = () => {
       <header className={styles.header}>
         <div>
           <h1>Lucky Draws</h1>
-          <p>Manage and monitor your active promotional campaigns</p>
+          <p>Manage promotional campaigns</p>
         </div>
 
         <Link href="/luckydraw/create" className={styles.btnPrimary}>
-          <Plus size={18} /> Create New Campaign
+          <Plus size={18} /> Create Campaign
         </Link>
       </header>
 
@@ -80,23 +87,23 @@ const LuckyDrawPage = () => {
             }`}
             onClick={() => setActiveTab(tab)}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab.toUpperCase()}
           </button>
         ))}
       </div>
 
-      {/* Campaign List */}
+      {/* List */}
       <section className={styles.list}>
-        {campaigns.map((c, i) => (
-          <div key={i} className={styles.card}>
-            {/* Left */}
+        {filtered.map((c) => (
+          <div key={c.id} className={styles.card}>
+            {/* LEFT */}
             <div className={styles.left}>
               <h3>{c.title}</h3>
+              <p className={styles.desc}>{c.description}</p>
 
               <div className={styles.meta}>
-                <span>
-                  <Calendar size={14} /> {c.date}
-                </span>
+                <Calendar size={14} />
+                {c.date}
               </div>
 
               <span className={`${styles.status} ${styles[c.status]}`}>
@@ -104,36 +111,33 @@ const LuckyDrawPage = () => {
               </span>
             </div>
 
-            {/* Middle */}
+            {/* MIDDLE */}
             <div className={styles.middle}>
               <div>
-                <p>Total Vouchers</p>
+                <p>Total</p>
                 <h4>{c.vouchers}</h4>
               </div>
 
               <div>
                 <p>Redeemed</p>
                 <h4>{c.redeemed}</h4>
+
                 <div className={styles.progressBar}>
                   <div
-                    style={{ width: `${c.percent}%` }}
                     className={styles.progressFill}
-                  ></div>
+                    style={{ width: `${c.percent}%` }}
+                  />
                 </div>
+
                 <span>{c.percent}%</span>
               </div>
             </div>
 
-            {/* Actions */}
+            {/* ACTIONS */}
             <div className={styles.actions}>
-              {c.status === "completed" ? (
-                <Eye size={18} />
-              ) : (
-                <>
-                  <Pencil size={18} />
-                  <Trash2 size={18} />
-                </>
-              )}
+              <Eye size={18} />
+              <Pencil size={18} />
+              <Trash2 size={18} />
             </div>
           </div>
         ))}

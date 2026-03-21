@@ -3,49 +3,44 @@
 import styles from "./coupons.module.css";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getCoupons } from "@/services/coupon.service";
+import { Coupon } from "@/types/coupon";
 
 const CouponsPage = () => {
   const [activeTab, setActiveTab] = useState("active");
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
 
-  const coupons = [
-    {
-      code: "SAVE20",
-      name: "Global Winter Sale",
-      type: "20% Discount",
-      used: 65,
-      total: 100,
-      validity: "Ends Dec 31, 2024",
-      status: "active",
-    },
-    {
-      code: "WELCOME50",
-      name: "New User Special",
-      type: "$50.00 Fixed",
-      used: 500,
-      total: 500,
-      validity: "Ended Oct 15, 2024",
-      status: "expired",
-    },
-    {
-      code: "FALL25",
-      name: "Seasonal Collection",
-      type: "25% Discount",
-      used: 42,
-      total: 200,
-      validity: "Ends Nov 30, 2024",
-      status: "active",
-    },
-    {
-      code: "FLASH10",
-      name: "Weekend Blitz",
-      type: "10% Discount",
-      used: 1205,
-      total: null,
-      validity: "No Expiration",
-      status: "active",
-    },
-  ];
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      const data = await getCoupons();
+      setCoupons(data);
+    };
+
+    fetchCoupons();
+  }, []);
+
+  const getDiscountLabel = (c: Coupon) => {
+    if (c.discountType === "PERCENTAGE") {
+      return `${c.discountValue}% Discount`;
+    }
+    return `₹${c.discountValue} Fixed`;
+  };
+
+  const getStatus = (c: Coupon) => {
+    const now = new Date();
+    const start = new Date(c.startDate);
+    const end = new Date(c.endDate);
+
+    if (now < start) return "scheduled";
+    if (now > end) return "expired";
+    return "active";
+  };
+
+  const filteredCoupons = coupons.filter((c) => {
+    const status = getStatus(c);
+    return activeTab === "all" || status === activeTab;
+  });
 
   return (
     <div className={styles.container}>
@@ -76,27 +71,6 @@ const CouponsPage = () => {
         ))}
       </div>
 
-      {/* Stats */}
-      <section className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <p>Total Active</p>
-          <h2>124</h2>
-          <span className={styles.positive}>+12%</span>
-        </div>
-
-        <div className={styles.statCard}>
-          <p>Redemptions</p>
-          <h2>8,542</h2>
-          <span className={styles.negative}>-2.4%</span>
-        </div>
-
-        <div className={styles.statCard}>
-          <p>Revenue Saved</p>
-          <h2>$12,240</h2>
-          <span className={styles.positive}>+5.8%</span>
-        </div>
-      </section>
-
       {/* Table */}
       <section className={styles.tableWrapper}>
         <table className={styles.table}>
@@ -111,48 +85,56 @@ const CouponsPage = () => {
           </thead>
 
           <tbody>
-            {coupons.map((c, i) => {
-              const percent = c.total
-                ? Math.round((c.used / c.total) * 100)
-                : 100;
+            {filteredCoupons.map((c) => {
+              const percent = c.usageLimit
+                ? Math.round((c.usedCount / c.usageLimit) * 100)
+                : 0;
+
+              const status = getStatus(c);
 
               return (
-                <tr key={i}>
+                <tr key={c.id}>
                   <td>
                     <div className={styles.codeCell}>
                       <span className={styles.code}>{c.code}</span>
-                      <p>{c.name}</p>
+                      <p>{c.description}</p>
                     </div>
                   </td>
 
-                  <td>{c.type}</td>
+                  <td>{getDiscountLabel(c)}</td>
 
                   <td>
                     <div className={styles.progressWrapper}>
                       <span>
-                        {c.used}/{c.total ?? "∞"} used
+                        {c.usedCount}/{c.usageLimit ?? "∞"} used
                       </span>
+
                       <div className={styles.progressBar}>
                         <div
                           style={{ width: `${percent}%` }}
                           className={styles.progressFill}
-                        ></div>
+                        />
                       </div>
+
                       <span>{percent}%</span>
                     </div>
                   </td>
 
-                  <td>{c.validity}</td>
+                  <td>
+                    Ends {new Date(c.endDate).toLocaleDateString("en-IN")}
+                  </td>
 
                   <td>
                     <span
                       className={`${styles.status} ${
-                        c.status === "active"
+                        status === "active"
                           ? styles.active
-                          : styles.expired
+                          : status === "expired"
+                            ? styles.expired
+                            : styles.scheduled
                       }`}
                     >
-                      {c.status}
+                      {status}
                     </span>
                   </td>
                 </tr>
@@ -161,9 +143,8 @@ const CouponsPage = () => {
           </tbody>
         </table>
 
-        {/* Footer */}
         <div className={styles.pagination}>
-          Showing 1 to 4 of 124 coupons
+          Showing {filteredCoupons.length} coupons
         </div>
       </section>
     </div>
