@@ -43,3 +43,58 @@ export const getInventory = async (
     return [];
   }
 };
+
+export const getVariantStock = async (variantId: number) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${BASE_URL}/v1/products/variants/${variantId}/stock`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch stock");
+
+    return res.json();
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+};
+
+export const addStock = async (payload: any) => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE_URL}/v1/stock-transfers/manual`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Failed to add stock");
+
+  return res.json();
+};
+
+export const transferStock = async (payload: any) => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE_URL}/v1/stock-transfers`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Transfer failed");
+
+  return res.json();
+};
