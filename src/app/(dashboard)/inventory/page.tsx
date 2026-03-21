@@ -49,9 +49,6 @@ const InventoryPage = () => {
           <h1>Inventory Management</h1>
           <p>Monitor and adjust stock levels</p>
         </div>
-        <Link href="/products/addproduct" className={styles.btnPrimary}>
-          <Plus size={18} /> Add Product
-        </Link>
       </header>
 
       {/* Filters */}

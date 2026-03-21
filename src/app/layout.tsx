@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/auth/AuthContext";
+import { ToastProvider } from "@/components/toast/ToastProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,10 +27,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html>
-      <body>
+    <html lang="en">
+      <body className={`${inter.variable} ${manrope.variable}`}>
         <AuthProvider>
-          {children}
+          <ToastProvider>
+            {children}
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>
