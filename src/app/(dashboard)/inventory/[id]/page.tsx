@@ -1,171 +1,268 @@
 "use client";
 
 import styles from "./inventoryDetails.module.css";
-import { MapPin, Building2, ArrowRightLeft } from "lucide-react";
+import { useState, useEffect } from "react";
+import { MapPin, ArrowRightLeft } from "lucide-react";
+import { useParams } from "next/navigation";
+import { getInventory } from "@/services/inventory.service";
+import {
+  getVariantStock,
+  addStock,
+  transferStock,
+} from "@/services/inventory.service";
+import { useToast } from "@/components/toast/ToastProvider";
 
 const InventoryDetailsPage = () => {
+  const { showToast } = useToast();
+  const params = useParams();
+  const variantId = Number(params.id);
+
+  const [variant, setVariant] = useState<any>(null);
+  const [stock, setStock] = useState<any[]>([]);
+
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [quantity, setQuantity] = useState("");
+
+  const [fromBranch, setFromBranch] = useState("");
+  const [toBranch, setToBranch] = useState("");
+  const [transferQty, setTransferQty] = useState("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const list = await getInventory();
+      const found = list.find((v) => v.id === variantId);
+      setVariant(found);
+
+      const stockData = await getVariantStock(variantId);
+      setStock(stockData);
+    };
+
+    if (variantId) fetchData();
+  }, [variantId]);
+
+  const handleAddStock = async () => {
+    try {
+      if (!selectedBranch || !quantity) {
+        showToast("Fill all fields", "error");
+        return;
+      }
+
+      if (Number(quantity) <= 0) {
+        showToast("Invalid quantity", "error");
+        return;
+      }
+
+      await addStock({
+        variantId,
+        branchId: Number(selectedBranch),
+        quantity: Number(quantity),
+        note: "Manual update",
+      });
+
+      showToast("Stock updated!", "success");
+
+      const updated = await getVariantStock(variantId);
+      setStock(updated);
+
+      setQuantity("");
+      setSelectedBranch("");
+    } catch {
+      showToast("Failed to update stock", "error");
+    }
+  };
+
+  const handleTransfer = async () => {
+    try {
+      if (!fromBranch || !toBranch || !transferQty) {
+        showToast("Fill all fields", "error");
+        return;
+      }
+
+      if (fromBranch === toBranch) {
+        showToast("Source & destination cannot be same", "error");
+        return;
+      }
+
+      if (Number(transferQty) <= 0) {
+        showToast("Invalid quantity", "error");
+        return;
+      }
+
+      await transferStock({
+        fromBranchId: Number(fromBranch),
+        toBranchId: Number(toBranch),
+        items: [
+          {
+            variantId,
+            quantity: Number(transferQty),
+          },
+        ],
+      });
+
+      showToast("Transfer successful!", "success");
+
+      const updated = await getVariantStock(variantId);
+      setStock(updated);
+
+      setTransferQty("");
+      setFromBranch("");
+      setToBranch("");
+    } catch {
+      showToast("Transfer failed", "error");
+    }
+  };
+
   return (
     <div className={styles.container}>
-      
-      {/* Product Card */}
+      {/* PRODUCT */}
       <section className={styles.productCard}>
-        <div className={styles.productLeft}>
-          <div className={styles.productImage}></div>
+        {variant ? (
+          <div className={styles.productLeft}>
+            <div className={styles.productImage}></div>
 
-          <div>
-            <span className={styles.categoryBadge}>
-              APPAREL • T-SHIRTS
-            </span>
+            <div>
+              <span className={styles.categoryBadge}>
+                {variant.product?.categoryId}
+              </span>
 
-            <h2 className={styles.productTitle}>
-              UrbanFit T-Shirt - Navy Blue (Size M)
-            </h2>
+              <h2 className={styles.productTitle}>
+                {variant.product.name} - {variant.color} (Size {variant.size})
+              </h2>
 
-            <p className={styles.sku}>SKU: UF-TS-NV-M</p>
+              <p className={styles.sku}>SKU: {variant.sku}</p>
 
-            <p className={styles.stockText}>
-              TOTAL STOCK <span>482 Units</span>
-            </p>
+              <p className={styles.stockText}>
+                TOTAL STOCK <span>{variant.totalStock} Units</span>
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <p>Loading...</p>
+        )}
       </section>
 
       <div className={styles.grid}>
-        
-        {/* LEFT SECTION */}
+        {/* LEFT */}
         <div className={styles.leftColumn}>
-          
-          {/* Stock by Branch */}
+          {/* STOCK BY BRANCH */}
           <section className={styles.card}>
             <div className={styles.cardHeader}>
               <h3>Stock by Branch</h3>
-              <span>3 Branches Active</span>
+              <span>{stock.length} Branches Active</span>
             </div>
 
             <div className={styles.branchList}>
-              
-              <div className={styles.branchItem}>
-                <MapPin size={18} />
-                <div className={styles.branchInfo}>
-                  <p className={styles.branchName}>Downtown Flagship Store</p>
-                  <p className={styles.branchMeta}>
-                    Asia, 4 Shelf B • Last Audit: 2h ago
-                  </p>
-                </div>
+              {stock.map((b) => (
+                <div key={b.branchId} className={styles.branchItem}>
+                  <MapPin size={18} />
 
-                <div className={styles.branchStock}>
-                  <p>142 units</p>
-                  <span className={styles.inStock}>IN STOCK</span>
-                </div>
-              </div>
+                  <div className={styles.branchInfo}>
+                    <p className={styles.branchName}>{b.branchName}</p>
+                  </div>
 
-              <div className={styles.branchItem}>
-                <MapPin size={18} />
-                <div className={styles.branchInfo}>
-                  <p className={styles.branchName}>Westside Mall Boutique</p>
-                  <p className={styles.branchMeta}>
-                    Stockroom A • Last Audit: 1d ago
-                  </p>
-                </div>
+                  <div className={styles.branchStock}>
+                    <p>{b.stock} units</p>
 
-                <div className={styles.branchStock}>
-                  <p>28 units</p>
-                  <span className={styles.lowStock}>LOW STOCK</span>
+                    <span
+                      className={
+                        b.outOfStock
+                          ? styles.outStock
+                          : b.lowStock
+                            ? styles.lowStock
+                            : styles.inStock
+                      }
+                    >
+                      {b.outOfStock
+                        ? "OUT OF STOCK"
+                        : b.lowStock
+                          ? "LOW STOCK"
+                          : "IN STOCK"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-
-              <div className={styles.branchItem}>
-                <Building2 size={18} />
-                <div className={styles.branchInfo}>
-                  <p className={styles.branchName}>Central Logistics Center</p>
-                  <p className={styles.branchMeta}>
-                    Bay 12, Rack 4 • Last Audit: 5h ago
-                  </p>
-                </div>
-
-                <div className={styles.branchStock}>
-                  <p>312 units</p>
-                  <span className={styles.bulkStock}>BULK STOCK</span>
-                </div>
-              </div>
-
+              ))}
             </div>
           </section>
 
-          {/* Transfer Stock */}
+          {/* TRANSFER */}
           <section className={styles.card}>
             <h3>Transfer Stock</h3>
 
             <div className={styles.transferRow}>
-              <div className={styles.selectWrapper}>
-                <label>Source Branch</label>
-                <select>
-                  <option>Central Logistics Center</option>
-                </select>
-              </div>
+              <select
+                value={fromBranch}
+                onChange={(e) => setFromBranch(e.target.value)}
+              >
+                <option value="">Source</option>
+                {stock.map((b) => (
+                  <option key={b.branchId} value={b.branchId}>
+                    {b.branchName}
+                  </option>
+                ))}
+              </select>
 
-              <div className={styles.selectWrapper}>
-                <label>Destination Branch</label>
-                <select>
-                  <option>Select Destination</option>
-                </select>
-              </div>
-            </div>
+              <select
+                value={toBranch}
+                onChange={(e) => setToBranch(e.target.value)}
+              >
+                <option value="">Destination</option>
+                {stock.map((b) => (
+                  <option key={b.branchId} value={b.branchId}>
+                    {b.branchName}
+                  </option>
+                ))}
+              </select>
 
-            <div className={styles.transferRow}>
-              <div className={styles.inputWrapper}>
-                <label>Transfer Quantity</label>
-                <input placeholder="Enter amount" />
-              </div>
+              <input
+                type="number"
+                placeholder="Qty"
+                value={transferQty}
+                onChange={(e) => setTransferQty(e.target.value)}
+              />
 
-              <button className={styles.transferBtn}>
-                <ArrowRightLeft size={16} /> Initiate Transfer
+              <button className={styles.transferBtn} onClick={handleTransfer}>
+                <ArrowRightLeft size={16} /> Transfer
               </button>
             </div>
           </section>
         </div>
 
-        {/* RIGHT SECTION */}
+        {/* RIGHT */}
         <div className={styles.rightColumn}>
-          
-          {/* Add Stock */}
+          {/* ADD STOCK */}
           <section className={styles.card}>
             <h3>Add New Stock</h3>
-            <p className={styles.cardSub}>
-              Increase inventory for a specific location
-            </p>
+            <p className={styles.cardSub}>Increase inventory for a location</p>
 
-            <div className={styles.inputWrapper}>
-              <label>Target Location</label>
-              <select>
-                <option>Central Logistics Center</option>
-              </select>
-            </div>
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+            >
+              <option value="">Select branch</option>
+              {stock.map((b) => (
+                <option key={b.branchId} value={b.branchId}>
+                  {b.branchName}
+                </option>
+              ))}
+            </select>
 
-            <div className={styles.inputWrapper}>
-              <label>Add Units</label>
-              <input type="number" placeholder="0" />
-            </div>
+            <input
+              type="number"
+              placeholder="Quantity"
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+            />
 
-            <div className={styles.inputWrapper}>
-              <label>Adjustment Note</label>
-              <input placeholder="Restock from vendor..." />
-            </div>
-
-            <button className={styles.primaryBtn}>
+            <button className={styles.primaryBtn} onClick={handleAddStock}>
               Update Inventory
             </button>
           </section>
 
-          {/* System Note */}
+          {/* NOTE */}
           <section className={styles.noteCard}>
             <h4>System Note</h4>
-            <p>
-              All stock transfers generate a tracking ID and require
-              verification from the receiving branch.
-            </p>
+            <p>All transfers generate tracking IDs and require verification.</p>
           </section>
-
         </div>
       </div>
     </div>
