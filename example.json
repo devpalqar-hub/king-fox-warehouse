@@ -1244,6 +1244,75 @@
         ]
       }
     },
+    "/v1/products/{id}/reviews/mock": {
+      "post": {
+        "operationId": "ProductsController_adminMockReview",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Product ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminMockReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mocked review created"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Mock a review as a specific customer (admin only)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
+    "/v1/products/reviews/{reviewId}": {
+      "delete": {
+        "operationId": "ProductsController_adminDeleteReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete any review (admin only)",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
     "/v1/inventory/analytics": {
       "get": {
         "operationId": "InventoryController_getAnalytics",
@@ -4335,6 +4404,102 @@
           "User - Cart"
         ]
       }
+    },
+    "/v1/user/products/{productId}/reviews": {
+      "get": {
+        "operationId": "UserReviewsController_getProductReviews",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "Product ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews fetched successfully"
+          }
+        },
+        "summary": "Get reviews for a product",
+        "tags": [
+          "User - Reviews"
+        ]
+      },
+      "post": {
+        "operationId": "UserReviewsController_addReview",
+        "parameters": [
+          {
+            "name": "productId",
+            "required": true,
+            "in": "path",
+            "description": "Product ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review added successfully"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a review for a product (logged-in user)",
+        "tags": [
+          "User - Reviews"
+        ]
+      }
+    },
+    "/v1/user/products/reviews/{reviewId}": {
+      "delete": {
+        "operationId": "UserReviewsController_deleteOwnReview",
+        "parameters": [
+          {
+            "name": "reviewId",
+            "required": true,
+            "in": "path",
+            "description": "Review ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted successfully"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete own review",
+        "tags": [
+          "User - Reviews"
+        ]
+      }
     }
   },
   "info": {
@@ -4827,6 +4992,45 @@
           "sku",
           "costPrice",
           "sellingPrice"
+        ]
+      },
+      "AdminMockReviewDto": {
+        "type": "object",
+        "properties": {
+          "customerId": {
+            "type": "number",
+            "example": 1,
+            "description": "Customer ID to post the review on behalf of"
+          },
+          "rating": {
+            "type": "number",
+            "example": 4,
+            "description": "Rating from 1 to 5",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "title": {
+            "type": "string",
+            "example": "Excellent quality!"
+          },
+          "body": {
+            "type": "string",
+            "example": "Really soft material, loved it."
+          },
+          "images": {
+            "example": [
+              "https://cdn.example.com/mocked1.jpg"
+            ],
+            "description": "Array of image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "customerId",
+          "rating"
         ]
       },
       "CreateSupplierDto": {
@@ -6200,6 +6404,39 @@
         "required": [
           "variantId",
           "quantity"
+        ]
+      },
+      "AddReviewDto": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "number",
+            "example": 5,
+            "description": "Rating from 1 to 5",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "title": {
+            "type": "string",
+            "example": "Great product!"
+          },
+          "body": {
+            "type": "string",
+            "example": "Very comfortable and true to size."
+          },
+          "images": {
+            "example": [
+              "https://cdn.example.com/review1.jpg"
+            ],
+            "description": "Array of image URLs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "rating"
         ]
       }
     }

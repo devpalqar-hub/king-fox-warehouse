@@ -11,7 +11,7 @@ import { Category } from "@/types/category";
 import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMetaInfo";
 import { createProduct } from "@/services/product-create.service";
 import { useRef } from "react"
-
+import { uploadImagesToS3 } from "@/services/upload.service";
 
 export default function AddProductPage() {
 const router = useRouter();
@@ -21,69 +21,67 @@ const [brandId, setBrandId] = useState("");
 const [categoryId, setCategoryId] = useState("");
 const [brands, setBrands] = useState<Brand[]>([]);
 const [categories, setCategories] = useState<Category[]>([]);
-const [images, setImages] = useState<string[]>([]);
+const [imageFiles, setImageFiles] = useState<File[]>([]);
+const [images, setImages] = useState<string[]>([]); // preview
 
 const [metaInfo, setMetaInfo] = useState<MetaItem[]>([
   { title: "", text: "", imageUrl: "" }
 ]);
 
 const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-
   const files = e.target.files;
-
   if (!files) return;
 
-  const newImages = Array.from(files).map((file) =>
-    URL.createObjectURL(file)
-  );
+  const fileArray = Array.from(files);
 
-  setImages((prev) => [...prev, ...newImages]);
+  // store actual files
+  setImageFiles(prev => [...prev, ...fileArray]);
+
+  // preview
+  const previewUrls = fileArray.map(file => URL.createObjectURL(file));
+  setImages(prev => [...prev, ...previewUrls]);
 };
 
 const removeImage = (index: number) => {
   setImages((prev) => prev.filter((_, i) => i !== index));
 };
 const handleSaveProduct = async () => {
-
   if (!name || !brandId || !categoryId) {
     alert("Please fill required fields");
     return;
   }
 
-  // ✅ filter valid meta only
-  const cleanedMeta = metaInfo
-    .filter(meta => meta.title || meta.text || meta.imageUrl)
-    .map(meta => ({
-      title: meta.title || "",
-      text: meta.text || "",
-      imageUrl: meta.imageUrl || ""
-    }));
-
-  const payload = {
-    name,
-    description,
-    brandId: Number(brandId),
-    categoryId: Number(categoryId),
-
-    // ✅ send images properly
-    images: images.map((img, i) => `https://dummyimage.com/product-${i}`),
-
-    // ✅ cleaned meta
-    metaInfo: cleanedMeta,
-
-    // optional for now
-    tagIds: []
-  };
-
   try {
-    const product = await createProduct(payload);
+    // ✅ STEP 1: Upload images first
+    const uploadedImageUrls = await uploadImagesToS3(imageFiles);
 
-    console.log("CREATED PRODUCT:", product); // debug
+    // ✅ STEP 2: Clean meta
+    const cleanedMeta = metaInfo
+      .filter(meta => meta.title || meta.text || meta.imageUrl)
+      .map(meta => ({
+        title: meta.title || "",
+        text: meta.text || "",
+        imageUrl: meta.imageUrl || ""
+      }));
+
+    // ✅ STEP 3: Create payload
+    const payload = {
+      name,
+      description,
+      brandId: Number(brandId),
+      categoryId: Number(categoryId),
+      images: uploadedImageUrls, // 🔥 real S3 URLs
+      metaInfo: cleanedMeta,
+      tagIds: []
+    };
+
+    // ✅ STEP 4: Create product
+    const product = await createProduct(payload);
 
     router.push(`/products/addvariation?productId=${product.id}`);
 
   } catch (err: any) {
-    console.error("Create product error:", err);
+    console.error(err);
     alert(err.message || "Something went wrong");
   }
 };

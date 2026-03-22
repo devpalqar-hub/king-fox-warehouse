@@ -12,7 +12,8 @@ import {
   ShoppingBag, 
   Trophy,
   Tag, 
-  Store 
+  Store,
+  Users
 } from 'lucide-react';
 
 
@@ -25,6 +26,7 @@ import {
   { name: 'Coupons', icon: <Ticket size={22} />, path: '/coupons' },
   { name: 'Orders', icon: <ShoppingBag size={22} />, path: '/orders' },
   { name: 'Lucky Draw', icon: <Trophy size={22} />, path: '/luckydraw' },
+  { name: 'User Management', icon: <Users size={22} />, path: '/usermanagement' },
 ];
 
 

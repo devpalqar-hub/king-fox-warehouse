@@ -13,12 +13,15 @@ import { getProductById } from "@/services/product-create.service";
 import { useSearchParams } from "next/navigation";
 import { createVariant } from "@/services/product-create.service";
 import { getVariantsByProductId } from "@/services/product-create.service";
-
+import { uploadImagesToS3 } from "@/services/upload.service";
+import {  X } from "lucide-react";
 export default function AddVariationPage() {
 const searchParams = useSearchParams();
 const productId = searchParams.get("productId");
 const [variants, setVariants] = useState<any[]>([]);
 const [product, setProduct] = useState<any>(null);
+const [imageFile, setImageFile] = useState<File | null>(null);
+const [preview, setPreview] = useState<string>("");
 const [variation, setVariation] = useState({
   sku: "",
   size: "",
@@ -28,6 +31,15 @@ const [variation, setVariation] = useState({
   barcode: "",
   image: ""
 });
+
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setImageFile(file);
+  setPreview(URL.createObjectURL(file));
+};
+
 // ✅ Fetch product
 useEffect(() => {
   const fetchProduct = async () => {
@@ -71,6 +83,14 @@ const handleAddToList = async () => {
   }
 
   try {
+    // 🔥 upload image first
+    let imageUrl = "";
+
+    if (imageFile) {
+      const uploaded = await uploadImagesToS3([imageFile]);
+      imageUrl = uploaded[0];
+    }
+
     const payload = {
       sku: variation.sku,
       costPrice: variation.costPrice,
@@ -78,17 +98,14 @@ const handleAddToList = async () => {
       size: variation.size,
       color: variation.color,
       barcode: variation.barcode || Date.now().toString(),
-      image: variation.image || "https://via.placeholder.com/150"
+      image: imageUrl || "https://via.placeholder.com/150"
     };
-
-    console.log("Sending:", payload);
 
     const newVariant = await createVariant(Number(productId), payload);
 
     setVariants((prev) => [...prev, newVariant]);
 
-    alert("Variant added successfully ✅");
-
+    // reset
     setVariation({
       sku: "",
       size: "",
@@ -99,12 +116,16 @@ const handleAddToList = async () => {
       image: ""
     });
 
+    setImageFile(null);
+    setPreview("");
+
+    alert("Variant added successfully ✅");
+
   } catch (error: any) {
     console.error(error);
     alert(error.message);
   }
 };
-  
 
   return (
     <div className={styles.container}>
@@ -164,16 +185,36 @@ const handleAddToList = async () => {
     <div className={styles.uploadSection}>
       <label className={styles.fieldLabel}>Variation Image</label>
       <div className={styles.uploadBox}>
-        <div className={styles.uploadPlaceholder}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          <span>Upload Image</span>
+          {preview ? (
+            <div className={styles.previewWrapper}>
+              <img src={preview} className={styles.previewImg} />
+
+              {/* ✅ REMOVE BUTTON HERE */}
+              <button
+                className={styles.removeBtn}
+                onClick={() => {
+                  setPreview("");
+                  setImageFile(null);
+                }}
+              >
+                <X size={14} />
+              </button>
+               
+            </div>
+          ) : (
+            <label className={styles.uploadPlaceholder}>
+              <UploadCloud size={24} />
+              <span>Upload Image</span>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                hidden
+              />
+            </label>
+          )}
         </div>
-      </div>
-      
     </div>
 
     {/* Right: Form Fields */}

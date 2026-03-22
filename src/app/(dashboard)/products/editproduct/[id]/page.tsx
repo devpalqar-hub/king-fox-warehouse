@@ -5,19 +5,32 @@ import { getVariantsByProductId } from "@/services/product-create.service";
 import { updateProduct } from "@/services/product-create.service";
 import { useEffect,useState} from "react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
+import { getBrands } from "@/services/brand.service";
 import { getProductById,getCategories } from "@/services/product-create.service";
 import { ArrowLeft, Info ,FileText,ImageIcon, PlusCircle, Upload,Layers, Plus, Settings} from "lucide-react";
+import { uploadImagesToS3 } from "@/services/upload.service";
+import { deleteImageFromS3 } from "@/services/upload.service";
 export default function EditProductPage() {
   
 const params = useParams();
 const productId = params.id;
 const [variants, setVariants] = useState<any[]>([]);
 const [categories, setCategories] = useState<any[]>([]);
+const [brands, setBrands] = useState<any[]>([]);
+const [imageFiles, setImageFiles] = useState<File[]>([]);
+
 useEffect(() => {
   const fetchCategories = async () => {
     try {
       const data = await getCategories();
-      setCategories(data);
+
+      // ✅ remove duplicates by name
+      const unique = Array.from(
+        new Map(data.map((c: any) => [c.name, c])).values()
+      );
+
+      setCategories(unique);
+
     } catch (err) {
       console.error(err);
     }
@@ -25,6 +38,21 @@ useEffect(() => {
 
   fetchCategories();
 }, []);
+
+useEffect(() => {
+  const fetchBrands = async () => {
+    try {
+      const data = await getBrands();
+      setBrands(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchBrands();
+}, []);
+
+
 useEffect(() => {
   const fetchVariants = async () => {
     if (!productId) return;
@@ -50,16 +78,20 @@ const [form, setForm] = useState({
   variants: variants
 });
 
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = e.target.files;
+  if (!files) return;
 
-const handleTempImage = (e: any) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  const fileArray = Array.from(files);
 
-  const preview = URL.createObjectURL(file);
+  setImageFiles((prev) => [...prev, ...fileArray]);
+
+  // preview immediately
+  const previews = fileArray.map((file) => URL.createObjectURL(file));
 
   setForm((prev) => ({
     ...prev,
-    images: [...prev.images, preview],
+    images: [...prev.images, ...previews],
   }));
 };
 
@@ -93,12 +125,25 @@ const handleUpdate = async () => {
   if (!productId) return;
 
   try {
+    let finalImages = [...form.images];
+
+    // 🔥 upload new images (only if selected)
+    if (imageFiles.length) {
+      const uploadedUrls = await uploadImagesToS3(imageFiles);
+
+      // ❌ remove blob preview URLs
+      finalImages = finalImages.filter((img) => !img.startsWith("blob:"));
+
+      // ✅ add S3 URLs
+      finalImages = [...finalImages, ...uploadedUrls];
+    }
+
     const payload = {
       name: form.name,
       description: form.description,
       brandId: Number(form.brandId),
       categoryId: Number(form.categoryId),
-      images: form.images,
+      images: finalImages, // ✅ FINAL FIX
       metaInfo: form.metaInfo,
       tagIds: form.tagIds
     };
@@ -200,27 +245,40 @@ const updateMetaValue = (title: string, value: string) => {
             <div className={styles.row}>
               <div className={styles.formGroup}>
                 <label>Brand</label>
-                <input
-                  value={form.brandId}
-                  onChange={(e) =>
-                    setForm({ ...form, brandId: e.target.value })
-                  }
-                />
-              </div>
-              <select
-  value={String(form.categoryId)}   // ✅ FIX
-  onChange={(e) =>
-    setForm({ ...form, categoryId: e.target.value })
-  }
->
-  <option value="">Select Category</option>
 
-  {categories.map((cat) => (
-    <option key={cat.id} value={String(cat.id)}>
-      {cat.name}
-    </option>
-  ))}
-</select>
+                <select
+                    value={String(form.brandId)}
+                    onChange={(e) =>
+                    setForm({ ...form, brandId: e.target.value })
+                    }
+                >
+                    <option value="">Select Brand</option>
+
+                    {brands.map((brand) => (
+                    <option key={brand.id} value={String(brand.id)}>
+                        {brand.name}
+                    </option>
+                    ))}
+                </select>
+              </div>
+              <div className={styles.formGroup}>
+                <label>Category</label>
+
+                <select
+                    value={String(form.categoryId)}
+                    onChange={(e) =>
+                    setForm({ ...form, categoryId: e.target.value })
+                    }
+                >
+                    <option value="">Select Category</option>
+
+                    {categories.map((cat) => (
+                    <option key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                    </option>
+                    ))}
+                </select>
+                </div>
             </div>
           </section>
 
@@ -269,26 +327,50 @@ const updateMetaValue = (title: string, value: string) => {
 
         <img src={img} alt="product" />
 
-        {/* ❌ Remove Button */}
         <button
-          className={styles.removeBtn}
-          onClick={() => {
+        className={styles.removeBtn}
+        onClick={async () => {
+            const imgUrl = form.images[index];
+
+            try {
+            // 🔥 delete from S3 only if it's real image
+            if (!imgUrl.startsWith("blob:")) {
+                await deleteImageFromS3(imgUrl);
+            }
+
+            // ✅ remove from UI
             setForm((prev) => ({
-              ...prev,
-              images: prev.images.filter((_, i) => i !== index),
+                ...prev,
+                images: prev.images.filter((_, i) => i !== index),
             }));
-          }}
+
+            // ✅ remove from file state
+            setImageFiles((prev) => prev.filter((_, i) => i !== index));
+
+            } catch (err) {
+            console.error(err);
+            alert("Failed to delete image");
+            }
+        }}
         >
-          ✕
+        ✕
         </button>
       </div>
     ))}
 
     {/* ✅ Upload Placeholder (UI only) */}
-    <div className={styles.uploadBox}>
-      <Upload size={28}/>
-      <span>Upload Media</span>
-    </div>
+    <label className={styles.uploadBox}>
+    <Upload size={28}/>
+    <span>Upload Media</span>
+
+    <input
+        type="file"
+        multiple
+        accept="image/*"
+        onChange={handleImageUpload}
+        hidden
+    />
+    </label>
 
   </div>
 </section>
