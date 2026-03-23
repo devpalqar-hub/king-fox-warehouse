@@ -12,9 +12,15 @@ const LuckyDrawPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getCampaigns();
-      setCampaigns(data);
+      try {
+        const res = await getCampaigns();
+        setCampaigns(Array.isArray(res) ? res : res.data || []);
+      } catch (err) {
+        console.error(err);
+        setCampaigns([]);
+      }
     };
+
     fetchData();
   }, []);
 

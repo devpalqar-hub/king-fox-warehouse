@@ -11,6 +11,7 @@ import styles from './adduser.module.css';
 import { getRoles } from "@/services/role.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import { getBranches } from "@/services/branch.service";
+import BackButton from '@/components/backButton/backButton';
 
 export default function AddUser() {
 
@@ -81,7 +82,7 @@ const handleSubmit = async () => {
 };
   return (
     <div className={styles.container}>
-      
+      <BackButton />
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs}>
         <Home size={14} /> 
@@ -198,7 +199,6 @@ const handleSubmit = async () => {
 
         {/* Buttons */}
         <div className={styles.buttonGroup}>
-          <button className={styles.cancelBtn}>Cancel</button>
           <button className={styles.saveBtn} onClick={handleSubmit}>
             Create User
             </button>

@@ -12,6 +12,7 @@ import { getRoles } from "@/services/role.service";
 import { getBranches } from "@/services/branch.service";
 import { updateUser } from "@/services/user.service";
 import { useToast } from "@/components/toast/ToastProvider"; // adjust path
+import BackButton from '@/components/backButton/backButton';
 
 export default function EditUser() {
 const params = useParams();
@@ -84,6 +85,7 @@ const handleChange = (e: any) => {
 };
   return (
     <div className={styles.container}>
+      <BackButton />
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs}>
         <Home size={14} /> <span>Dashboard</span> / <span>Users</span> / <span className={styles.breadcrumbActive}>Edit User</span>
@@ -177,7 +179,6 @@ const handleChange = (e: any) => {
         </div>
 
         <div className={styles.buttonGroup}>
-          <button className={styles.cancelBtn}>Cancel</button>
           <button className={styles.saveBtn} onClick={handleSubmit}>
             Save Changes
           </button>
@@ -185,7 +186,7 @@ const handleChange = (e: any) => {
       </div>
 
       {/* Account History */}
-      <div className={styles.historyAlert}>
+      {/* <div className={styles.historyAlert}>
         <Info className={styles.historyIcon} size={24} />
         <div>
           <div className={styles.historyTitle}>Account History</div>
@@ -193,7 +194,7 @@ const handleChange = (e: any) => {
             Last login: 2 hours ago from IP 192.168.1.45. Profile created on Oct 12, 2023.
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 }
