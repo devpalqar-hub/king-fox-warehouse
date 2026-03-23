@@ -13,9 +13,11 @@ import {
   Trophy,
   Tag, 
   Store,
-  Users
+  Users,
+  Truck
 } from 'lucide-react';
 import { MdReviews } from "react-icons/md";
+import path from "path";
 
 const menuItems = [
   {
@@ -29,6 +31,7 @@ const menuItems = [
   { name: "Coupons", icon: <Ticket size={22} />, path: "/coupons" },
   { name: "Orders", icon: <ShoppingBag size={22} />, path: "/orders" },
   { name: "Lucky Draw", icon: <Trophy size={22} />, path: "/luckydraw" },
+  { name: "Shipping Charge", icon: <Truck size={22} />, path: '/shipping' },
   { name: 'User Management', icon: <Users size={22} />, path: '/usermanagement' },
   { name: "Reviews", icon: <MdReviews size={22} />, path: "/reviews" },
 ];
