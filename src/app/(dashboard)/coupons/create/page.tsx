@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createCoupon } from "@/services/coupon.service";
 import { useToast } from "@/components/toast/ToastProvider";
+import BackButton from "@/components/backButton/backButton";
 
 const CreateCouponPage = () => {
   const router = useRouter();
@@ -59,6 +60,7 @@ const CreateCouponPage = () => {
 
   return (
     <div className={styles.container}>
+      <BackButton />
       <h1 className={styles.header}>Create New Coupon</h1>
 
       {/* General Info */}
@@ -132,7 +134,7 @@ const CreateCouponPage = () => {
 
       {/* Actions */}
       <div className={styles.actions}>
-        <button onClick={() => router.push("/coupons")}>Cancel</button>
+        <button className={styles.secondaryBtn}onClick={() => router.push("/coupons")}>Cancel</button>
 
         <button className={styles.primaryBtn} onClick={handleSubmit}>
           Save Coupon Template

@@ -44,3 +44,18 @@ export const getProducts = async (
   }
 };
 
+export const getTags = async () => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE_URL}/v1/tags`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) throw new Error("Failed to fetch tags");
+
+  return res.json();
+};

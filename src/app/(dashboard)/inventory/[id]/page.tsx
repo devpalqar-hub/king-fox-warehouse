@@ -11,6 +11,8 @@ import {
   transferStock,
 } from "@/services/inventory.service";
 import { useToast } from "@/components/toast/ToastProvider";
+import { FaArrowLeft } from "react-icons/fa";
+import BackButton from "@/components/backButton/backButton";
 
 const InventoryDetailsPage = () => {
   const { showToast } = useToast();
@@ -115,6 +117,7 @@ const InventoryDetailsPage = () => {
   return (
     <div className={styles.container}>
       {/* PRODUCT */}
+      <BackButton />
       <section className={styles.productCard}>
         {variant ? (
           <div className={styles.productLeft}>

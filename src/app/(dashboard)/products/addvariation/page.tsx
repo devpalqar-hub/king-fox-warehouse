@@ -8,21 +8,129 @@ import { Package,UploadCloud, Plus,Trash2,
 import React, { useState } from 'react';
 import styles from './addvariation.module.css';
 import Image from 'next/image';
+import { useEffect } from "react";
+import { getProductById } from "@/services/product-create.service";
+import { useSearchParams } from "next/navigation";
+import { createVariant } from "@/services/product-create.service";
+import { getVariantsByProductId } from "@/services/product-create.service";
+import { uploadImagesToS3 } from "@/services/upload.service";
+import {  X } from "lucide-react";
+import { useToast } from "@/components/toast/ToastProvider";
 
 export default function AddVariationPage() {
-  const [variation, setVariation] = useState({
-    size: 'S',
-    color: 'Maroon',
-    costPrice: '0.00',
-    sellingPrice: '0.00'
-  });
-  const variationsList = [
-    { id: 1, sku: 'UF-PCT-001-M-MA', size: 'M', color: 'Maroon', colorHex: '#800000', cost: '$12.50', selling: '$29.99', image: '/tshirt.png' },
-    { id: 2, sku: 'UF-PCT-001-L-NB', size: 'L', color: 'Navy Blue', colorHex: '#000080', cost: '$12.50', selling: '$29.99', image: '/tshirt.png' },
-    { id: 3, sku: 'UF-PCT-001-S-FG', size: 'S', color: 'Forest Green', colorHex: '#228B22', cost: '$12.50', selling: '$29.99', image: '/tshirt.png' },
-    { id: 4, sku: 'UF-PCT-001-XL-CH', size: 'XL', color: 'Charcoal', colorHex: '#36454F', cost: '$13.50', selling: '$32.99', image: '/tshirt.png' },
-  ];
+const { showToast } = useToast();
+const searchParams = useSearchParams();
+const productId = searchParams.get("productId");
+const [variants, setVariants] = useState<any[]>([]);
+const [product, setProduct] = useState<any>(null);
+const [imageFile, setImageFile] = useState<File | null>(null);
+const [preview, setPreview] = useState<string>("");
+const [loading, setLoading] = useState(false);
+const [variation, setVariation] = useState({
+  sku: "",
+  size: "",
+  color: "",
+  costPrice: "",
+  sellingPrice: "",
+  barcode: "",
+  image: ""
+});
 
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setImageFile(file);
+  setPreview(URL.createObjectURL(file));
+};
+
+// ✅ Fetch product
+useEffect(() => {
+  const fetchProduct = async () => {
+    if (!productId) return;
+
+    try {
+      const data = await getProductById(Number(productId));
+      setProduct(data);
+    } catch (err) {
+      console.error("Fetch product error:", err);
+    }
+  };
+
+  fetchProduct();
+}, [productId]);
+
+// ✅ Fetch variants
+useEffect(() => {
+  const fetchVariants = async () => {
+    if (!productId) return;
+
+    try {
+      const data = await getVariantsByProductId(Number(productId));
+      setVariants(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchVariants();
+}, [productId]);
+const handleAddToList = async () => {
+  if (!productId) {
+    return showToast("Product ID missing", "error");
+  }
+
+  if (!variation.sku) {
+    return showToast("SKU is required", "error");
+  }
+
+  try {
+    setLoading(true);
+
+    let imageUrl = "";
+
+    if (imageFile) {
+      const uploaded = await uploadImagesToS3([imageFile]);
+      imageUrl = uploaded[0];
+    }
+
+    const payload = {
+      sku: variation.sku,
+      costPrice: Number(variation.costPrice || 0),
+      sellingPrice: Number(variation.sellingPrice || 0),
+      size: variation.size,
+      color: variation.color,
+      barcode: variation.barcode || Date.now().toString(),
+      image: imageUrl || "https://via.placeholder.com/150"
+    };
+
+    const newVariant = await createVariant(Number(productId), payload);
+
+    setVariants((prev) => [...prev, newVariant]);
+
+    // reset form
+    setVariation({
+      sku: "",
+      size: "",
+      color: "",
+      costPrice: "",
+      sellingPrice: "",
+      barcode: "",
+      image: ""
+    });
+
+    setImageFile(null);
+    setPreview("");
+
+    showToast("Variant added successfully ", "success");
+
+  } catch (error: any) {
+    console.error(error);
+    showToast(error.message || "Failed to add variant ", "error");
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <div className={styles.container}>
       {/* Header Section */}
@@ -31,8 +139,6 @@ export default function AddVariationPage() {
         <div className={styles.headerActions}>
           <h1>Add Product Variations</h1>
           <div className={styles.buttonGroup}>
-            <button className={styles.discardBtn}>Discard</button>
-            <button className={styles.saveBtn}>Save All Variations</button>
           </div>
         </div>
         <p className={styles.subtitle}>Define sizes, colors, and specific pricing for each variant</p>
@@ -43,26 +149,29 @@ export default function AddVariationPage() {
   <div className={styles.baseProduct}>
 
     <div className={styles.productImage}>
-      <img src="/tshirt.png" alt="Product" />
+      <img 
+        src={product?.images?.[0] || "/tshirt.png"} 
+        alt="Product" 
+      />
     </div>
 
     <div className={styles.productInfo}>
       <span className={styles.badge}>BASE PRODUCT</span>
 
       <h2 className={styles.productTitle}>
-        UrbanFit Premium Cotton T-Shirt
-      </h2>
+          {product?.name || "Loading..."}
+        </h2>
 
-      <div className={styles.productMeta}>
-        <span className={styles.productMetaItem}>
-          <Package size={16}/>
-          Apparel
-        </span>
+        <div className={styles.productMeta}>
+          <span className={styles.productMetaItem}>
+            <Package size={16}/>
+            {product?.category?.name || "Category"}
+          </span>
 
-        <span className={styles.sku}>
-          # SKU: UF-PCT-001
-        </span>
-      </div>
+          <span className={styles.sku}>
+            # SKU: {product?.sku || "N/A"}
+          </span>
+        </div>
     </div>
 
   </div>
@@ -80,52 +189,125 @@ export default function AddVariationPage() {
     <div className={styles.uploadSection}>
       <label className={styles.fieldLabel}>Variation Image</label>
       <div className={styles.uploadBox}>
-        <div className={styles.uploadPlaceholder}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <polyline points="21 15 16 10 5 21" />
-          </svg>
-          <span>Upload Image</span>
+          {preview ? (
+            <div className={styles.previewWrapper}>
+              <img src={preview} className={styles.previewImg} />
+
+              {/* ✅ REMOVE BUTTON HERE */}
+              <button
+                className={styles.removeBtn}
+                onClick={() => {
+                  setPreview("");
+                  setImageFile(null);
+                }}
+              >
+                <X size={14} />
+              </button>
+               
+            </div>
+          ) : (
+            <label className={styles.uploadPlaceholder}>
+              <UploadCloud size={24} />
+              <span>Upload Image</span>
+
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                hidden
+              />
+            </label>
+          )}
         </div>
-      </div>
     </div>
 
     {/* Right: Form Fields */}
     <div className={styles.formSection}>
+      {/* ✅ ADD SKU HERE */}
+      <div className={styles.inputGroup}>
+        <label className={styles.fieldLabel}>SKU</label>
+        <input
+          type="text"
+          className={styles.inputField}
+          value={variation.sku}
+          onChange={(e) =>
+            setVariation({ ...variation, sku: e.target.value })
+          }
+        />
+      </div>
       <div className={styles.inputRow}>
         <div className={styles.inputGroup}>
           <label className={styles.fieldLabel}>Size</label>
-          <select className={styles.selectField}>
-            <option>S</option>
-            <option>M</option>
-            <option>L</option>
-          </select>
+          <input
+            type="text"
+            className={styles.inputField}
+            placeholder="e.g. M, XL"
+            value={variation.size}
+            onChange={(e) =>
+              setVariation({ ...variation, size: e.target.value })
+            }
+          />
         </div>
         <div className={styles.inputGroup}>
           <label className={styles.fieldLabel}>Color</label>
-          <select className={styles.selectField}>
-            <option>Maroon</option>
-            <option>Navy Blue</option>
-            <option>Charcoal</option>
-          </select>
+          <input
+            type="text"
+            className={styles.inputField}
+            placeholder="e.g. Navy Blue"
+            value={variation.color}
+            onChange={(e) =>
+              setVariation({ ...variation, color: e.target.value })
+            }
+          />
         </div>
       </div>
 
       <div className={styles.inputRow}>
         <div className={styles.inputGroup}>
           <label className={styles.fieldLabel}>Cost Price ($)</label>
-          <input type="text" placeholder="0.00" className={styles.inputField} />
+          <input
+            type="number"
+            placeholder="0.00"
+            className={styles.inputField}
+            value={variation.costPrice}
+            onChange={(e) =>
+              setVariation({ ...variation, costPrice: e.target.value })
+            }
+          />
         </div>
         <div className={styles.inputGroup}>
           <label className={styles.fieldLabel}>Selling Price ($)</label>
-          <input type="text" placeholder="0.00" className={styles.inputField} />
+          <input
+            type="number"
+            placeholder="0.00"
+            className={styles.inputField}
+            value={variation.sellingPrice}
+            onChange={(e) =>
+              setVariation({ ...variation, sellingPrice: e.target.value })
+            }
+          />
+        </div>
+        <div className={styles.inputGroup}>
+          <label className={styles.fieldLabel}>Barcode</label>
+          <input
+            type="text"
+            className={styles.inputField}
+            placeholder="Enter barcode"
+            value={variation.barcode}
+            onChange={(e) =>
+              setVariation({ ...variation, barcode: e.target.value })
+            }
+          />
         </div>
       </div>
 
       <div className={styles.actionRow}>
-        <button className={styles.addToListBtn}>
-          <span>+</span> Add to List
+        <button 
+          className={styles.addToListBtn} 
+          onClick={handleAddToList}
+          disabled={loading}
+        >
+          {loading ? "Adding..." : <><span>+</span> Add to List</>}
         </button>
       </div>
     </div>
@@ -153,33 +335,47 @@ export default function AddVariationPage() {
             </tr>
           </thead>
           <tbody>
-            {variationsList.map((variant) => (
-              <tr key={variant.id}>
-                <td>
-                  <div className={styles.tableImgWrapper}>
-                    {/* Replace with <Image /> if you have the assets */}
-                    <div className={styles.placeholderImg} style={{backgroundColor: variant.colorHex}}></div>
-                  </div>
-                </td>
-                <td className={styles.skuText}>{variant.sku}</td>
-                <td className={styles.sizeText}>{variant.size}</td>
-                <td>
-                  <div className={styles.colorWrapper}>
-                    <span className={styles.colorDot} style={{ backgroundColor: variant.colorHex }}></span>
-                    {variant.color}
-                  </div>
-                </td>
-                <td className={styles.priceText}>{variant.cost}</td>
-                <td className={styles.sellingPriceText}>{variant.selling}</td>
-                <td>
-                  <div className={styles.actionButtons}>
-                    <button className={styles.editBtn}><PencilLine size={18} /></button>
-                    <button className={styles.deleteBtn}><Trash2 size={18} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
+  {variants.map((variant) => (
+    <tr key={variant.id}>
+      <td>
+        <div className={styles.tableImgWrapper}>
+          <img
+            src={variant.image || "/tshirt.png"}
+            className={styles.placeholderImg}
+          />
+        </div>
+      </td>
+
+      <td className={styles.skuText}>{variant.sku}</td>
+      <td className={styles.sizeText}>{variant.size}</td>
+
+      <td>
+        <div className={styles.colorWrapper}>
+          {variant.color}
+        </div>
+      </td>
+
+      <td className={styles.priceText}>
+        ${Number(variant.costPrice)}
+      </td>
+
+      <td className={styles.sellingPriceText}>
+        ${Number(variant.sellingPrice)}
+      </td>
+
+      <td>
+        <div className={styles.actionButtons}>
+          <button className={styles.editBtn}>
+            <PencilLine size={18} />
+          </button>
+          <button className={styles.deleteBtn}>
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
         </table>
 
         <div className={styles.tableFooter}>

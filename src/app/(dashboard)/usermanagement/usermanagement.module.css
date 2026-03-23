@@ -1,0 +1,180 @@
+
+.container {
+  padding: 2rem;
+  background-color: var(--bg-light);
+  min-height: 100vh;
+  font-family: "Inter", sans-serif;
+}
+
+/* Header & Filters */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 1rem;
+}
+
+.filterItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--white);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.addButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #4f46e5;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.selectFilter {
+  min-width: 120px;
+  padding: 4px 8px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+
+/* Table Section */
+.tableContainer {
+  background: var(--white);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.userTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.userTable th {
+  padding: 1rem 1.5rem;
+  background: #ebebeb;
+  border-bottom: 1px solid var(--border-color);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.userTable td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+/* User Info Styling */
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #eef2ff;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.userName {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.userEmail, .branchText {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Role Badges */
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.manager { background: #fff7ed; color: #ea580c; }
+.admin { background: #eef2ff; color: #4f46e5; }
+.staff { background: #f0fdf4; color: #16a34a; }
+.cashier { background: #ecfeff; color: #0891b2; }
+
+/* Actions */
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.actionBtn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.actionBtn:hover { color: var(--primary); }
+.deleteBtn:hover { color: #ef4444; }
+
+/* Pagination */
+.footer {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pagination {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pageNav {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid var(--border-color);
+  background: white;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.pageActive {
+  width: 32px;
+  height: 32px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+}

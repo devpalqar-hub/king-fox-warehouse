@@ -6,6 +6,7 @@ import styles from './login.module.css';
 import { useState } from "react";
 import { loginRequest } from "@/services/auth.service";
 import { useAuth } from "@/auth/AuthContext";
+import { useToast } from '@/components/toast/ToastProvider';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,6 +15,7 @@ export default function LoginPage() {
 
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
+const { showToast } = useToast();
 const handleLogin = async () => {
 
   try {
@@ -27,7 +29,7 @@ const handleLogin = async () => {
 
   } catch (error) {
 
-    alert("Login failed");
+    showToast("Login failed");
 
   }
 

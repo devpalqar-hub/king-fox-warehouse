@@ -89,13 +89,6 @@
   color: #0f172a;
 }
 
-.selectArrow {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
 /* Table */
 .tableWrapper {
   background: white;

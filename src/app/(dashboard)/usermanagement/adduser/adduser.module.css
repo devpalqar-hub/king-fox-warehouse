@@ -1,0 +1,149 @@
+.container {
+  padding: 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f8fafc;
+  min-height: 100vh;
+}
+
+/* Breadcrumbs */
+.breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumbActive {
+  color: #3f51b5;
+  font-weight: 500;
+}
+
+/* Header */
+.headerTitle {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 0.5rem;
+}
+
+.headerSub {
+  color: #64748b;
+  font-size: 16px;
+  margin-bottom: 2rem;
+}
+
+/* Form Card */
+.formCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/* Grid */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: span 2;
+}
+
+/* Form Group */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+/* Input Wrapper */
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Icon */
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+}
+
+/* Inputs */
+.input,
+.select {
+  width: 100%;
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: #f8fafc;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.select {
+  appearance: none;
+}
+
+.input:focus,
+.select:focus {
+  border-color: #3f51b5;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.1);
+}
+
+/* Buttons */
+.buttonGroup {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+.cancelBtn {
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  border: none;
+  background: #e2e8f0;
+  color: #0f172a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cancelBtn:hover {
+  background: #cbd5f5;
+}
+
+.saveBtn {
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  border: none;
+  background: #3f51b5;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(63, 81, 181, 0.25);
+  transition: 0.2s;
+}
+
+.saveBtn:hover {
+  background: #2f3ea8;
+}

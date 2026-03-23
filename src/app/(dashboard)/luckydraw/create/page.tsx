@@ -7,6 +7,7 @@ import { createCampaign } from "@/services/luckydraw.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useEffect, useRef } from "react";
 import { getBranches } from "@/services/branch.service";
+import BackButton from "@/components/backButton/backButton";
 
 const CreateCampaignPage = () => {
   const router = useRouter();
@@ -90,14 +91,14 @@ const CreateCampaignPage = () => {
   return (
     <div className={styles.container}>
       {/* HEADER */}
+      <BackButton />
       <div className={styles.topBar}>
         <div>
           <h1>Edit Lucky Draw</h1>
-          <p className={styles.sub}>Campaign ID: #LK-2025</p>
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.btnGhost}>Cancel</button>
+          <button onClick={() => router.back()} className={styles.btnGhost}>Cancel</button>
           <button className={styles.btnPrimary} onClick={handleSubmit}>
             Save Campaign
           </button>
@@ -208,25 +209,6 @@ const CreateCampaignPage = () => {
             />
           </div>
         </div>
-
-        {/* RIGHT */}
-        {/* <div className={styles.right}>
-          <div className={styles.card}>
-            <h4>Campaign Status</h4>
-
-            {["ACTIVE", "DRAFT", "EXPIRED"].map((s) => (
-              <div
-                key={s}
-                className={`${styles.statusItem} ${
-                  form.status === s ? styles.selected : ""
-                }`}
-                onClick={() => setForm({ ...form, status: s })}
-              >
-                {s}
-              </div>
-            ))}
-          </div>
-        </div> */}
       </div>
     </div>
   );

@@ -1,0 +1,226 @@
+/* ── Page Header ───────────────────────────── */
+.breadcrumb {
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-bottom: 6px;
+  letter-spacing: 0.02em;
+}
+
+.breadcrumb span {
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.title {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 22px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Card ─────────────────────────────────── */
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 22px 24px;
+  margin-bottom: 18px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.card:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+  transform: translateY(-1px);
+}
+
+/* ── Card Header ──────────────────────────── */
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* ── User Info ───────────────────────────── */
+.userInfo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: #fff;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+}
+
+.name {
+  font-weight: 700;
+  font-size: 14px;
+  color: #0f172a;
+  margin-bottom: 3px;
+}
+
+.meta {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metaDot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #cbd5e1;
+  display: inline-block;
+}
+
+/* ── Verified Badge ───────────────────────── */
+.verifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── Rating Block ─────────────────────────── */
+.ratingBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.starsRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stars {
+  color: #f59e0b;
+  font-size: 15px;
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+.ratingNumber {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.titleLabel {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #4f46e5;
+  background: #eef2ff;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+/* ── Body ───────────────────────────────── */
+.body {
+  font-size: 13.5px;
+  color: #334155;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+/* ── Images ─────────────────────────────── */
+.imageGrid {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.image {
+  width: 150px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.image:hover {
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+}
+
+/* ── Empty State ─────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ── Loading ─────────────────────────────── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ── Responsive ─────────────────────────── */
+@media (max-width: 768px) {
+  .cardHeader {
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .ratingBlock {
+    align-items: flex-start;
+  }
+
+  .image {
+    width: 120px;
+    height: 80px;
+  }
+}
