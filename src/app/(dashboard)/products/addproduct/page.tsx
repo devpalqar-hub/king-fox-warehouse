@@ -19,17 +19,29 @@ import {
   Eraser,
 } from "lucide-react";
 import styles from "./addproduct.module.css";
-import RichTextEditor from "@/components/editor/RichTextEditor";
 import { getBrands } from "@/services/brand.service";
 import { getCategories } from "@/services/category.service";
 import { Brand } from "@/types/brand";
 import { Category } from "@/types/category";
-
+import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMetaInfo";
 import { createProduct } from "@/services/product-create.service";
 import { useRef } from "react";
-import BackButton from "@/components/backButton/backButton";
+import BackButton from "@/components/backButton/backButton";import { uploadImagesToS3 } from "@/services/upload.service";
 
 export default function AddProductPage() {
+const router = useRouter();
+const [name, setName] = useState("");
+const [description, setDescription] = useState("");
+const [brandId, setBrandId] = useState("");
+const [categoryId, setCategoryId] = useState("");
+const [brands, setBrands] = useState<Brand[]>([]);
+const [categories, setCategories] = useState<Category[]>([]);
+const [imageFiles, setImageFiles] = useState<File[]>([]);
+const [images, setImages] = useState<string[]>([]); // preview
+
+const [metaInfo, setMetaInfo] = useState<MetaItem[]>([
+  { title: "", text: "", imageUrl: "" }
+]);
   const router = useRouter();
   const [metaDescription, setMetaDescription] = useState("");
   const [name, setName] = useState("");
@@ -47,11 +59,19 @@ export default function AddProductPage() {
   const sizeEditor = useRef<any>(null);
   const careEditor = useRef<any>(null);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = e.target.files;
+  if (!files) return;
 
-    if (!files) return;
+  const fileArray = Array.from(files);
 
+  // store actual files
+  setImageFiles(prev => [...prev, ...fileArray]);
+
+  // preview
+  const previewUrls = fileArray.map(file => URL.createObjectURL(file));
+  setImages(prev => [...prev, ...previewUrls]);
+};
     const newImages = Array.from(files).map((file) =>
       URL.createObjectURL(file),
     );
@@ -59,54 +79,49 @@ export default function AddProductPage() {
     setImages((prev) => [...prev, ...newImages]);
   };
 
-  const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
-  };
-  const handleSaveProduct = async () => {
-    if (!name || !brandId || !categoryId) {
-      alert("Please fill required fields");
-      return;
-    }
+const removeImage = (index: number) => {
+  setImages((prev) => prev.filter((_, i) => i !== index));
+};
+const handleSaveProduct = async () => {
+  if (!name || !brandId || !categoryId) {
+    alert("Please fill required fields");
+    return;
+  }
 
+  try {
+    // ✅ STEP 1: Upload images first
+    const uploadedImageUrls = await uploadImagesToS3(imageFiles);
+
+    // ✅ STEP 2: Clean meta
+    const cleanedMeta = metaInfo
+      .filter(meta => meta.title || meta.text || meta.imageUrl)
+      .map(meta => ({
+        title: meta.title || "",
+        text: meta.text || "",
+        imageUrl: meta.imageUrl || ""
+      }));
+
+    // ✅ STEP 3: Create payload
     const payload = {
       name,
       description,
       brandId: Number(brandId),
       categoryId: Number(categoryId),
-      images: [],
-      metaInfo: [
-        {
-          title: "Product Details",
-          text: metaDescription || "Product details",
-          imageUrl: "",
-        },
-        {
-          title: "Material & Fabric",
-          text: materialFabric || "Material information",
-          imageUrl: "",
-        },
-        {
-          title: "Size Guide",
-          text: sizeGuide || "Size guide",
-          imageUrl: "",
-        },
-        {
-          title: "Care Instructions",
-          text: careInstructions || "Care instructions",
-          imageUrl: "",
-        },
-      ],
-      tagIds: [],
+      images: uploadedImageUrls, // 🔥 real S3 URLs
+      metaInfo: cleanedMeta,
+      tagIds: []
     };
 
-    try {
+      // ✅ STEP 4: Create product
       const product = await createProduct(payload);
+
       router.push(`/products/addvariation?productId=${product.id}`);
-    } catch (err) {
-      console.error("Create product error:", err);
+
+    } catch (err: any) {
+      console.error(err);
+    alert(err.message || "Something went wrong");
     }
   };
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -145,21 +160,21 @@ export default function AddProductPage() {
           <div className={styles.formGroup}>
             <label>Product Name</label>
             <input
-              type="text"
-              placeholder="UrbanFit Premium Cotton T-Shirt"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+                        type="text"
+                        placeholder="UrbanFit Premium Cotton T-Shirt"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                      />
           </div>
 
           <div className={styles.formGroup}>
             <label>Short Description</label>
             <textarea
-              placeholder="Experience ultimate comfort..."
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
+                        placeholder="Experience ultimate comfort..."
+                        rows={4}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                      />
           </div>
 
           <div className={styles.row}>
@@ -232,32 +247,32 @@ export default function AddProductPage() {
           </div>
 
           <div className={styles.galleryGrid}>
-            {images.map((img, index) => (
-              <div key={index} className={styles.imagePreview}>
-                <button
-                  className={styles.removeBtn}
-                  onClick={() => removeImage(index)}
-                >
-                  <X size={14} />
-                </button>
+                    {images.map((img, index) => (
+                      <div key={index} className={styles.imagePreview}>
+                        <button
+                          className={styles.removeBtn}
+                          onClick={() => removeImage(index)}
+                        >
+                          <X size={14} />
+                        </button>
 
-                <img src={img} alt="preview" />
-              </div>
-            ))}
+                        <img src={img} alt="preview" />
+                      </div>
+                    ))}
 
-            <label className={styles.addMoreButton}>
-              <Plus size={24} />
-              <span>Add More</span>
+                    <label className={styles.addMoreButton}>
+                      <Plus size={24} />
+                      <span>Add More</span>
 
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleImageUpload}
-                hidden
-              />
-            </label>
-          </div>
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        hidden
+                      />
+                    </label>
+                  </div>
 
           <p className={styles.helpText}>
             Drag and drop to reorder images. Supported formats: JPG, PNG, WEBP

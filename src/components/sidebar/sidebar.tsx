@@ -11,6 +11,11 @@ import {
   Ticket,
   ShoppingBag,
   Trophy,
+  Tag, 
+  Store,
+  Users
+} from 'lucide-react';
+
   Tag,
   Store,
 } from "lucide-react";
@@ -29,6 +34,7 @@ const menuItems = [
   { name: "Orders", icon: <ShoppingBag size={22} />, path: "/orders" },
   { name: "Lucky Draw", icon: <Trophy size={22} />, path: "/luckydraw" },
   { name: "Reviews", icon: <MdReviews size={22} />, path: "/reviews" },
+  { name: 'User Management', icon: <Users size={22} />, path: '/usermanagement' },
 ];
 
 const Sidebar = () => {
