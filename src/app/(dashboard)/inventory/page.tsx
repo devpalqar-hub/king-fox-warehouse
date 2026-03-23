@@ -73,7 +73,6 @@ const InventoryPage = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown size={16} className={styles.selectArrow} />
           </div>
         </div>
       </section>

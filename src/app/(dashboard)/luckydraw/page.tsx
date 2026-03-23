@@ -5,28 +5,23 @@ import { Plus, Calendar, Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getCampaigns } from "@/services/luckydraw.service";
-import { useToast } from "@/components/toast/ToastProvider";
 
 const LuckyDrawPage = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [campaigns, setCampaigns] = useState<any[]>([]);
-  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
       const data = await getCampaigns();
       setCampaigns(data);
     };
-
     fetchData();
   }, []);
 
-  // 🔥 map API → UI
   const mappedCampaigns = campaigns.map((c) => {
     const percent = c.totalVouchersLimit
       ? Math.round((c.vouchersIssued / c.totalVouchersLimit) * 100)
       : 0;
-
     return {
       id: c.id,
       title: c.name,
@@ -35,9 +30,7 @@ const LuckyDrawPage = () => {
       vouchers: c.totalVouchersLimit,
       redeemed: c.vouchersIssued,
       percent,
-      date: `${new Date(c.startDate).toLocaleDateString()} — ${new Date(
-        c.endDate,
-      ).toLocaleDateString()}`,
+      date: `${new Date(c.startDate).toLocaleDateString()} — ${new Date(c.endDate).toLocaleDateString()}`,
     };
   });
 
@@ -47,18 +40,16 @@ const LuckyDrawPage = () => {
 
   return (
     <div className={styles.container}>
-      {/* Stats (can be dynamic later) */}
+      {/* Stats */}
       <section className={styles.statsGrid}>
         <div className={styles.statCard}>
           <p>Total Campaigns</p>
           <h2>{campaigns.length}</h2>
         </div>
-
         <div className={styles.statCard}>
           <p>Total Vouchers</p>
           <h2>{campaigns.reduce((acc, c) => acc + c.totalVouchersLimit, 0)}</h2>
         </div>
-
         <div className={styles.statCard}>
           <p>Issued</p>
           <h2>{campaigns.reduce((acc, c) => acc + c.vouchersIssued, 0)}</h2>
@@ -71,7 +62,6 @@ const LuckyDrawPage = () => {
           <h1>Lucky Draws</h1>
           <p>Manage promotional campaigns</p>
         </div>
-
         <Link href="/luckydraw/create" className={styles.btnPrimary}>
           <Plus size={18} /> Create Campaign
         </Link>
@@ -82,9 +72,7 @@ const LuckyDrawPage = () => {
         {["all", "active", "draft", "completed"].map((tab) => (
           <button
             key={tab}
-            className={`${styles.tab} ${
-              activeTab === tab ? styles.activeTab : ""
-            }`}
+            className={`${styles.tab} ${activeTab === tab ? styles.activeTab : ""}`}
             onClick={() => setActiveTab(tab)}
           >
             {tab.toUpperCase()}
@@ -92,56 +80,104 @@ const LuckyDrawPage = () => {
         ))}
       </div>
 
-      {/* List */}
-      <section className={styles.list}>
-        {filtered.map((c) => (
-          <div key={c.id} className={styles.card}>
-            {/* LEFT */}
-            <div className={styles.left}>
-              <h3>{c.title}</h3>
-              <p className={styles.desc}>{c.description}</p>
+      {/* Table */}
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <colgroup>
+            <col className={styles.colCampaign} />
+            <col className={styles.colDate} />
+            <col className={styles.colStatus} />
+            <col className={styles.colTotal} />
+            <col className={styles.colRedeemed} />
+            <col className={styles.colActions} />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Date Range</th>
+              <th>Status</th>
+              <th>Total</th>
+              <th>Redeemed</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={6} className={styles.emptyState}>
+                  No campaigns found.
+                </td>
+              </tr>
+            ) : (
+              filtered.map((c) => (
+                <tr key={c.id}>
+                  {/* Campaign */}
+                  <td>
+                    <div className={styles.campaignTitle}>{c.title}</div>
+                    <div className={styles.campaignDesc}>{c.description}</div>
+                  </td>
 
-              <div className={styles.meta}>
-                <Calendar size={14} />
-                {c.date}
-              </div>
+                  {/* Date */}
+                  <td>
+                    <div className={styles.dateCell}>
+                      <Calendar size={13} />
+                      {c.date}
+                    </div>
+                  </td>
 
-              <span className={`${styles.status} ${styles[c.status]}`}>
-                {c.status}
-              </span>
-            </div>
+                  {/* Status */}
+                  <td>
+                    <span className={`${styles.status} ${styles[c.status]}`}>
+                      {c.status}
+                    </span>
+                  </td>
 
-            {/* MIDDLE */}
-            <div className={styles.middle}>
-              <div>
-                <p>Total</p>
-                <h4>{c.vouchers}</h4>
-              </div>
+                  {/* Total */}
+                  <td>
+                    <span className={styles.voucherCount}>{c.vouchers}</span>
+                  </td>
 
-              <div>
-                <p>Redeemed</p>
-                <h4>{c.redeemed}</h4>
+                  {/* Redeemed + Progress */}
+                  <td>
+                    <div className={styles.progressCell}>
+                      <div className={styles.progressTop}>
+                        <span className={styles.progressCount}>
+                          {c.redeemed}
+                        </span>
+                        <span className={styles.progressPct}>{c.percent}%</span>
+                      </div>
+                      <div className={styles.progressBar}>
+                        <div
+                          className={styles.progressFill}
+                          style={{ width: `${c.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </td>
 
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${c.percent}%` }}
-                  />
-                </div>
-
-                <span>{c.percent}%</span>
-              </div>
-            </div>
-
-            {/* ACTIONS */}
-            <div className={styles.actions}>
-              <Eye size={18} />
-              <Pencil size={18} />
-              <Trash2 size={18} />
-            </div>
-          </div>
-        ))}
-      </section>
+                  {/* Actions */}
+                  <td>
+                    <div className={styles.actions}>
+                      <button className={styles.actionBtn} title="View">
+                        <Eye size={15} />
+                      </button>
+                      <button className={styles.actionBtn} title="Edit">
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        className={`${styles.actionBtn} ${styles.danger}`}
+                        title="Delete"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };

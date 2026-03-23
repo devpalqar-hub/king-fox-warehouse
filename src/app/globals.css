@@ -7,9 +7,6 @@
   --primary: #4f46e5;
 }
 
-/* Remove dark mode auto-switch ❌ */
-/* Admin dashboards should control theme manually */
-
 /* Layout */
 html,
 body {
@@ -21,7 +18,7 @@ body {
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter);
+  font-family: var(--font-manrope);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
