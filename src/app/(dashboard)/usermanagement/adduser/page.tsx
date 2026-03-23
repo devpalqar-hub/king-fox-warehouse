@@ -10,12 +10,14 @@ import {
 import styles from './adduser.module.css';
 import { getRoles } from "@/services/role.service";
 import { useToast } from "@/components/toast/ToastProvider";
+import { getBranches } from "@/services/branch.service";
 
 export default function AddUser() {
 
 const router = useRouter();
 const { showToast } = useToast();
 const [roles, setRoles] = useState<any[]>([]);
+const [branches, setBranches] = useState<any[]>([]);
 const [form, setForm] = useState({
   name: "",
   email: "",
@@ -30,6 +32,19 @@ useEffect(() => {
   };
 
   fetchRoles();
+}, []);
+
+useEffect(() => {
+  const fetchBranches = async () => {
+    try {
+      const data = await getBranches();
+      setBranches(data);
+    } catch (error) {
+      console.error("Branch fetch error:", error);
+    }
+  };
+
+  fetchBranches();
 }, []);
 
 const handleChange = (e: any) => {
@@ -162,16 +177,18 @@ const handleSubmit = async () => {
             <div className={styles.inputWrapper}>
               <MapPin className={styles.inputIcon} size={18} />
               <select
-                className={styles.select}
-                name="branchId"
-                value={form.branchId}
-                onChange={handleChange}
+                  className={styles.select}
+                  name="branchId"
+                  value={form.branchId}
+                  onChange={handleChange}
                 >
-                <option value="">Select branch</option>
-                <option value="1">Main Shop</option>
-                <option value="2">Central Warehouse</option>
-                <option value="3">North Branch</option>
-                <option value="4">South Branch</option>
+                  <option value="">Select branch</option>
+
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
                 </select>
               <ChevronDown style={{ position: 'absolute', right: '12px' }} size={16} />
             </div>

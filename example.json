@@ -61,7 +61,7 @@
     },
     "/v1/auth/profile": {
       "get": {
-        "description": "Retrieve the authenticated user's profile information",
+        "description": "Returns rich profile data for the authenticated principal.\n\n**Staff token** → name, email, role, branch, stats (invoices created, vouchers issued).\n\n**Customer token** → name, email, phone, address, active vouchers (with campaign details), order count, wishlist count, cart item count.",
         "operationId": "AuthController_getProfile",
         "parameters": [],
         "responses": {
@@ -77,7 +77,7 @@
             "access-token": []
           }
         ],
-        "summary": "Get current user profile",
+        "summary": "Get current user / customer profile",
         "tags": [
           "Auth"
         ]
@@ -907,6 +907,32 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "enum": [
+                "low_to_high",
+                "high_to_low",
+                "newly_arrived"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "required": false,
+            "in": "query",
+            "description": "Filter by tag names (e.g. HOT SALE)",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         ],
         "responses": {
@@ -1244,6 +1270,144 @@
         ]
       }
     },
+    "/v1/products/reviews": {
+      "get": {
+        "operationId": "ProductsController_listReviews",
+        "parameters": [
+          {
+            "name": "productName",
+            "required": false,
+            "in": "query",
+            "description": "Filter by product name",
+            "schema": {
+              "example": "T-Shirt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerName",
+            "required": false,
+            "in": "query",
+            "description": "Search by customer / reviewer name",
+            "schema": {
+              "example": "John",
+              "type": "string"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "description": "Filter by rating (1-5)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 4,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minRating",
+            "required": false,
+            "in": "query",
+            "description": "Minimum rating (inclusive)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 3,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxRating",
+            "required": false,
+            "in": "query",
+            "description": "Maximum rating (inclusive)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "isMocked",
+            "required": false,
+            "in": "query",
+            "description": "Filter mocked/dummy reviews only. true = mocked, false = genuine, omit = all",
+            "schema": {
+              "example": false,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort field",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "rating",
+                "productName"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (default: 1)",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (default: 20)",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of reviews"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all reviews with filters",
+        "tags": [
+          "Products"
+        ]
+      }
+    },
     "/v1/products/{id}/reviews/mock": {
       "post": {
         "operationId": "ProductsController_adminMockReview",
@@ -1278,7 +1442,7 @@
             "access-token": []
           }
         ],
-        "summary": "Mock a review as a specific customer (admin only)",
+        "summary": "Create a mock review with dummy customer details (admin only)",
         "tags": [
           "Products"
         ]
@@ -1375,6 +1539,26 @@
               ],
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (default: 1)",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (default: 20)",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -1387,7 +1571,7 @@
             "access-token": []
           }
         ],
-        "summary": "Get inventory list",
+        "summary": "Get inventory list (paginated)",
         "tags": [
           "Inventory"
         ]
@@ -1893,6 +2077,24 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -2358,6 +2560,7 @@
             "access-token": []
           }
         ],
+        "summary": "Create a new lucky draw campaign",
         "tags": [
           "Lucky Draw"
         ]
@@ -2369,6 +2572,7 @@
             "name": "status",
             "required": false,
             "in": "query",
+            "description": "Filter by status: ACTIVE | CLOSED",
             "schema": {
               "type": "string"
             }
@@ -2377,8 +2581,27 @@
             "name": "branchId",
             "required": false,
             "in": "query",
+            "description": "Filter by branch ID",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
             }
           }
         ],
@@ -2392,6 +2615,7 @@
             "access-token": []
           }
         ],
+        "summary": "List all campaigns (paginated)",
         "tags": [
           "Lucky Draw"
         ]
@@ -2420,6 +2644,7 @@
             "access-token": []
           }
         ],
+        "summary": "Get campaign details by ID",
         "tags": [
           "Lucky Draw"
         ]
@@ -2448,6 +2673,7 @@
             "access-token": []
           }
         ],
+        "summary": "Update campaign status (ACTIVE / CLOSED)",
         "tags": [
           "Lucky Draw"
         ]
@@ -2486,6 +2712,69 @@
             "access-token": []
           }
         ],
+        "summary": "Issue a voucher under a campaign",
+        "tags": [
+          "Lucky Draw"
+        ]
+      }
+    },
+    "/v1/lucky-draw/campaigns/{id}/users": {
+      "get": {
+        "description": "Returns a list of voucher entries with customer name, email, phone. Users with multiple vouchers appear as multiple rows.",
+        "operationId": "LuckyDrawController_getCampaignUsers",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Campaign ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of voucher recipients"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get all users who received vouchers from this campaign",
+        "tags": [
+          "Lucky Draw"
+        ]
+      }
+    },
+    "/v1/lucky-draw/campaigns/{id}/analytics": {
+      "get": {
+        "description": "Returns total vouchers sold, unique users who purchased, and total bill amount generated with this campaign vouchers.",
+        "operationId": "LuckyDrawController_getVoucherAnalytics",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Campaign ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Campaign voucher analytics"
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get voucher analytics for a campaign",
         "tags": [
           "Lucky Draw"
         ]
@@ -2522,155 +2811,9 @@
             "access-token": []
           }
         ],
+        "summary": "List vouchers filtered by campaign or customer",
         "tags": [
           "Lucky Draw"
-        ]
-      }
-    },
-    "/v1/online-orders": {
-      "post": {
-        "operationId": "OnlineOrdersController_create",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOnlineOrderDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "access-token": []
-          }
-        ],
-        "tags": [
-          "Online Orders"
-        ]
-      },
-      "get": {
-        "operationId": "OnlineOrdersController_findAll",
-        "parameters": [
-          {
-            "name": "status",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "customerId",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "access-token": []
-          }
-        ],
-        "tags": [
-          "Online Orders"
-        ]
-      }
-    },
-    "/v1/online-orders/{id}": {
-      "get": {
-        "operationId": "OnlineOrdersController_findOne",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "access-token": []
-          }
-        ],
-        "tags": [
-          "Online Orders"
-        ]
-      }
-    },
-    "/v1/online-orders/{id}/advance": {
-      "patch": {
-        "operationId": "OnlineOrdersController_advance",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "access-token": []
-          }
-        ],
-        "tags": [
-          "Online Orders"
-        ]
-      }
-    },
-    "/v1/online-orders/{id}/cancel": {
-      "patch": {
-        "operationId": "OnlineOrdersController_cancel",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "access-token": []
-          }
-        ],
-        "tags": [
-          "Online Orders"
         ]
       }
     },
@@ -3091,7 +3234,7 @@
     },
     "/v1/billing/cart": {
       "get": {
-        "description": "Returns the live summary of the biller's active DRAFT invoice along with all available vouchers that can be applied. Returns an empty cart if nothing has been scanned yet. Branch is derived from the logged-in biller — no parameters needed. Available vouchers are filtered by branch, active campaigns, and redemption status. Optionally provide customer phone to filter vouchers for a specific customer.",
+        "description": "Returns the live summary of the biller's active DRAFT invoice along with all available vouchers that can be applied. Returns an empty cart if nothing has been scanned yet. Branch is derived from the logged-in biller — no parameters needed. Available vouchers are filtered by branch, active campaigns, and redemption status. Optionally provide customer phone to filter vouchers for a specific customer. Optionally provide couponCode to preview the discount amount (not applied to cart).",
         "operationId": "BillingController_getCart",
         "parameters": [
           {
@@ -3099,6 +3242,15 @@
             "required": false,
             "in": "query",
             "description": "Customer phone number to filter available vouchers",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "couponCode",
+            "required": false,
+            "in": "query",
+            "description": "Coupon code to preview discount (not applied, for display only)",
             "schema": {
               "type": "string"
             }
@@ -3845,7 +3997,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Create a new tag",
@@ -3877,7 +4029,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Get all tags",
@@ -3907,7 +4059,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Get a tag by ID",
@@ -3945,7 +4097,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Update a tag",
@@ -3973,7 +4125,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Soft delete a tag (set status to DELETED)",
@@ -4003,7 +4155,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Permanently delete a tag",
@@ -4014,7 +4166,7 @@
     },
     "/v1/user/products": {
       "get": {
-        "description": "Get paginated product list with advanced filtering: search by name, filter by tags, colors, sizes, price range, category, brand. Authentication optional - if authenticated, includes wishlist/cart status.",
+        "description": "Get paginated product list with advanced filtering: search by name, filter by tags, colors, sizes, price range, category, brand, sort by price or newest. Authentication optional - if authenticated, includes wishlist/cart status.",
         "operationId": "UserProductsController_listProducts",
         "parameters": [
           {
@@ -4028,15 +4180,18 @@
             }
           },
           {
-            "name": "tagIds",
+            "name": "tags",
             "required": false,
             "in": "query",
-            "description": "Filter by tag IDs",
+            "description": "Filter by tag names",
             "schema": {
-              "example": [1, 2],
+              "example": [
+                "NEW ARRIVALS",
+                "HOT SALE"
+              ],
               "type": "array",
               "items": {
-                "type": "number"
+                "type": "string"
               }
             }
           },
@@ -4121,6 +4276,20 @@
               "example": 20,
               "type": "number"
             }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "enum": [
+                "low_to_high",
+                "high_to_low",
+                "newly_arrived"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -4130,7 +4299,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "List products with filters (for website users)",
@@ -4161,7 +4330,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Get product details by ID (for website users)",
@@ -4191,7 +4360,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Add product to wishlist",
@@ -4209,7 +4378,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Get user wishlist",
@@ -4238,7 +4407,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Remove product from wishlist",
@@ -4247,9 +4416,40 @@
         ]
       }
     },
+    "/v1/user/orders/preview": {
+      "post": {
+        "description": "Calculates subtotal, coupon discount, weight-based shipping, and final amount **without** placing an order.\n\n**Logged-in customer:** pass JWT — cart is resolved automatically.\n\n**Guest:** omit JWT and supply `customerEmail` (and optionally `customerPhone`) to resolve a cart-based preview.",
+        "operationId": "UserOrdersController_preview",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewBillDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bill preview calculated."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Preview bill — logged-in or guest",
+        "tags": [
+          "User - Orders"
+        ]
+      }
+    },
     "/v1/user/orders/checkout": {
       "post": {
-        "description": "Process an online checkout given customer details and cart items.",
+        "description": "Unified checkout endpoint.\n\n**Cart checkout:** `isCartPurchase: true` (items list is ignored, cart is used).\n\n**Direct / \"buy now\" checkout:** `isCartPurchase: false` + supply `items`.\n\n**Logged-in customer (JWT):** `customerName/Email/Phone` are optional — profile is already known.\n\n**Guest (no JWT):** `customerEmail` is **required**; `customerName` and `customerPhone` are recommended. An account is automatically found (by email/phone) or created from these details.\n\nShipping is calculated from product weights. A campaign voucher is auto-assigned if one is available.",
         "operationId": "UserOrdersController_checkout",
         "parameters": [],
         "requestBody": {
@@ -4257,25 +4457,91 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UserCheckoutDto"
+                "$ref": "#/components/schemas/UnifiedCheckoutDto"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Order successfully created."
+            "description": "Order placed successfully."
           },
           "400": {
-            "description": "Bad request (e.g., empty cart, insufficient stock)."
+            "description": "Validation / stock / guest field missing error."
           }
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
-        "summary": "Checkout cart (for website users)",
+        "summary": "Place order — cart or direct, logged-in or guest",
+        "tags": [
+          "User - Orders"
+        ]
+      }
+    },
+    "/v1/user/orders": {
+      "get": {
+        "operationId": "UserOrdersController_myOrders",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "My orders (paginated) — requires customer JWT",
+        "tags": [
+          "User - Orders"
+        ]
+      }
+    },
+    "/v1/user/orders/{id}": {
+      "get": {
+        "operationId": "UserOrdersController_myOrderDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "My order detail — requires customer JWT",
         "tags": [
           "User - Orders"
         ]
@@ -4292,7 +4558,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Get current user cart",
@@ -4310,7 +4576,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Clear entire cart",
@@ -4340,7 +4606,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Add or update item in cart",
@@ -4362,6 +4628,22 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "quantity": {
+                    "type": "number",
+                    "example": 3
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Item quantity updated successfully."
@@ -4369,7 +4651,7 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Update specific item quantity",
@@ -4396,12 +4678,176 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Remove item from cart",
         "tags": [
           "User - Cart"
+        ]
+      }
+    },
+    "/v1/user/cart/checkout": {
+      "post": {
+        "operationId": "UserCartController_checkoutCart",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserCartCheckoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created successfully."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Checkout entire cart and create an order",
+        "tags": [
+          "User - Cart"
+        ]
+      }
+    },
+    "/v1/user/reviews": {
+      "get": {
+        "description": "Browse all reviews across all products.\n\n**Filter options:**\n- `productName` — search by product name\n- `customerName` — search by reviewer name\n- `rating` — exact rating (1–5)\n- `minRating` / `maxRating` — rating range\n- `isMocked` — `true` / `false`\n- `sortBy` — `createdAt` (default) | `rating` | `productName`\n- `sortOrder` — `desc` (default) | `asc`\n- `page`, `limit`\n\nReturns a `summary` block (total, average rating, per-star distribution) plus the paginated `data`.",
+        "operationId": "UserReviewsController_listReviews",
+        "parameters": [
+          {
+            "name": "productName",
+            "required": false,
+            "in": "query",
+            "description": "Search by product name (partial, case-insensitive)",
+            "schema": {
+              "example": "T-Shirt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerName",
+            "required": false,
+            "in": "query",
+            "description": "Search by customer / reviewer name",
+            "schema": {
+              "example": "John",
+              "type": "string"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "description": "Filter by exact rating (1-5). Use minRating/maxRating for range.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 4,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minRating",
+            "required": false,
+            "in": "query",
+            "description": "Minimum rating (inclusive)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 3,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxRating",
+            "required": false,
+            "in": "query",
+            "description": "Maximum rating (inclusive)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "isMocked",
+            "required": false,
+            "in": "query",
+            "description": "Filter mocked/dummy reviews only. true = mocked, false = genuine, omit = all",
+            "schema": {
+              "example": false,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort field",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "rating",
+                "productName"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (default: 1)",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (default: 20)",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews listed."
+          }
+        },
+        "summary": "List all reviews (public)",
+        "tags": [
+          "User - Reviews"
         ]
       }
     },
@@ -4424,7 +4870,7 @@
             "description": "Reviews fetched successfully"
           }
         },
-        "summary": "Get reviews for a product",
+        "summary": "Get reviews for a specific product",
         "tags": [
           "User - Reviews"
         ]
@@ -4462,16 +4908,16 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
-        "summary": "Add a review for a product (logged-in user)",
+        "summary": "Add a review for a product (logged-in customer)",
         "tags": [
           "User - Reviews"
         ]
       }
     },
-    "/v1/user/products/reviews/{reviewId}": {
+    "/v1/user/reviews/{reviewId}": {
       "delete": {
         "operationId": "UserReviewsController_deleteOwnReview",
         "parameters": [
@@ -4492,12 +4938,734 @@
         },
         "security": [
           {
-            "bearer": []
+            "access-token": []
           }
         ],
         "summary": "Delete own review",
         "tags": [
           "User - Reviews"
+        ]
+      }
+    },
+    "/v1/admin/shipping/config": {
+      "get": {
+        "operationId": "ShippingController_getConfig",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get default shipping charge config",
+        "tags": [
+          "Shipping"
+        ]
+      },
+      "put": {
+        "operationId": "ShippingController_updateConfig",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShippingConfigDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update default shipping charge (fallback when no rate band matches)",
+        "tags": [
+          "Shipping"
+        ]
+      }
+    },
+    "/v1/admin/shipping/rates": {
+      "post": {
+        "description": "e.g. 0–500g = ₹50, 501–1000g = ₹80. When no range matches, the default charge applies.",
+        "operationId": "ShippingController_createRate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShippingRateDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Create a weight-based shipping rate band",
+        "tags": [
+          "Shipping"
+        ]
+      },
+      "get": {
+        "operationId": "ShippingController_findAllRates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all weight-based shipping rate bands (ordered by minWeight)",
+        "tags": [
+          "Shipping"
+        ]
+      }
+    },
+    "/v1/admin/shipping/rates/{id}": {
+      "patch": {
+        "operationId": "ShippingController_updateRate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update a shipping rate band",
+        "tags": [
+          "Shipping"
+        ]
+      },
+      "delete": {
+        "operationId": "ShippingController_deleteRate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete a shipping rate band",
+        "tags": [
+          "Shipping"
+        ]
+      }
+    },
+    "/v1/contact-us": {
+      "post": {
+        "description": "Allows any unauthenticated user to send an inquiry with their name, email, subject, and message.",
+        "operationId": "ContactUsController_submit",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContactUsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Submit a contact inquiry (public)",
+        "tags": [
+          "Contact Us"
+        ]
+      },
+      "get": {
+        "description": "Returns all contact inquiries ordered by newest first. Requires a valid JWT.",
+        "operationId": "ContactUsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all contact inquiries (admin/staff only)",
+        "tags": [
+          "Contact Us"
+        ]
+      }
+    },
+    "/v1/customer-auth/request-otp": {
+      "post": {
+        "description": "Send the customer email address. If the account is new `isNew: true` is returned. An OTP is generated and (temporarily) returned in the response until the email service is integrated.",
+        "operationId": "CustomerAuthController_requestOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OTP generated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "isNew": true,
+                    "message": "OTP sent. Please verify to create your account.",
+                    "otp": "482910"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Request OTP (Step 1)",
+        "tags": [
+          "Customer Auth"
+        ]
+      }
+    },
+    "/v1/customer-auth/verify-otp": {
+      "post": {
+        "description": "Verify the 6-digit OTP. Returns a JWT `access_token` and `isNew` flag. When `isNew` is `true`, direct the user to `PATCH /customer-auth/complete-profile` to finish registration.",
+        "operationId": "CustomerAuthController_verifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OTP verified — JWT issued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                    "customer": {
+                      "id": 5,
+                      "name": "",
+                      "email": "john.doe@example.com",
+                      "phone": null
+                    },
+                    "isNew": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired OTP."
+          }
+        },
+        "summary": "Verify OTP (Step 2)",
+        "tags": [
+          "Customer Auth"
+        ]
+      }
+    },
+    "/v1/customer-auth/complete-profile": {
+      "patch": {
+        "description": "Collect `name` (required) and `phone` (optional) for a newly registered customer. Must be called with the JWT received from `verify-otp`.",
+        "operationId": "CustomerAuthController_completeProfile",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteProfileDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile saved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "example": {
+                    "message": "Profile completed successfully.",
+                    "customer": {
+                      "id": 5,
+                      "name": "John Doe",
+                      "email": "john.doe@example.com",
+                      "phone": "9901234567"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "JWT required."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Complete profile (Step 3)",
+        "tags": [
+          "Customer Auth"
+        ]
+      }
+    },
+    "/v1/admin/orders/summary": {
+      "get": {
+        "operationId": "AdminOrdersController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Order analytics summary — counts by status + total revenue",
+        "tags": [
+          "Admin - Orders"
+        ]
+      }
+    },
+    "/v1/admin/orders": {
+      "get": {
+        "description": "Filter by status or search by order number.",
+        "operationId": "AdminOrdersController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "example": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "CONFIRMED",
+                "PACKED",
+                "SHIPPED",
+                "DELIVERED",
+                "CANCELLED"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by order number",
+            "schema": {
+              "example": "ORD-12345678",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all online orders (paginated)",
+        "tags": [
+          "Admin - Orders"
+        ]
+      }
+    },
+    "/v1/admin/orders/{id}": {
+      "get": {
+        "operationId": "AdminOrdersController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get full order detail",
+        "tags": [
+          "Admin - Orders"
+        ]
+      }
+    },
+    "/v1/admin/orders/{id}/status": {
+      "patch": {
+        "description": "• **CONFIRMED** → marks order confirmed, records confirmedBy user.\n• **PACKED** → deducts stock from the selected warehouse and records packed user.\n• **SHIPPED** → records shippedBy user.\n• `warehouseBranchId` can be set at any point before PACKED.",
+        "operationId": "AdminOrdersController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrderStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Update order status and/or warehouse",
+        "tags": [
+          "Admin - Orders"
+        ]
+      }
+    },
+    "/v1/admin/orders/{id}/tracking": {
+      "post": {
+        "description": "Provide `providerName` (free text), `trackingId`, and/or `trackingUrl`. Creates a shipment record if none exists, otherwise updates it.",
+        "operationId": "AdminOrdersController_addTracking",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTrackingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Add or update shipment tracking",
+        "tags": [
+          "Admin - Orders"
+        ]
+      }
+    },
+    "/v1/admin/reviews": {
+      "get": {
+        "description": "Full review listing with rich search & filter options:\n\n- `productName` — partial product name search\n- `customerName` — partial reviewer name search\n- `rating` — exact rating (1–5)\n- `minRating` / `maxRating` — rating range\n- `isMocked` — `true` for dummy/mocked reviews, `false` for genuine\n- `sortBy` — `createdAt` (default) | `rating` | `productName`\n- `sortOrder` — `desc` (default) | `asc`\n- `page`, `limit` — pagination\n\nResponse includes a `summary` block with total count, average rating, and per-star distribution.",
+        "operationId": "AdminReviewsController_listAll",
+        "parameters": [
+          {
+            "name": "productName",
+            "required": false,
+            "in": "query",
+            "description": "Search by product name (partial, case-insensitive)",
+            "schema": {
+              "example": "T-Shirt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "customerName",
+            "required": false,
+            "in": "query",
+            "description": "Search by customer / reviewer name",
+            "schema": {
+              "example": "John",
+              "type": "string"
+            }
+          },
+          {
+            "name": "rating",
+            "required": false,
+            "in": "query",
+            "description": "Filter by exact rating (1-5). Use minRating/maxRating for range.",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 4,
+              "type": "number"
+            }
+          },
+          {
+            "name": "minRating",
+            "required": false,
+            "in": "query",
+            "description": "Minimum rating (inclusive)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 3,
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxRating",
+            "required": false,
+            "in": "query",
+            "description": "Maximum rating (inclusive)",
+            "schema": {
+              "minimum": 1,
+              "maximum": 5,
+              "example": 5,
+              "type": "number"
+            }
+          },
+          {
+            "name": "isMocked",
+            "required": false,
+            "in": "query",
+            "description": "Filter mocked/dummy reviews only. true = mocked, false = genuine, omit = all",
+            "schema": {
+              "example": false,
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort field",
+            "schema": {
+              "example": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "rating",
+                "productName"
+              ]
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort direction",
+            "schema": {
+              "example": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (default: 1)",
+            "schema": {
+              "default": 1,
+              "example": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Items per page (default: 20)",
+            "schema": {
+              "default": 20,
+              "example": 20,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Reviews listed successfully."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "List all reviews with filters",
+        "tags": [
+          "Admin - Reviews"
+        ]
+      }
+    },
+    "/v1/admin/reviews/{id}": {
+      "get": {
+        "operationId": "AdminReviewsController_getOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Review ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Get single review detail",
+        "tags": [
+          "Admin - Reviews"
+        ]
+      },
+      "delete": {
+        "operationId": "AdminReviewsController_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "Review ID",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review deleted."
+          }
+        },
+        "security": [
+          {
+            "access-token": []
+          }
+        ],
+        "summary": "Delete any review (admin override — no ownership check)",
+        "tags": [
+          "Admin - Reviews"
         ]
       }
     }
@@ -4516,6 +5684,10 @@
     {
       "name": "Auth",
       "description": "🔐 Login, register, OTP verification"
+    },
+    {
+      "name": "Customer Auth",
+      "description": "🪪 Customer registration & login via OTP (public website)"
     },
     {
       "name": "Health",
@@ -4612,6 +5784,26 @@
     {
       "name": "Stock Transfers",
       "description": "🔄 Inter-branch stock transfer requests"
+    },
+    {
+      "name": "Contact Us",
+      "description": "✉️ Public contact / inquiry form submissions"
+    },
+    {
+      "name": "Shipping",
+      "description": "🚚 Admin-configurable weight-based shipping rates & default charge"
+    },
+    {
+      "name": "Admin - Orders",
+      "description": "📦 Admin order management — status, warehouse, tracking, analytics"
+    },
+    {
+      "name": "Admin - Reviews",
+      "description": "⭐ Admin review management — list all, filter, delete any review"
+    },
+    {
+      "name": "User - Orders",
+      "description": "🛒 Customer checkout (cart & direct), bill preview, my orders"
     }
   ],
   "servers": [
@@ -4986,6 +6178,11 @@
             "type": "string",
             "example": "https://example.com/images/tshirt-navy-m.jpg",
             "description": "Product variant image URL"
+          },
+          "weight": {
+            "type": "number",
+            "example": 500,
+            "description": "Weight in grams (optional, defaults to 0)"
           }
         },
         "required": [
@@ -4997,10 +6194,20 @@
       "AdminMockReviewDto": {
         "type": "object",
         "properties": {
-          "customerId": {
-            "type": "number",
-            "example": 1,
-            "description": "Customer ID to post the review on behalf of"
+          "reviewerName": {
+            "type": "string",
+            "example": "John Doe",
+            "description": "Dummy reviewer name"
+          },
+          "reviewerEmail": {
+            "type": "string",
+            "example": "john@example.com",
+            "description": "Dummy reviewer email"
+          },
+          "reviewerPhone": {
+            "type": "string",
+            "example": "9876543210",
+            "description": "Dummy reviewer phone"
           },
           "rating": {
             "type": "number",
@@ -5029,7 +6236,7 @@
           }
         },
         "required": [
-          "customerId",
+          "reviewerName",
           "rating"
         ]
       },
@@ -5565,88 +6772,6 @@
           "customerId",
           "branchId",
           "issuedBy"
-        ]
-      },
-      "OnlineOrderItemDto": {
-        "type": "object",
-        "properties": {
-          "variantId": {
-            "type": "number",
-            "example": 3,
-            "description": "Variant ID (from /products/:id/variants)"
-          },
-          "quantity": {
-            "type": "number",
-            "example": 1,
-            "description": "Number of units ordered",
-            "minimum": 1
-          },
-          "price": {
-            "type": "number",
-            "example": 1200,
-            "description": "Selling price per unit at time of order (₹)"
-          }
-        },
-        "required": [
-          "variantId",
-          "quantity",
-          "price"
-        ]
-      },
-      "CreateOnlineOrderDto": {
-        "type": "object",
-        "properties": {
-          "customerId": {
-            "type": "number",
-            "example": 5,
-            "description": "Customer ID placing the order"
-          },
-          "warehouseBranchId": {
-            "type": "number",
-            "example": 2,
-            "description": "Warehouse branch ID that will fulfil the order"
-          },
-          "tax": {
-            "type": "number",
-            "example": 18,
-            "description": "Tax percentage (e.g., 18 for 18% GST)",
-            "default": 0
-          },
-          "discount": {
-            "type": "number",
-            "example": 0,
-            "description": "Flat discount amount in ₹",
-            "default": 0
-          },
-          "paymentMethod": {
-            "type": "string",
-            "example": "RAZORPAY",
-            "description": "Payment method: RAZORPAY | COD | BANK_TRANSFER"
-          },
-          "items": {
-            "description": "Items in the online order",
-            "example": [
-              {
-                "variantId": 3,
-                "quantity": 1,
-                "price": 1200
-              },
-              {
-                "variantId": 7,
-                "quantity": 2,
-                "price": 600
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OnlineOrderItemDto"
-            }
-          }
-        },
-        "required": [
-          "customerId",
-          "warehouseBranchId",
-          "items"
         ]
       },
       "CreateDeliveryAgentDto": {
@@ -6312,19 +7437,18 @@
           "productId"
         ]
       },
-      "UserCheckoutItemDto": {
+      "OrderItemDto": {
         "type": "object",
         "properties": {
           "variantId": {
             "type": "number",
-            "example": 1,
-            "description": "Variant ID of the product"
+            "example": 3,
+            "description": "Product Variant ID"
           },
           "quantity": {
             "type": "number",
             "example": 2,
-            "description": "Quantity chosen by user",
-            "minimum": 1
+            "description": "Quantity to purchase"
           }
         },
         "required": [
@@ -6332,58 +7456,90 @@
           "quantity"
         ]
       },
-      "UserCheckoutDto": {
+      "PreviewBillDto": {
         "type": "object",
         "properties": {
-          "customerName": {
+          "isCartPurchase": {
+            "type": "boolean",
+            "example": false,
+            "description": "true = preview from cart, false = preview from provided items list"
+          },
+          "items": {
+            "description": "Required when isCartPurchase is false",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemDto"
+            }
+          },
+          "couponCode": {
             "type": "string",
-            "example": "Arjun Kumar",
-            "description": "Customer Name"
+            "example": "SAVE20",
+            "description": "Coupon code to preview discount"
+          },
+          "customerEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Guest customer email — used to resolve cart for cart-based preview when not logged in."
           },
           "customerPhone": {
             "type": "string",
             "example": "9901234567",
-            "description": "Customer Mobile Number"
-          },
-          "customerEmail": {
-            "type": "string",
-            "example": "arjun@email.com"
-          },
-          "customerAddress": {
-            "type": "string",
-            "example": "123 Main St, City, State 12345",
-            "description": "Delivery Address"
-          },
-          "paymentMethod": {
-            "type": "string",
-            "example": "RAZORPAY",
-            "description": "Payment method: RAZORPAY | COD | BANK_TRANSFER",
-            "default": "COD"
-          },
-          "couponCode": {
-            "type": "string",
-            "example": "WELCOME10",
-            "description": "Coupon code"
-          },
-          "items": {
-            "description": "Items in the cart",
-            "example": [
-              {
-                "variantId": 1,
-                "quantity": 2
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/UserCheckoutItemDto"
-            }
+            "description": "Guest customer phone (secondary lookup)"
           }
         },
         "required": [
-          "customerName",
-          "customerPhone",
-          "customerAddress",
-          "items"
+          "isCartPurchase"
+        ]
+      },
+      "UnifiedCheckoutDto": {
+        "type": "object",
+        "properties": {
+          "isCartPurchase": {
+            "type": "boolean",
+            "example": false,
+            "description": "Set to `true` for a cart-based checkout (items list is ignored). Set to `false` for a direct / \"buy now\" checkout and provide `items`."
+          },
+          "items": {
+            "description": "Required when `isCartPurchase` is false (direct checkout)",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItemDto"
+            }
+          },
+          "customerName": {
+            "type": "string",
+            "example": "John Doe",
+            "description": "Customer full name. Required for guest checkout (no JWT). Ignored when a valid customer JWT is provided."
+          },
+          "customerEmail": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Customer email. Required for guest checkout (no JWT). Used to find or create the customer account."
+          },
+          "customerPhone": {
+            "type": "string",
+            "example": "9901234567",
+            "description": "Customer phone number. Optional for guest checkout — used as secondary lookup key."
+          },
+          "couponCode": {
+            "type": "string",
+            "example": "SAVE20",
+            "description": "Optional coupon code"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "example": "COD",
+            "description": "Payment method (COD, UPI, etc.)"
+          },
+          "shippingAddress": {
+            "type": "string",
+            "example": "12 Main St, Chennai - 600001",
+            "description": "Delivery address"
+          }
+        },
+        "required": [
+          "isCartPurchase",
+          "shippingAddress"
         ]
       },
       "UserCartDto": {
@@ -6404,6 +7560,31 @@
         "required": [
           "variantId",
           "quantity"
+        ]
+      },
+      "UserCartCheckoutDto": {
+        "type": "object",
+        "properties": {
+          "paymentMethod": {
+            "type": "string",
+            "example": "CASH_ON_DELIVERY",
+            "description": "Payment method chosen"
+          },
+          "couponCode": {
+            "type": "string",
+            "example": "SAVE10",
+            "description": "Coupon code"
+          },
+          "warehouseBranchId": {
+            "type": "number",
+            "example": 2,
+            "description": "ID of the branch fulfilling the order (usually a warehouse)",
+            "default": 2
+          }
+        },
+        "required": [
+          "paymentMethod",
+          "warehouseBranchId"
         ]
       },
       "AddReviewDto": {
@@ -6438,6 +7619,174 @@
         "required": [
           "rating"
         ]
+      },
+      "UpdateShippingConfigDto": {
+        "type": "object",
+        "properties": {
+          "defaultCharge": {
+            "type": "number",
+            "example": 50,
+            "description": "Default shipping charge (₹) when no weight rate matches"
+          }
+        },
+        "required": [
+          "defaultCharge"
+        ]
+      },
+      "CreateShippingRateDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "example": "0-500g",
+            "description": "Human-readable label for this rate band"
+          },
+          "minWeight": {
+            "type": "number",
+            "example": 0,
+            "description": "Minimum weight in grams (inclusive)"
+          },
+          "maxWeight": {
+            "type": "number",
+            "example": 500,
+            "description": "Maximum weight in grams (inclusive)"
+          },
+          "charge": {
+            "type": "number",
+            "example": 50,
+            "description": "Shipping charge (₹) for this weight range"
+          }
+        },
+        "required": [
+          "label",
+          "minWeight",
+          "maxWeight",
+          "charge"
+        ]
+      },
+      "CreateContactUsDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe",
+            "description": "Full name of the sender"
+          },
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Email address of the sender"
+          },
+          "subject": {
+            "type": "string",
+            "example": "Issue with my order",
+            "description": "Subject of the inquiry"
+          },
+          "message": {
+            "type": "string",
+            "example": "I placed an order 3 days ago but have not received any update.",
+            "description": "Detailed message or inquiry"
+          }
+        },
+        "required": [
+          "name",
+          "email",
+          "subject",
+          "message"
+        ]
+      },
+      "RequestOtpDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Customer email address to send OTP to"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "VerifyOtpDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "john.doe@example.com",
+            "description": "Customer email address"
+          },
+          "otp": {
+            "type": "string",
+            "example": "482910",
+            "description": "6-digit OTP received via email"
+          }
+        },
+        "required": [
+          "email",
+          "otp"
+        ]
+      },
+      "CompleteProfileDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "John Doe",
+            "description": "Full name of the customer"
+          },
+          "phone": {
+            "type": "string",
+            "example": "9901234567",
+            "description": "Mobile phone number"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateOrderStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "CONFIRMED",
+              "PACKED",
+              "SHIPPED",
+              "DELIVERED",
+              "CANCELLED"
+            ],
+            "example": "CONFIRMED",
+            "description": "New order status"
+          },
+          "warehouseBranchId": {
+            "type": "number",
+            "example": 2,
+            "description": "Warehouse branch ID to fulfill from"
+          }
+        }
+      },
+      "AddTrackingDto": {
+        "type": "object",
+        "properties": {
+          "providerName": {
+            "type": "string",
+            "example": "Delhivery",
+            "description": "Delivery provider name (free text)"
+          },
+          "trackingId": {
+            "type": "string",
+            "example": "DEL1234567890",
+            "description": "Tracking ID / AWB number"
+          },
+          "trackingUrl": {
+            "type": "string",
+            "example": "https://www.delhivery.com/track/package/DEL1234567890",
+            "description": "Full tracking URL"
+          }
+        }
       }
     }
   }

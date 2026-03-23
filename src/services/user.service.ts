@@ -58,3 +58,26 @@ export const createUser = async (payload: {
     throw error;
   }
 };
+
+export const updateUser = async (id: number, payload: {
+  name: string;
+  email: string;
+  password?: string;
+  roleId: number;
+  branchId: number | null;
+}) => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/users/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Failed to update user");
+
+  return res.json();
+};

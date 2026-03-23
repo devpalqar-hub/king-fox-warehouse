@@ -1,8 +1,9 @@
 .container {
-  padding: 40px;
-  background-color: #f1f1f2; /* Light background to make the card pop */
+   padding: 24px 32px;
+  background: #f8fafc;
   min-height: 100vh;
-  font-family: sans-serif;
+  color: #0f172a;
+  font-family: "Inter", sans-serif;
 }
 
 .header h1 {
@@ -11,7 +12,59 @@
   color: #111827;
   margin-bottom: 8px;
 }
+.tagInputContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 10px;
+  border-radius: 12px;
+  position: relative;
+  background: white;
+}
 
+.tag {
+  background: #eef2ff;
+  color: #4f46e5;
+  padding: 6px 10px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.ghostInput {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 120px;
+  font-size: 14px;
+}
+
+/* Dropdown */
+.tagDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-top: 6px;
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tagOption {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.tagOption:hover {
+  background: #f1f5f9;
+}
 .header p {
   color: #6b7280;
   margin-bottom: 40px;

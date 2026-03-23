@@ -1,8 +1,9 @@
 .container {
-  width: 100%;
   padding: 24px 32px;
-  background-color: #f1f1f2;
+  background: #f8fafc;
   min-height: 100vh;
+  color: #0f172a;
+  font-family: "Inter", sans-serif;
 }
 /* Header */
 .header {

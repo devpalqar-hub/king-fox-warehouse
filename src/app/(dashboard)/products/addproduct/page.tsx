@@ -12,9 +12,12 @@ import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMeta
 import { createProduct } from "@/services/product-create.service";
 import { useRef } from "react"
 import { uploadImagesToS3 } from "@/services/upload.service";
+import { getTags } from "@/services/product.service";
+import { useToast } from "@/components/toast/ToastProvider";
 
 export default function AddProductPage() {
 const router = useRouter();
+const { showToast } = useToast();
 const [name, setName] = useState("");
 const [description, setDescription] = useState("");
 const [brandId, setBrandId] = useState("");
@@ -23,6 +26,11 @@ const [brands, setBrands] = useState<Brand[]>([]);
 const [categories, setCategories] = useState<Category[]>([]);
 const [imageFiles, setImageFiles] = useState<File[]>([]);
 const [images, setImages] = useState<string[]>([]); // preview
+const [tags, setTags] = useState<any[]>([]);
+const [selectedTags, setSelectedTags] = useState<any[]>([]);
+const [search, setSearch] = useState("");
+const [showDropdown, setShowDropdown] = useState(false);
+const [loading, setLoading] = useState(false);
 
 const [metaInfo, setMetaInfo] = useState<MetaItem[]>([
   { title: "", text: "", imageUrl: "" }
@@ -45,17 +53,21 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 const removeImage = (index: number) => {
   setImages((prev) => prev.filter((_, i) => i !== index));
 };
+
+
 const handleSaveProduct = async () => {
-  if (!name || !brandId || !categoryId) {
-    alert("Please fill required fields");
-    return;
-  }
+
+  if (!name) return showToast("Product name is required", "error");
+  if (!brandId) return showToast("Please select a brand", "error");
+  if (!categoryId) return showToast("Please select a category", "error");
 
   try {
-    // ✅ STEP 1: Upload images first
+    setLoading(true);
+
+    // STEP 1: Upload images
     const uploadedImageUrls = await uploadImagesToS3(imageFiles);
 
-    // ✅ STEP 2: Clean meta
+    // STEP 2: Clean meta
     const cleanedMeta = metaInfo
       .filter(meta => meta.title || meta.text || meta.imageUrl)
       .map(meta => ({
@@ -64,27 +76,33 @@ const handleSaveProduct = async () => {
         imageUrl: meta.imageUrl || ""
       }));
 
-    // ✅ STEP 3: Create payload
+    // STEP 3: Payload
     const payload = {
       name,
       description,
       brandId: Number(brandId),
       categoryId: Number(categoryId),
-      images: uploadedImageUrls, // 🔥 real S3 URLs
+      images: uploadedImageUrls,
       metaInfo: cleanedMeta,
-      tagIds: []
+      tagIds: selectedTags.map(tag => Number(tag.id)) // 🔥 FIX (important)
     };
 
-    // ✅ STEP 4: Create product
     const product = await createProduct(payload);
 
-    router.push(`/products/addvariation?productId=${product.id}`);
+    showToast("Product created successfully ", "success");
+
+    setTimeout(() => {
+      router.push(`/products/addvariation?productId=${product.id}`);
+    }, 1000);
 
   } catch (err: any) {
     console.error(err);
-    alert(err.message || "Something went wrong");
+    showToast(err.message || "Something went wrong ", "error");
+  } finally {
+    setLoading(false);
   }
 };
+
 useEffect(() => {
 
   const fetchData = async () => {
@@ -104,6 +122,38 @@ useEffect(() => {
   fetchData();
 
 }, []);
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const brandData = await getBrands();
+      const categoryData = await getCategories();
+      const tagData = await getTags(); // ✅ HERE
+
+      setBrands(brandData);
+      setCategories(categoryData);
+      setTags(tagData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchData();
+}, []);
+
+
+const handleAddTag = (tag: any) => {
+  if (!selectedTags.find(t => t.id === tag.id)) {
+    setSelectedTags(prev => [...prev, tag]);
+  }
+  setSearch("");
+  setShowDropdown(false);
+};
+
+const handleRemoveTag = (id: number) => {
+  setSelectedTags(prev => prev.filter(t => t.id !== id));
+};
+
   return (
     <>
     <div className={styles.container}>
@@ -185,10 +235,50 @@ useEffect(() => {
         <div className={styles.formGroup}>
           <label>Tags</label>
           <div className={styles.tagInputContainer}>
-            <span className={styles.tag}>Premium <X size={14} /></span>
-            <span className={styles.tag}>Cotton <X size={14} /></span>
-            <span className={styles.tag}>Eco-friendly <X size={14} /></span>
-            <input type="text" placeholder="Add tags..." className={styles.ghostInput} />
+
+            {/* Selected Tags */}
+            {selectedTags.map((tag) => (
+              <span key={tag.id} className={styles.tag}>
+                {tag.name}
+                <X size={14} onClick={() => handleRemoveTag(tag.id)} />
+              </span>
+            ))}
+
+            {/* Input */}
+            <input
+              type="text"
+              placeholder="Add tags..."
+              className={styles.ghostInput}
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
+            />
+
+            {/* Dropdown (floating) */}
+            {showDropdown &&  (
+              <div className={styles.tagDropdown}>
+                {tags
+                    .filter(t =>
+                    !selectedTags.find(s => s.id === t.id) &&
+                    (search
+                      ? t.name.toLowerCase().includes(search.toLowerCase())
+                      : true)
+                  )
+                  .map((tag) => (
+                    <div
+                      key={tag.id}
+                      className={styles.tagOption}
+                      onClick={() => handleAddTag(tag)}
+                    >
+                      {tag.name}
+                    </div>
+                  ))}
+              </div>
+            )}
+
           </div>
         </div>
       </section>

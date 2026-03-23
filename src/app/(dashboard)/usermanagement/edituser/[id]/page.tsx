@@ -1,11 +1,87 @@
+"use client";
 import React from 'react';
 import { 
   Home, User, Mail, Lock, Settings, 
   MapPin, ChevronDown, Info 
 } from 'lucide-react';
 import styles from './edituser.module.css';
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { getUsers } from "@/services/user.service";
+import { getRoles } from "@/services/role.service";
+import { getBranches } from "@/services/branch.service";
+import { updateUser } from "@/services/user.service";
+import { useToast } from "@/components/toast/ToastProvider"; // adjust path
 
 export default function EditUser() {
+const params = useParams();
+const { showToast } = useToast();
+const userId = Number(params.id);
+const [roles, setRoles] = useState<any[]>([]);
+const [branches, setBranches] = useState<Branch[]>([]);
+type Branch = {
+  id: number;
+  name: string;
+};
+const [form, setForm] = useState({
+  name: "",
+  email: "",
+  password: "",
+  roleId: "",
+  branchId: "",
+});
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const users = await getUsers();
+      const user = users.find(u => u.id === userId);
+
+      if (user) {
+        setForm({
+          name: user.name,
+          email: user.email,
+          password: "",
+          roleId: String(user.role.id),
+          branchId: user.branch ? String(user.branch.id) : "",
+        });
+      }
+
+      const roleData = await getRoles();
+      const branchData = await getBranches();
+
+      setRoles(roleData);
+      setBranches(branchData);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchData();
+}, [userId]);
+
+
+const handleSubmit = async () => {
+  try {
+    await updateUser(userId, {
+      name: form.name,
+      email: form.email,
+      password: form.password || undefined,
+      roleId: Number(form.roleId),
+      branchId: form.branchId ? Number(form.branchId) : null,
+    });
+
+    showToast("User updated successfully!", "success");
+  } catch (err) {
+    console.error(err);
+    showToast("Update failed!", "error");
+  }
+};
+
+const handleChange = (e: any) => {
+  setForm({ ...form, [e.target.name]: e.target.value });
+};
   return (
     <div className={styles.container}>
       {/* Breadcrumbs */}
@@ -22,7 +98,12 @@ export default function EditUser() {
             <label className={styles.label}>Full Name</label>
             <div className={styles.inputWrapper}>
               <User className={styles.inputIcon} size={18} />
-              <input className={styles.input} type="text" defaultValue="Priya Sharma" />
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                className={styles.input}
+              />
             </div>
           </div>
 
@@ -30,7 +111,12 @@ export default function EditUser() {
             <label className={styles.label}>Email Address</label>
             <div className={styles.inputWrapper}>
               <Mail className={styles.inputIcon} size={18} />
-              <input className={styles.input} type="email" defaultValue="priya.sharma@kingfox.com" />
+              <input
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                className={styles.input}
+              />
             </div>
           </div>
 
@@ -38,7 +124,12 @@ export default function EditUser() {
             <label className={styles.label}>Password</label>
             <div className={styles.inputWrapper}>
               <Lock className={styles.inputIcon} size={18} />
-              <input className={styles.input} type="password" defaultValue="password123" />
+              <input
+                name="password"
+                value={form.password}
+                onChange={handleChange}
+                className={styles.input}
+              />
             </div>
           </div>
 
@@ -46,10 +137,18 @@ export default function EditUser() {
             <label className={styles.label}>System Role</label>
             <div className={styles.inputWrapper}>
               <Settings className={styles.inputIcon} size={18} />
-              <select className={styles.select}>
-                <option>Manager</option>
-                <option>Admin</option>
-                <option>Staff</option>
+              <select
+                name="roleId"
+                value={form.roleId}
+                onChange={handleChange}
+                className={styles.select}
+              >
+                <option value="">Select role</option>
+                {roles.map(role => (
+                  <option key={role.id} value={role.id}>
+                    {role.name}
+                  </option>
+                ))}
               </select>
               <ChevronDown style={{position: 'absolute', right: '12px'}} size={16} />
             </div>
@@ -59,10 +158,19 @@ export default function EditUser() {
             <label className={styles.label}>Assigned Branch</label>
             <div className={styles.inputWrapper}>
               <MapPin className={styles.inputIcon} size={18} />
-              <select className={styles.select}>
-                <option>Branch 1 - North Avenue</option>
-                <option>Branch 2 - South Square</option>
-              </select>
+              <select
+                    name="branchId"
+                    value={form.branchId}
+                    onChange={handleChange}
+                    className={styles.select}
+                  >
+                    <option value="">Select branch</option>
+                    {branches.map(branch => (
+                      <option key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </option>
+                    ))}
+                  </select>
               <ChevronDown style={{position: 'absolute', right: '12px'}} size={16} />
             </div>
           </div>
@@ -70,7 +178,9 @@ export default function EditUser() {
 
         <div className={styles.buttonGroup}>
           <button className={styles.cancelBtn}>Cancel</button>
-          <button className={styles.saveBtn}>Save Changes</button>
+          <button className={styles.saveBtn} onClick={handleSubmit}>
+            Save Changes
+          </button>
         </div>
       </div>
 

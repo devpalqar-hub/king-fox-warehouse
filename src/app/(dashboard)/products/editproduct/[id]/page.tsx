@@ -10,14 +10,16 @@ import { getProductById,getCategories } from "@/services/product-create.service"
 import { ArrowLeft, Info ,FileText,ImageIcon, PlusCircle, Upload,Layers, Plus, Settings} from "lucide-react";
 import { uploadImagesToS3 } from "@/services/upload.service";
 import { deleteImageFromS3 } from "@/services/upload.service";
+import { useToast } from "@/components/toast/ToastProvider";
 export default function EditProductPage() {
-  
+const { showToast } = useToast();
 const params = useParams();
 const productId = params.id;
 const [variants, setVariants] = useState<any[]>([]);
 const [categories, setCategories] = useState<any[]>([]);
 const [brands, setBrands] = useState<any[]>([]);
 const [imageFiles, setImageFiles] = useState<File[]>([]);
+const [loading, setLoading] = useState(false);
 
 useEffect(() => {
   const fetchCategories = async () => {
@@ -125,16 +127,14 @@ const handleUpdate = async () => {
   if (!productId) return;
 
   try {
+    setLoading(true);
+
     let finalImages = [...form.images];
 
-    // 🔥 upload new images (only if selected)
     if (imageFiles.length) {
       const uploadedUrls = await uploadImagesToS3(imageFiles);
 
-      // ❌ remove blob preview URLs
       finalImages = finalImages.filter((img) => !img.startsWith("blob:"));
-
-      // ✅ add S3 URLs
       finalImages = [...finalImages, ...uploadedUrls];
     }
 
@@ -143,21 +143,22 @@ const handleUpdate = async () => {
       description: form.description,
       brandId: Number(form.brandId),
       categoryId: Number(form.categoryId),
-      images: finalImages, // ✅ FINAL FIX
+      images: finalImages,
       metaInfo: form.metaInfo,
       tagIds: form.tagIds
     };
 
     await updateProduct(Number(productId), payload);
 
-    alert("Product updated successfully ✅");
+    showToast("Product updated successfully ", "success");
 
   } catch (err: any) {
     console.error(err);
-    alert(err.message);
+    showToast(err.message || "Update failed ", "error");
+  } finally {
+    setLoading(false);
   }
 };
-
 const getMetaValue = (title: string) => {
   return (
     form.metaInfo.find((m) =>
@@ -600,9 +601,6 @@ const updateMetaValue = (title: string, value: string) => {
         setVariants(updated);
       }}
     />
-
-
-
     <select
   className={styles.statusSelect}   // ✅ ADD THIS
   value={v.status}

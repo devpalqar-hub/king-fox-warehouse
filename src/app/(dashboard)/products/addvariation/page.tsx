@@ -15,13 +15,17 @@ import { createVariant } from "@/services/product-create.service";
 import { getVariantsByProductId } from "@/services/product-create.service";
 import { uploadImagesToS3 } from "@/services/upload.service";
 import {  X } from "lucide-react";
+import { useToast } from "@/components/toast/ToastProvider";
+
 export default function AddVariationPage() {
+const { showToast } = useToast();
 const searchParams = useSearchParams();
 const productId = searchParams.get("productId");
 const [variants, setVariants] = useState<any[]>([]);
 const [product, setProduct] = useState<any>(null);
 const [imageFile, setImageFile] = useState<File | null>(null);
 const [preview, setPreview] = useState<string>("");
+const [loading, setLoading] = useState(false);
 const [variation, setVariation] = useState({
   sku: "",
   size: "",
@@ -73,17 +77,16 @@ useEffect(() => {
 }, [productId]);
 const handleAddToList = async () => {
   if (!productId) {
-    alert("Product ID missing");
-    return;
+    return showToast("Product ID missing", "error");
   }
 
   if (!variation.sku) {
-    alert("SKU is required");
-    return;
+    return showToast("SKU is required", "error");
   }
 
   try {
-    // 🔥 upload image first
+    setLoading(true);
+
     let imageUrl = "";
 
     if (imageFile) {
@@ -93,8 +96,8 @@ const handleAddToList = async () => {
 
     const payload = {
       sku: variation.sku,
-      costPrice: variation.costPrice,
-      sellingPrice: variation.sellingPrice,
+      costPrice: Number(variation.costPrice || 0),
+      sellingPrice: Number(variation.sellingPrice || 0),
       size: variation.size,
       color: variation.color,
       barcode: variation.barcode || Date.now().toString(),
@@ -105,7 +108,7 @@ const handleAddToList = async () => {
 
     setVariants((prev) => [...prev, newVariant]);
 
-    // reset
+    // reset form
     setVariation({
       sku: "",
       size: "",
@@ -119,14 +122,15 @@ const handleAddToList = async () => {
     setImageFile(null);
     setPreview("");
 
-    alert("Variant added successfully ✅");
+    showToast("Variant added successfully ", "success");
 
   } catch (error: any) {
     console.error(error);
-    alert(error.message);
+    showToast(error.message || "Failed to add variant ", "error");
+  } finally {
+    setLoading(false);
   }
 };
-
   return (
     <div className={styles.container}>
       {/* Header Section */}
@@ -301,8 +305,9 @@ const handleAddToList = async () => {
         <button 
           className={styles.addToListBtn} 
           onClick={handleAddToList}
+          disabled={loading}
         >
-          <span>+</span> Add to List
+          {loading ? "Adding..." : <><span>+</span> Add to List</>}
         </button>
       </div>
     </div>

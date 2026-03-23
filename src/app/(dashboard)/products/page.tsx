@@ -99,11 +99,11 @@ useEffect(() => {
             <ChevronDown className={styles.selectArrow} size={16} />
           </div>
         </div>
-        <div className={styles.tagRow}>
+        {/* <div className={styles.tagRow}>
           <span className={styles.tag}>New Arrivals <X size={14} /></span>
           <span className={styles.tag}>Best Sellers <X size={14} /></span>
           <button className={styles.clearBtn}>Clear all</button>
-        </div>
+        </div> */}
       </section>
 
       {/* Table Section */}
@@ -150,9 +150,18 @@ useEffect(() => {
         </td>
 
         <td>
-          <span className={styles.categoryBadge}>
-            {product.category?.name}
-          </span>
+          <span
+          className={`${styles.categoryBadge} ${
+            styles[
+              product.category?.name
+                ?.toLowerCase()
+                .replace(/\s/g, "")      // remove spaces
+                .replace(/-/g, "")       // remove dash ✅
+            ] || styles.defaultCategory
+          }`}
+        >
+          {product.category?.name}
+        </span>
         </td>
 
         <td className={styles.textMuted}>{product.brand?.name}</td>
