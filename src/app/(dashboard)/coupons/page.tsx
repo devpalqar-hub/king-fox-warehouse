@@ -13,8 +13,13 @@ const CouponsPage = () => {
 
   useEffect(() => {
     const fetchCoupons = async () => {
-      const data = await getCoupons();
-      setCoupons(data);
+      try {
+        const res = await getCoupons();
+        setCoupons(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error(err);
+        setCoupons([]);
+      }
     };
 
     fetchCoupons();

@@ -2,7 +2,17 @@ import { Coupon } from "@/types/coupon";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const getCoupons = async (): Promise<Coupon[]> => {
+interface CouponResponse {
+  data: Coupon[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export const getCoupons = async (): Promise<CouponResponse> => {
   try {
     const token = localStorage.getItem("token");
 
@@ -22,7 +32,16 @@ export const getCoupons = async (): Promise<Coupon[]> => {
     return res.json();
   } catch (error) {
     console.error("Coupon fetch error:", error);
-    return [];
+
+    return {
+      data: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      },
+    };
   }
 };
 

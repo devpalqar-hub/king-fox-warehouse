@@ -15,10 +15,6 @@ import {
   Store,
   Users
 } from 'lucide-react';
-
-  Tag,
-  Store,
-} from "lucide-react";
 import { MdReviews } from "react-icons/md";
 
 const menuItems = [
@@ -33,8 +29,8 @@ const menuItems = [
   { name: "Coupons", icon: <Ticket size={22} />, path: "/coupons" },
   { name: "Orders", icon: <ShoppingBag size={22} />, path: "/orders" },
   { name: "Lucky Draw", icon: <Trophy size={22} />, path: "/luckydraw" },
-  { name: "Reviews", icon: <MdReviews size={22} />, path: "/reviews" },
   { name: 'User Management', icon: <Users size={22} />, path: '/usermanagement' },
+  { name: "Reviews", icon: <MdReviews size={22} />, path: "/reviews" },
 ];
 
 const Sidebar = () => {
