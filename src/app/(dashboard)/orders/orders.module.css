@@ -1,0 +1,273 @@
+.container {
+  padding: 2.5rem;
+  background-color: #fcfcfd;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: #1e293b;
+}
+
+/* Header Section */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.headerTitle h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.headerTitle p {
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.createBtn {
+  background-color: #5850ec;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+/* Stats Cards */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.iconWrapper {
+  padding: 8px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trend {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #10b981;
+  background: #ecfdf5;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.statLabel {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-top: 0.5rem;
+}
+
+/* Filter Bar */
+.filterSection {
+  background: white;
+  padding: 1.25rem;
+   border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.searchWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.selectInput, .iconBtn {
+  padding: 0.65rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  color: #1e293b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.resetBtn {
+  color: #64748b;
+  border: none;
+  background: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Table */
+.tableWrapper {
+  background: white;
+  margin-top: 19px;
+  border: 1px solid #dedfe1;
+  border-radius: 12px;
+  
+  
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+/* Table specific styles */
+.orderId {
+  font-weight: 600;
+  color: #4f46e5;
+}
+
+.amount {
+  font-weight: 700;
+}
+
+.payment {
+  color: #64748b;
+}
+
+/* View button */
+.viewBtn {
+  color: #4f46e5;
+  border: none;
+  background: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Icon background */
+.iconBg {
+  background: #f8fafc;
+}
+.table th {
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #64748b;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.table td {
+  padding: 1.25rem 1rem;
+  border-bottom: 1px solid #f8fafc;
+}
+
+.customer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Status Pill */
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.pending { background: #fffbeb; color: #d97706; }
+.pending .dot { background: #f59e0b; }
+
+.shipped { background: #eff6ff; color: #2563eb; }
+.shipped .dot { background: #3b82f6; }
+
+.delivered { background: #f0fdf4; color: #16a34a; }
+.delivered .dot { background: #22c55e; }
+
+.cancelled { background: #fef2f2; color: #dc2626; }
+.cancelled .dot { background: #ef4444; }
+
+/* Pagination */
+.pagination {
+  padding: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.pageButtons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.pageBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  cursor: pointer;
+}
+
+.activePage {
+  background: #5850ec;
+  color: white;
+  border-color: #5850ec;
+}

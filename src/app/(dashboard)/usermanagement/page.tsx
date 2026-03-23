@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { getUsers } from "@/services/user.service";
 import { User } from "@/types/user.types";
 import { getRoles } from "@/services/role.service";
-
+import { getBranches } from "@/services/branch.service";
 
 export default function UserManagement() {
 
@@ -16,6 +16,8 @@ export default function UserManagement() {
     const [loading, setLoading] = useState(true);
     const [roles, setRoles] = useState<any[]>([]);
     const [selectedRole, setSelectedRole] = useState("");
+    const [branches, setBranches] = useState<any[]>([]);
+    const [selectedBranch, setSelectedBranch] = useState("");
 
     useEffect(() => {
     const fetchData = async () => {
@@ -36,11 +38,32 @@ export default function UserManagement() {
 
   fetchRoles();
 }, []);
-const filteredUsers = users.filter((user) => {
-  if (!selectedRole) return true;
 
-  return user.role.id === Number(selectedRole);
+useEffect(() => {
+  const fetchBranches = async () => {
+    try {
+      const data = await getBranches();
+      setBranches(data);
+    } catch (err) {
+      console.error("Branch fetch error:", err);
+    }
+  };
+
+  fetchBranches();
+}, []);
+
+const filteredUsers = users.filter((user) => {
+  const roleMatch = selectedRole
+    ? user.role.id === Number(selectedRole)
+    : true;
+
+  const branchMatch = selectedBranch
+    ? user.branch?.id === Number(selectedBranch)
+    : true;
+
+  return roleMatch && branchMatch;
 });
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -63,8 +86,22 @@ const filteredUsers = users.filter((user) => {
               </select>
             </div>
           <div className={styles.filterItem}>
-            <MapPin size={16} /> <span>Branch: All</span> <ChevronDown size={14} />
-          </div>
+          <MapPin size={16} />
+
+          <select
+            className={styles.selectFilter}
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+          >
+            <option value="">All Branches</option>
+
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
+            ))}
+          </select>
+        </div>
         </div>
         <button
         className={styles.addButton}
