@@ -47,6 +47,7 @@ export const createVariant = async (productId: number, data: any) => {
 
   return response;
 };
+
 export const getProductById = async (id: number) => {
   const token = localStorage.getItem("token");
 
@@ -62,7 +63,7 @@ export const getProductById = async (id: number) => {
     throw new Error(data.message || "Failed to fetch product");
   }
 
-  return data;
+  return data; // ✅ SINGLE OBJECT
 };
 
 export const getVariantsByProductId = async (productId: number) => {
