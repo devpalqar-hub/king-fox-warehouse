@@ -1,8 +1,7 @@
 "use client";
 
-import React from 'react';
 import { 
-  Plus, Search, Filter, ChevronLeft, ChevronRight, 
+   Search, Filter, ChevronLeft, ChevronRight, 
   ShoppingBag, Banknote, ClipboardList, Truck 
 } from 'lucide-react';
 import Link from "next/link";
@@ -84,9 +83,6 @@ useEffect(() => {
           <h1>Order Management</h1>
           <p>Manage and track your customer orders in real-time.</p>
         </div>
-        <button className={styles.createBtn}>
-          <Plus size={18} /> Create New Order
-        </button>
       </div>
 
       {/* Stats Section */}
