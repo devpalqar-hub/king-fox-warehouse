@@ -12,7 +12,7 @@ import { getUsers } from "@/services/user.service";
 import { getRoles } from "@/services/role.service";
 import { getBranches } from "@/services/branch.service";
 import { updateUser } from "@/services/user.service";
-import { useToast } from "@/components/toast/ToastProvider"; // adjust path
+import { useToast } from "@/components/toast/ToastProvider"; 
 import BackButton from '@/components/backButton/backButton';
 
 export default function EditUser() {
