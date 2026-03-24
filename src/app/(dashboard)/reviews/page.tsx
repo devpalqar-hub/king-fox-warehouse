@@ -36,7 +36,7 @@ const ReviewsPage = () => {
   };
 
   const renderStars = (count: number) => {
-    return "⭐".repeat(count);
+    return "★".repeat(count);
   };
 
   return (
@@ -82,11 +82,11 @@ const ReviewsPage = () => {
           onChange={(e) => setRating(Number(e.target.value) || undefined)}
         >
           <option value="">All Ratings</option>
-          <option value="5">5 ⭐</option>
-          <option value="4">4 ⭐</option>
-          <option value="3">3 ⭐</option>
-          <option value="2">2 ⭐</option>
-          <option value="1">1 ⭐</option>
+          <option value="5">5 ★</option>
+          <option value="4">4 ★</option>
+          <option value="3">3 ★</option>
+          <option value="2">2 ★</option>
+          <option value="1">1 ★</option>
         </select>
 
         <button className={styles.btnFilter} onClick={handleFilter}>
@@ -119,7 +119,7 @@ const ReviewsPage = () => {
 
                 <td>{r.customer.name}</td>
 
-                <td>{renderStars(r.rating)}</td>
+                <td className={styles.stars}>{renderStars(r.rating)}</td>
 
                 <td>{r.body}</td>
 

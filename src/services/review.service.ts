@@ -43,19 +43,34 @@ export const getReviews = async (
 };
 
 export interface ProductReviewResponse {
+  id: number;
   productId: number;
-  total: number;
-  averageRating: number;
-  reviews: Review[];
+  rating: number;
+  title: string;
+  body: string;
+  createdAt: string;
+
+  product: {
+    id: number;
+    name: string;
+    images: string[];
+  };
+
+  customer: {
+    id: number;
+    name: string;
+    email: string;
+    phone: string;
+  };
 }
 
 export const getProductReviews = async (
-  productId: string,
+  id: string,
 ): Promise<ProductReviewResponse> => {
   const token = localStorage.getItem("token");
 
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/user/products/${productId}/reviews`,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/admin/reviews/${id}`,
     {
       headers: {
         Authorization: `Bearer ${token}`,

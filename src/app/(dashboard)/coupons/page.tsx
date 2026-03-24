@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./coupons.module.css";
-import { Plus } from "lucide-react";
+import { Eye, Plus, Pen, Trash } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { getCoupons } from "@/services/coupon.service";
@@ -85,6 +85,7 @@ const CouponsPage = () => {
               <th>TYPE & VALUE</th>
               <th>USAGE</th>
               <th>VALIDITY</th>
+              <th>STATUS</th>
               <th>ACTION</th>
             </tr>
           </thead>
@@ -141,6 +142,26 @@ const CouponsPage = () => {
                     >
                       {status}
                     </span>
+                  </td>
+                  <td className={styles.actions}>
+                    <Link href={`/coupons/${c.id}`}>
+                      <button className={styles.iconBtn}>
+                        <Eye size={15} />
+                      </button>
+                    </Link>
+
+                    <Link href={`/coupons/edit/${c.id}`}>
+                      <button className={styles.iconBtn}>
+                        <Pen size={15} />
+                      </button>
+                    </Link>
+
+                    <button
+                      className={styles.iconBtn}
+                      // onClick={() => handleDelete(c.id)}
+                    >
+                      <Trash size={15} />
+                    </button>
                   </td>
                 </tr>
               );

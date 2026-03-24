@@ -31,6 +31,27 @@ export const getCampaigns = async (filters?: {
     return [];
   }
 };
+
+export const getCampaignById = async (id: number | string) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/v1/lucky-draw/campaigns/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
+    });
+
+    if (!res.ok) throw new Error("Failed to fetch campaign");
+
+    return res.json();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
 export const createCampaign = async (payload: any) => {
   try {
     const token = localStorage.getItem("token");

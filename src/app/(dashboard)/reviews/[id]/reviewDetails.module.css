@@ -51,7 +51,11 @@
   padding-bottom: 16px;
   border-bottom: 1px solid #f1f5f9;
 }
-
+.stars {
+  color: #facc15; 
+  font-size: 18px;
+  letter-spacing: 2px;
+}
 /* ── User Info ───────────────────────────── */
 .userInfo {
   display: flex;
@@ -59,20 +63,28 @@
   align-items: center;
 }
 
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .avatar {
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
-  color: #fff;
-  letter-spacing: 0.04em;
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
 }
 
 .name {
@@ -82,13 +94,62 @@
   margin-bottom: 3px;
 }
 
-.meta {
+.customerName {
+  font-weight: 600;
+}
+
+.customerEmail {
   font-size: 12px;
-  color: #94a3b8;
-  font-weight: 400;
+  color: gray;
+}
+
+.rating {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.ratingNumber {
+  margin-left: 8px;
+  color: gray;
+}
+
+.productBox {
+  margin-top: 16px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.productLabel {
+  font-size: 12px;
+  color: gray;
+}
+
+.section {
+  margin-top: 16px;
+}
+
+.body {
+  line-height: 1.6;
+}
+
+.imageGrid {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.meta {
+  margin-top: 16px;
+  font-size: 13px;
+  color: #555;
 }
 
 .metaDot {

@@ -7,11 +7,36 @@ import {
   getShippingRates,
 } from "@/services/shipping.service";
 import Link from "next/link";
+import { updateShippingConfig } from "@/services/shipping.service";
+import { useToast } from "@/components/toast/ToastProvider";
 
 const ShippingPage = () => {
   const [config, setConfig] = useState<any>(null);
   const [rates, setRates] = useState<any[]>([]);
+  const { showToast } = useToast();
 
+  const [showModal, setShowModal] = useState(false);
+  const [newCharge, setNewCharge] = useState<number>(0);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async () => {
+    try {
+      setLoading(true);
+      await updateShippingConfig(newCharge);
+
+      setConfig((prev: any) => ({
+        ...prev,
+        defaultCharge: newCharge,
+      }));
+
+      setShowModal(false);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to update");
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -53,6 +78,15 @@ const ShippingPage = () => {
             </div>
             <div className={styles.charge}>₹{config.defaultCharge}</div>
           </div>
+          <button
+            className={styles.updateBtn}
+            onClick={() => {
+              setNewCharge(config.defaultCharge);
+              setShowModal(true);
+            }}
+          >
+            Update default
+          </button>
         </div>
       )}
 
@@ -93,6 +127,37 @@ const ShippingPage = () => {
           </div>
         </div>
       </div>
+      {showModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h3>Update Default Shipping</h3>
+
+            <input
+              type="number"
+              className={styles.input}
+              value={newCharge}
+              onChange={(e) => setNewCharge(Number(e.target.value))}
+            />
+
+            <div className={styles.modalActions}>
+              <button
+                className={styles.btnGhost}
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className={styles.btnPrimary}
+                onClick={handleUpdate}
+                disabled={loading}
+              >
+                {loading ? "Updating..." : "Update"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

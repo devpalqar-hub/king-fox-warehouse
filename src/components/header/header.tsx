@@ -6,17 +6,17 @@ const Header = () => {
   return (
     <header className={styles.header}>
       {/* Search Bar Group */}
-      <div className={styles.searchContainer}>
+      {/* <div className={styles.searchContainer}>
         <Search className={styles.searchIcon} size={18} />
         <input 
           type="text" 
           placeholder="Search analytics, products, orders..." 
           className={styles.searchInput}
         />
-      </div>
+      </div> */}
 
       {/* Action Items Group */}
-      <div className={styles.actions}>
+      {/* <div className={styles.actions}>
         <div className={styles.iconButton}>
           <Bell size={20} />
           <span className={styles.notificationDot}></span>
@@ -32,7 +32,7 @@ const Header = () => {
           <Download size={16} />
           <span>Export Data</span>
         </button>
-      </div>
+      </div> */}
     </header>
   );
 };

@@ -39,7 +39,6 @@
   text-decoration: none;
   font-size: 13.5px;
   font-weight: 600;
-  font-family: inherit;
   letter-spacing: 0.02em;
   border: none;
   cursor: pointer;
@@ -59,13 +58,28 @@
   transform: translateY(0);
   opacity: 0.9;
 }
+.updateBtn {
+  padding: 8px;
+  position: absolute;
+  right: 20;
+  margin-top: 10px;
+  border-radius: 20px;
+  border: transparent;
+  color: white;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+}
 
+.updateBtn:hover {
+  cursor: pointer;
+}
 /* ── Default Rate Card ────────────────────── */
 .card {
+  position: relative;
   background: #fff;
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   padding: 20px 24px;
+  padding-bottom: 50px;
   margin-bottom: 20px;
   box-shadow:
     0 1px 3px rgba(15, 23, 42, 0.06),
@@ -212,7 +226,50 @@
   background: #f8fafc;
   cursor: not-allowed;
 }
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  width: 320px;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 12px;
+}
+
+.btnGhost {
+  padding: 5px;
+  color: white;
+  background-color: #706f7b;
+  border-radius: 8px;
+  border: transparent;
+  font-weight: 600;
+}
+
+.btnGhost:hover {
+  cursor: pointer;
+}
 /* ── Responsive ───────────────────────────── */
 @media (max-width: 768px) {
   .container {
