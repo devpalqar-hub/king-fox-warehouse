@@ -1,170 +1,420 @@
-"use client";
-import React from 'react';
-import { 
-  Calendar, Check, Package, Truck, 
-  MapPin, Mail, Phone, Info, User, ClipboardList 
-} from 'lucide-react';
+'use client'
 import styles from './orderdetail.module.css';
 
+import { 
+  FileText, 
+  Truck, 
+  CheckCircle, 
+  Package, 
+  Clock, 
+  ExternalLink,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Store
+} from 'lucide-react';
+import { getBranches } from "@/services/branch.service";
+import { updateOrderStatus } from "@/services/order.service";
+import { useEffect, useState } from "react";
+import { getOrderById } from "@/services/order.service";
+import { useParams } from "next/navigation";
+import { updateTracking } from "@/services/order.service";
+
 export default function OrderDetailPage() {
+  const params = useParams();
+  const id = Number(params.id);
+const [order, setOrder] = useState<any>(null);
+
+const steps = ["PENDING", "CONFIRMED", "PACKED", "SHIPPED"];
+
+const currentIndex = order
+  ? steps.indexOf(order.status)
+  : -1;
+  const [branches, setBranches] = useState<any[]>([]);
+
+  const [showModal, setShowModal] = useState(false);
+const [trackingForm, setTrackingForm] = useState({
+  providerName: "",
+  trackingId: "",
+  trackingUrl: "",
+});
+
+  useEffect(() => {
+  const fetchBranches = async () => {
+    const data = await getBranches();
+    setBranches(data?.data || data);
+  };
+
+  fetchBranches();
+}, []);
+  useEffect(() => {
+    const fetchOrder = async () => {
+      const data = await getOrderById(id);
+      setOrder(data);
+    };
+
+    if (id) fetchOrder();
+  }, [id]);
+    if (!order) return <p>Loading...</p>;
+
+    const shipment = order.shipments?.[0];
   return (
     <div className={styles.container}>
-      <header className={styles.topHeader}>
-        <div className={styles.orderIdGroup}>
-          <h1>#ORD-20260323-001 <span className={styles.packedBadge}>Packed</span></h1>
-          <div className={styles.timestamp}>
-            <Calendar size={14} /> Placed on March 23, 2026 at 10:45 AM
-          </div>
-        </div>
-        <div className={styles.btnActions}>
-          <button className={styles.downloadBtn}>Download Invoice</button>
-          <button className={styles.shipBtn}>Ship Order</button>
-        </div>
-      </header>
+      {/* Header Section */}
+    {/* Header Card */}
+<section className={`${styles.card} ${styles.headerCard}`}>
+  <header className={styles.header}>
+    
+    {/* LEFT */}
+    <div className={styles.headerLeft}>
+      <div className={styles.titleRow}>
+        <h1>#{order.orderNumber}</h1>
+<span className={styles.badge}>{order.status}</span>
+      </div>
+
+      <p className={styles.timestamp}>
+  <Clock size={14} />
+  Placed on {new Date(order.createdAt).toLocaleString()}
+</p>
+    </div>
+
+    {/* RIGHT */}
+    <div className={styles.headerActions}>
+      <button className={styles.btnSecondary}>
+        Download Invoice
+      </button>
+      <button className={styles.btnPrimary}>
+        Ship Order
+      </button>
+    </div>
+
+  </header>
+</section>
 
       <div className={styles.grid}>
-        {/* Main Side */}
-        <main>
-          <section className={styles.card}>
-            <div className={styles.sectionTitle}>Status Flow</div>
-            <div className={styles.flowWrapper}>
-              <div className={styles.flowLine} />
-              <FlowStep label="Pending" time="Mar 23, 10:45 AM" status="active" />
-              <FlowStep label="Confirmed" time="Mar 23, 11:15 AM" status="active" />
-              <FlowStep label="Packed" time="Mar 23, 02:30 PM" status="current" />
-              <FlowStep label="Shipped" time="Waiting..." status="upcoming" />
-            </div>
-          </section>
+        {/* Main Content (Left Column) */}
+        <div className={styles.mainContent}>
+          
+          {/* Status Flow Card */}
+         <section className={styles.card}>
+  <h3>Status Flow</h3>
 
+  <div className={styles.statusStepper}>
+    {steps.map((step, index) => {
+      const isCompleted = index < currentIndex;
+      const isActive = index === currentIndex;
+
+      return (
+        <div
+          key={step}
+          className={`${styles.step} 
+            ${isCompleted ? styles.completed : ""} 
+            ${isActive ? styles.active : ""}`}
+        >
+          <div className={styles.iconCircle}>
+            {isCompleted ? (
+              <CheckCircle size={20} />
+            ) : step === "PACKED" ? (
+              <Package size={20} />
+            ) : step === "SHIPPED" ? (
+              <Truck size={20} />
+            ) : (
+              <Clock size={20} />
+            )}
+          </div>
+
+          <div className={styles.stepInfo}>
+            <strong>{step}</strong>
+
+            <span>
+              {isCompleted || isActive
+                ? new Date(order.updatedAt).toLocaleString()
+                : "Waiting..."}
+            </span>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</section>
+
+
+          {/* Order Items Card */}
           <section className={styles.card}>
-            <div className={styles.sectionTitle}>
-              Order Items <span style={{fontSize: '0.8rem', color: '#94a3b8', fontWeight: 500}}>2 Items Total</span>
+            <div className={styles.cardHeader}>
+              <h3>Order Items</h3>
+              <span>{order.items.length} Items Total</span>
             </div>
-            <table className={styles.itemTable}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Product</th>
+                  <th>PRODUCT</th>
                   <th>SKU</th>
                   <th>QTY</th>
-                  <th>Price</th>
-                  <th>Subtotal</th>
+                  <th>PRICE</th>
+                  <th>SUBTOTAL</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>
-                    <div className={styles.productCell}>
-                      <div className={styles.imgPlaceholder} />
-                      <div>
-                        <div style={{fontWeight: 700}}>T-Shirt</div>
-                        <div style={{fontSize: '0.75rem', color: '#64748b'}}>Size: M, Color: Red</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className={styles.sku}>TS - RED - M</td>
-                  <td style={{fontWeight: 600}}>2</td>
-                  <td style={{fontWeight: 600}}>500</td>
-                  <td className={styles.subtotal}>1000</td>
-                </tr>
-              </tbody>
+  {order.items.map((item: any) => (
+    <tr key={item.id}>
+      <td className={styles.productCell}>
+        <div className={styles.productImg}></div>
+        <div>
+          <p className={styles.productName}>
+            {item.variant.product.name}
+          </p>
+          <p className={styles.productMeta}>
+            Size: {item.variant.size}, Color: {item.variant.color}
+          </p>
+        </div>
+      </td>
+
+      <td className={styles.skuText}>{item.variant.sku}</td>
+      <td>{item.quantity}</td>
+      <td>{item.price}</td>
+      <td className={styles.subtotalText}>{item.subtotal}</td>
+    </tr>
+  ))}
+</tbody>
             </table>
           </section>
-        </main>
+        </div>
 
-        {/* Sidebar Side */}
-        <aside>
-          <div className={styles.pricingCard}>
-            <div className={styles.summaryHeader}>
-              <ClipboardList size={20} color="#6366f1" /> Pricing Summary
+        {/* Sidebar (Right Column) */}
+        <aside className={styles.sidebar}>
+          
+          {/* Pricing Summary */}
+          <section className={`${styles.card} ${styles.darkCard}`}>
+            <h3><FileText size={18} /> Pricing Summary</h3>
+            <div className={styles.priceRow}>
+              <span>Subtotal</span>
+              <span>{order.subtotal}</span>
             </div>
-            <PriceLine label="Subtotal" value="1,000" />
-            <PriceLine 
-              label={<>Discount <span className={styles.vouchertag}>NEW50</span></>} 
-              value="- 100" 
-              isNegative 
-            />
-            <PriceLine label="Voucher" value="New Year Lucky Draw" isItalic />
-            <PriceLine label="Shipping" value="50" />
-            
-            <div className={styles.totalArea}>
+            <div className={styles.priceRow}>
+              <span className={styles.discountText}>- {order.discount}</span>
+              <span className={styles.discountText}>- 100</span>
+            </div>
+            <div className={styles.priceRow}>
+              <span>Voucher</span>
+              <span className={styles.italicText}>New Year Lucky Draw</span>
+            </div>
+            <div className={styles.priceRow}>
+              <span>Shipping</span>
+              <span>{order.shippingCharge}</span>
+            </div>
+            <hr className={styles.divider} />
+            <div className={styles.totalRow}>
               <div>
-                <div className={styles.mutedText} style={{fontSize: '0.7rem', fontWeight: 800}}>TOTAL AMOUNT</div>
-                <div className={styles.totalVal}>1,150</div>
+                <p>TOTAL AMOUNT</p>
+                <h2>{order.finalAmount}</h2>
               </div>
-              <span className={styles.paid}>PAID</span>
+              <span className={styles.paidBadge}>PAID</span>
             </div>
-          </div>
+          </section>
 
-          <div className={styles.card} style={{marginTop: '1.5rem'}}>
-            <div style={{fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', marginBottom: '1rem'}}>WAREHOUSE INFO</div>
-            <div className={styles.infoBox}>
-               <div className={styles.infoIcon}><Package size={20}/></div>
-               <div>
-                 <div style={{fontWeight: 700}}>Kochi Warehouse</div>
-                 <div style={{fontSize: '0.75rem', color: '#64748b'}}>ID: 2 • Kerala Hub</div>
-               </div>
-            </div>
-            <div style={{fontSize: '0.7rem', fontWeight: 800, color: '#94a3b8', marginBottom: '1rem'}}>SHIPMENT INFORMATION</div>
-            <SidebarData label="Provider" value="Delhivery" />
-            <SidebarData label="Tracking ID" value="DL123456" />
-            <a href="#" className={styles.trackLink}>Track Shipment →</a>
-            <button className={styles.updateBtn}>UPDATE TRACKING</button>
-          </div>
+          {/* Warehouse & Shipment */}
+          <section className={styles.card}>
+            <p className={styles.sidebarLabel}>WAREHOUSE INFO</p>
+            <div className={styles.warehouseBox}>
+  <div className={styles.warehouseIcon}>
+    <Store size={20} />
+  </div>
 
-          <div className={styles.card}>
-            <div className={styles.summaryHeader} style={{color: '#4f46e5', marginBottom: '1rem'}}>
-              <User size={18} /> <span style={{color: '#1e293b'}}>Customer Info</span>
-            </div>
-            <div className={styles.customerHead}>
-              <div className={styles.imgPlaceholder} style={{borderRadius: '50%'}}></div>
+  <div className={styles.warehouseContent}>
+    
+    {/* 🔽 DROPDOWN */}
+    <select
+      className={styles.select}
+      value={order?.warehouseBranch?.id || ""}
+      onChange={async (e) => {
+        const branchId = Number(e.target.value);
+
+        const selectedBranch = branches.find(
+          (b: any) => b.id === branchId
+        );
+
+        // update UI always
+        setOrder((prev: any) => ({
+          ...prev,
+          warehouseBranch: selectedBranch,
+        }));
+
+        // call API only for warehouse
+        if (selectedBranch?.type !== "WAREHOUSE") return;
+
+        await updateOrderStatus(order.id, {
+          warehouseBranchId: branchId,
+          status: order.status,
+        });
+      }}
+    >
+      {branches.map((b: any) => (
+        <option key={b.id} value={b.id}>
+          {b.name} ({b.type})
+        </option>
+      ))}
+    </select>
+
+    {/* INFO */}
+    <p className={styles.metaText}>
+      ID: {order?.warehouseBranch?.id} •{" "}
+      {order?.warehouseBranch?.type}
+    </p>
+
+  </div>
+</div>
+
+            <p className={styles.sidebarLabel}>SHIPMENT INFORMATION</p>
+
+<div className={styles.shipmentDetails}>
+  
+  <div className={styles.detailRow}>
+    <span>Provider</span>
+    <strong>{shipment?.providerName || "Not assigned"}</strong>
+  </div>
+
+  <div className={styles.detailRow}>
+    <span>Tracking ID</span>
+    <strong>{shipment?.trackingId || "N/A"}</strong>
+  </div>
+
+  <div className={styles.detailRow}>
+  <span>Link</span>
+  {shipment?.trackingUrl ? (
+    <a href={shipment.trackingUrl} target="_blank" className={styles.link}>
+      Track Shipment <ExternalLink size={12} />
+    </a>
+  ) : (
+    <span className={styles.disabledText}>Not available</span>
+  )}
+</div>
+
+{shipment?.shippedAt && (
+  <div className={styles.detailRow}>
+    <span>Shipped On</span>
+    <strong>
+      {new Date(shipment.shippedAt).toLocaleString()}
+    </strong>
+  </div>
+)}
+
+</div>
+            <button
+  className={styles.btnOutlineFull}
+  onClick={() => setShowModal(true)}
+>
+  UPDATE TRACKING
+</button>
+          </section>
+
+          {/* Customer Info */}
+          <section className={styles.card}>
+            <h3><User size={18} /> Customer Info</h3>
+            <div className={styles.customerProfile}>
+              <div className={styles.avatar}></div>
               <div>
-                <div style={{fontWeight: 700}}>Rahul Kumar</div>
-                <div style={{fontSize: '0.75rem', color: '#64748b'}}>Active Customer since 2023</div>
+                <strong>{order.customer.name}</strong>
+                <p>Active Customer since 2023</p>
               </div>
             </div>
-            <Contact icon={<Mail size={14}/>} text="rahul.k@example.com" />
-            <Contact icon={<Phone size={14}/>} text="+91 98765 43210" />
-            <Contact icon={<MapPin size={14}/>} text={<div><b>Shipping Address:</b><br/>Kochi, Kerala<br/>India - 682001</div>} />
-          </div>
+            <div className={styles.contactList}>
+              <div className={styles.contactItem}>
+                <Mail size={14} /> {order.customer.email}
+                </div>
+              <div className={styles.contactItem}>
+  <Phone size={14} /> {order.customer.phone}
+</div>
+              <div className={styles.contactItem}>
+  <MapPin size={14} />
+  <span>{order.customer.address}</span>
+</div>
+            </div>
+          </section>
         </aside>
       </div>
+      {showModal && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modalBox}>
+      
+      <h3>Update Tracking</h3>
+
+      {/* Provider */}
+      <input
+        type="text"
+        placeholder="Provider Name"
+        value={trackingForm.providerName}
+        onChange={(e) =>
+          setTrackingForm({ ...trackingForm, providerName: e.target.value })
+        }
+        className={styles.input}
+      />
+
+      {/* Tracking ID */}
+      <input
+        type="text"
+        placeholder="Tracking ID"
+        value={trackingForm.trackingId}
+        onChange={(e) =>
+          setTrackingForm({ ...trackingForm, trackingId: e.target.value })
+        }
+        className={styles.input}
+      />
+
+      {/* URL */}
+      <input
+        type="text"
+        placeholder="Tracking URL"
+        value={trackingForm.trackingUrl}
+        onChange={(e) =>
+          setTrackingForm({ ...trackingForm, trackingUrl: e.target.value })
+        }
+        className={styles.input}
+      />
+
+      {/* Buttons */}
+      <div className={styles.modalActions}>
+        <button
+          className={styles.btnSecondary}
+          onClick={() => setShowModal(false)}
+        >
+          Cancel
+        </button>
+
+        <button
+  className={styles.btnPrimary}
+  onClick={async () => {
+    try {
+      const res = await updateTracking(order.id, trackingForm);
+
+      if (res) {
+        // ✅ refresh order data
+        const updated = await getOrderById(order.id);
+        setOrder(updated);
+
+        // ✅ close modal
+        setShowModal(false);
+
+        // ✅ reset form
+        setTrackingForm({
+          providerName: "",
+          trackingId: "",
+          trackingUrl: "",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }}
+>
+  Save
+</button>
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 }
-
-// Sub-components
-const FlowStep = ({ label, time, status }: { label: string, time: string, status: 'active' | 'current' | 'upcoming' }) => {
-  const icons = { active: <Check size={18}/>, current: <Package size={18}/>, upcoming: <Truck size={18}/> };
-  const circles = { active: styles.circleActive, current: styles.circleCurrent, upcoming: '' };
-  
-  return (
-    <div className={styles.step}>
-      <div className={`${styles.circle} ${circles[status]}`}>{icons[status]}</div>
-      <div className={styles.label}>{label}</div>
-      <div className={styles.time}>{time}</div>
-    </div>
-  );
-};
-
-const PriceLine = ({ label, value, isNegative, isItalic }: any) => (
-  <div className={styles.priceLine}>
-    <span className={styles.mutedText}>{label}</span>
-    <span className={`${isNegative ? styles.negative : ''} ${isItalic ? styles.mutedText : ''}`} style={{fontStyle: isItalic ? 'italic' : 'normal'}}>
-      {value}
-    </span>
-  </div>
-);
-
-const SidebarData = ({ label, value }: any) => (
-  <div className={styles.dataLine}>
-    <span className={styles.mutedText}>{label}</span>
-    <span style={{fontWeight: 700}}>{value}</span>
-  </div>
-);
-
-const Contact = ({ icon, text }: any) => (
-  <div className={styles.contactRow}>
-    <span style={{color: '#94a3b8', marginTop: '2px'}}>{icon}</span>
-    <span>{text}</span>
-  </div>
-);

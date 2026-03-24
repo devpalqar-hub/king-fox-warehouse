@@ -61,7 +61,7 @@ useEffect(() => {
           <p>Manage and monitor your store inventory</p>
         </div>
         <div className={styles.buttonGroup}>
-          <button className={styles.btnSecondary}><Upload size={18} /> Import</button>
+          
           <Link href="/products/addproduct" className={styles.btnPrimary}>
             <Plus size={18} /> Add Product
           </Link>
@@ -94,7 +94,7 @@ useEffect(() => {
           </div>
           <div className={styles.selectWrapper}>
             <select>
-              <option>Price Range</option>
+              <option>status</option>
             </select>
             <ChevronDown className={styles.selectArrow} size={16} />
           </div>
