@@ -69,6 +69,7 @@ useEffect(() => {
 
   fetchVariants();
 }, [productId]);
+
 const [form, setForm] = useState({
   name: "",
   description: "",
@@ -105,15 +106,23 @@ useEffect(() => {
       const data = await getProductById(Number(productId));
 
       setForm({
-            name: data.name || "",
-            description: data.description || "",
-            brandId: data.brandId || "",
-            categoryId: data.categoryId || "",
-            images: data.images || [],
-            metaInfo: data.metaInfo || [],
-            tagIds: data.tagIds || [],
-            variants: [] as any[]
-        });
+  name: data?.name || "",
+  description: data?.description || "",
+  brandId: data?.brandId || "",
+  categoryId: data?.categoryId || "",
+  images: data?.images || [],
+
+  // ✅ FIXED META INFO
+  metaInfo: (data?.metaInfo || []).map((m: any) => ({
+    ...m,
+    text: m.text?.startsWith("<") ? m.text : `<p>${m.text}</p>`
+  })),
+
+  // ✅ FIX TAGS (important)
+  tagIds: data?.tagIds || [],
+
+  variants: []
+});
 
     } catch (err) {
       console.error(err);
@@ -383,177 +392,45 @@ const updateMetaValue = (title: string, value: string) => {
     <h3>Detailed Specs</h3>
   </div>
 
-  {/* 🔹 MATERIAL */}
-  {(() => {
-    const material = form.metaInfo.find((m) =>
-      m.title.toLowerCase().includes("material")
-    );
+  {/* 🔹 DYNAMIC META INFO */}
+{form.metaInfo.map((meta, index) => (
+  <div key={index} className={styles.formGroup}>
+    
+    {/* Title */}
+    <input
+      className={styles.metaTitleInput}
+      value={meta.title || ""}
+      onChange={(e) => {
+        const updated = [...form.metaInfo];
+        updated[index].title = e.target.value;
+        setForm({ ...form, metaInfo: updated });
+      }}
+    />
 
-    return (
-      <div className={styles.formGroup}>
-        
-        {/* Editable Title */}
-        <input
-          className={styles.metaTitleInput}
-          value={material?.title || "Material"}
-          onChange={(e) => {
-            const updated = [...form.metaInfo];
-            const index = updated.findIndex((m) =>
-              m.title.toLowerCase().includes("material")
-            );
+    {/* Text Editor */}
+    <RichTextEditor
+      value={meta.text || "<p></p>"}
+      onChange={(val) => {
+        const updated = [...form.metaInfo];
+        updated[index].text = val;
+        setForm({ ...form, metaInfo: updated });
+      }}
+    />
 
-            if (index !== -1) {
-              updated[index].title = e.target.value;
-            } else {
-              updated.push({
-                title: e.target.value,
-                text: "",
-                imageUrl: ""
-              });
-            }
+    {/* Image URL */}
+    <input
+      type="text"
+      placeholder="Meta Image URL"
+      value={meta.imageUrl || ""}
+      onChange={(e) => {
+        const updated = [...form.metaInfo];
+        updated[index].imageUrl = e.target.value;
+        setForm({ ...form, metaInfo: updated });
+      }}
+    />
 
-            setForm({ ...form, metaInfo: updated });
-          }}
-        />
-
-        {/* TipTap Editor */}
-        <RichTextEditor
-          value={material?.text || ""}
-          onChange={(val) => {
-            const updated = [...form.metaInfo];
-            const index = updated.findIndex((m) =>
-              m.title.toLowerCase().includes("material")
-            );
-
-            if (index !== -1) {
-              updated[index].text = val;
-            } else {
-              updated.push({
-                title: "Material",
-                text: val,
-                imageUrl: ""
-              });
-            }
-
-            setForm({ ...form, metaInfo: updated });
-          }}
-        />
-      </div>
-    );
-  })()}
-
-  {/* 🔹 SIZE GUIDE */}
-  {(() => {
-    const size = form.metaInfo.find((m) =>
-      m.title.toLowerCase().includes("size")
-    );
-
-    return (
-      <div className={styles.formGroup}>
-        <input
-            className={styles.metaTitleInput} 
-          value={size?.title || "Size Guide"}
-          onChange={(e) => {
-            const updated = [...form.metaInfo];
-            const index = updated.findIndex((m) =>
-              m.title.toLowerCase().includes("size")
-            );
-
-            if (index !== -1) {
-              updated[index].title = e.target.value;
-            } else {
-              updated.push({
-                title: e.target.value,
-                text: "",
-                imageUrl: ""
-              });
-            }
-
-            setForm({ ...form, metaInfo: updated });
-          }}
-        />
-
-        <RichTextEditor
-          value={size?.text || ""}
-          onChange={(val) => {
-            const updated = [...form.metaInfo];
-            const index = updated.findIndex((m) =>
-              m.title.toLowerCase().includes("size")
-            );
-
-            if (index !== -1) {
-              updated[index].text = val;
-            } else {
-              updated.push({
-                title: "Size Guide",
-                text: val,
-                imageUrl: ""
-              });
-            }
-
-            setForm({ ...form, metaInfo: updated });
-          }}
-        />
-      </div>
-    );
-  })()}
-
-  {/* 🔹 CARE */}
-  {(() => {
-    const care = form.metaInfo.find((m) =>
-      m.title.toLowerCase().includes("care")
-    );
-
-    return (
-      <div className={styles.formGroup}>
-        <input
-          className={styles.metaTitleInput} 
-          value={care?.title || "Care Instructions"}
-          onChange={(e) => {
-            const updated = [...form.metaInfo];
-            const index = updated.findIndex((m) =>
-              m.title.toLowerCase().includes("care")
-            );
-
-            if (index !== -1) {
-              updated[index].title = e.target.value;
-            } else {
-              updated.push({
-                title: e.target.value,
-                text: "",
-                imageUrl: ""
-              });
-            }
-
-            setForm({ ...form, metaInfo: updated });
-          }}
-        />
-
-        <RichTextEditor
-          value={care?.text || ""}
-          onChange={(val) => {
-            const updated = [...form.metaInfo];
-            const index = updated.findIndex((m) =>
-              m.title.toLowerCase().includes("care")
-            );
-
-            if (index !== -1) {
-              updated[index].text = val;
-            } else {
-              updated.push({
-                title: "Care Instructions",
-                text: val,
-                imageUrl: ""
-              });
-            }
-
-            setForm({ ...form, metaInfo: updated });
-          }}
-        />
-      </div>
-    );
-  })()}
-
+  </div>
+))}
 </section>
 
         {/* Product Variants */}

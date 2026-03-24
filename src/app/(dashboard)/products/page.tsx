@@ -93,7 +93,7 @@ useEffect(() => {
           </div>
           <div className={styles.selectWrapper}>
             <select>
-              <option>Price Range</option>
+              <option>status</option>
             </select>
             <ChevronDown className={styles.selectArrow} size={16} />
           </div>
