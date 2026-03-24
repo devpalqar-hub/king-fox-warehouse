@@ -94,7 +94,7 @@ const CreateCampaignPage = () => {
       <BackButton />
       <div className={styles.topBar}>
         <div>
-          <h1>Edit Lucky Draw</h1>
+          <h1>Create Campaign</h1>
         </div>
 
         <div className={styles.actions}>

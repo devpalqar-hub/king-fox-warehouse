@@ -2,7 +2,8 @@
 import React from 'react';
 import { 
   Home, User, Mail, Lock, Settings, 
-  MapPin, ChevronDown, Info 
+  MapPin, ChevronDown, Info, 
+  Router
 } from 'lucide-react';
 import styles from './edituser.module.css';
 import { useParams, useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ import BackButton from '@/components/backButton/backButton';
 
 export default function EditUser() {
 const params = useParams();
+const router = useRouter();
 const { showToast } = useToast();
 const userId = Number(params.id);
 const [roles, setRoles] = useState<any[]>([]);
@@ -74,6 +76,7 @@ const handleSubmit = async () => {
     });
 
     showToast("User updated successfully!", "success");
+    router.push("/usermanagement")
   } catch (err) {
     console.error(err);
     showToast("Update failed!", "error");

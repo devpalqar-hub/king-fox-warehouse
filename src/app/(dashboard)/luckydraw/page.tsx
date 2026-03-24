@@ -3,10 +3,12 @@
 import styles from "./luckydraw.module.css";
 import { Plus, Calendar, Eye, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getCampaigns } from "@/services/luckydraw.service";
 
 const LuckyDrawPage = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("all");
   const [campaigns, setCampaigns] = useState<any[]>([]);
 
@@ -164,10 +166,18 @@ const LuckyDrawPage = () => {
                   {/* Actions */}
                   <td>
                     <div className={styles.actions}>
-                      <button className={styles.actionBtn} title="View">
+                      <button
+                        className={styles.actionBtn}
+                        title="View"
+                        onClick={() => router.push(`/luckydraw/${c.id}`)}
+                      >
                         <Eye size={15} />
                       </button>
-                      <button className={styles.actionBtn} title="Edit">
+                      <button
+                        className={styles.actionBtn}
+                        title="Edit"
+                        onClick={() => router.push(`/luckydraw/${c.id}/edit`)}
+                      >
                         <Pencil size={15} />
                       </button>
                       <button

@@ -1,10 +1,8 @@
 /* ── Base ─────────────────────────────────────── */
 .container {
   padding: 28px 36px;
-  background: #f1f5f9;
   min-height: 100vh;
   color: #0f172a;
-  font-family: "DM Sans", sans-serif;
 }
 
 /* ── Top Bar ──────────────────────────────────── */

@@ -73,7 +73,6 @@ const handleSubmit = async () => {
 
     showToast("User created successfully", "success");
 
-    // redirect to list page
     router.push("/usermanagement");
 
   } catch (error) {

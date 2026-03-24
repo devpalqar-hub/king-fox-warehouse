@@ -1,15 +1,19 @@
 "use client";
 
 import styles from "./createReview.module.css";
-import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createMockReview } from "@/services/review.service";
+import { getProducts } from "@/services/product.service";
+import { Product } from "@/types/product";
 import BackButton from "@/components/backButton/backButton";
+import { useToast } from "@/components/toast/ToastProvider";
 
 const CreateReviewPage = () => {
   const router = useRouter();
-  const params = useSearchParams();
-  const productId = params.get("productId") || "1";
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const { showToast } = useToast();
 
   const [form, setForm] = useState({
     reviewerName: "",
@@ -22,6 +26,22 @@ const CreateReviewPage = () => {
   });
 
   const [preview, setPreview] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getProducts();
+        setProducts(data);
+
+        if (data.length > 0) {
+          setSelectedProductId(String(data[0].id));
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchProducts();
+  }, []);
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -37,12 +57,15 @@ const CreateReviewPage = () => {
     const urls = files.map((file: any) => URL.createObjectURL(file));
 
     setPreview(urls);
-    setForm({ ...form, images: urls }); // mock URLs
+    setForm({ ...form, images: urls });
   };
 
   const handleSubmit = async () => {
     try {
-      await createMockReview(productId, form);
+      if(!selectedProductId) {
+        showToast("Please select a product", "error");
+      }
+      await createMockReview(selectedProductId, form);
       router.push("/reviews");
     } catch (err) {
       console.error(err);
@@ -86,6 +109,22 @@ const CreateReviewPage = () => {
               className={styles.input}
               onChange={handleChange}
             />
+          </div>
+
+          <div>
+            <label className={styles.label}>Select Product</label>
+            <select
+              className={styles.input}
+              value={selectedProductId}
+              onChange={(e) => setSelectedProductId(e.target.value)}
+            >
+              <option value="">-- Select Product --</option>
+              {products.map((product) => (
+                <option key={product.id} value={product.id}>
+                  {product.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

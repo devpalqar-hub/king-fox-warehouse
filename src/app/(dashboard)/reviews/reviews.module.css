@@ -386,7 +386,13 @@
 }
 
 .eye {
-    margin-left: 15px;
+  margin-left: 15px;
+}
+
+.stars {
+  color: #facc15 !important; 
+  font-size: 18px;
+  letter-spacing: 2px;
 }
 /* ── Responsive ───────────────────────────────── */
 @media (max-width: 900px) {

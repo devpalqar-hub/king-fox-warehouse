@@ -85,7 +85,8 @@ const CouponsPage = () => {
               <th>TYPE & VALUE</th>
               <th>USAGE</th>
               <th>VALIDITY</th>
-              <th>ACTION</th>
+              <th>STATUS</th>
+              {/* <th>ACTION</th> */}
             </tr>
           </thead>
 

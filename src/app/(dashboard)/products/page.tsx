@@ -61,7 +61,6 @@ useEffect(() => {
           <p>Manage and monitor your store inventory</p>
         </div>
         <div className={styles.buttonGroup}>
-          <button className={styles.btnSecondary}><Upload size={18} /> Import</button>
           <Link href="/products/addproduct" className={styles.btnPrimary}>
             <Plus size={18} /> Add Product
           </Link>
@@ -155,8 +154,8 @@ useEffect(() => {
             styles[
               product.category?.name
                 ?.toLowerCase()
-                .replace(/\s/g, "")      // remove spaces
-                .replace(/-/g, "")       // remove dash ✅
+                .replace(/\s/g, "")      
+                .replace(/-/g, "")       
             ] || styles.defaultCategory
           }`}
         >
