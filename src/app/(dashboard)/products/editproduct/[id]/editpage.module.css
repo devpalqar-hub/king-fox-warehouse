@@ -5,7 +5,7 @@
   color: #0f172a;
   font-family: "Inter", sans-serif;
 }
-
+.editBtn
 .mainGrid {
   display: block; /* 🔥 single column */
 }
@@ -266,14 +266,29 @@
 .variantHead,
 .variantRow {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.5fr 1.5fr 1.5fr; /* 🔥 FIX */
+  grid-template-columns: 1.5fr 1fr 2fr 1.2fr 0.8fr; /* ✅ better balance */
   align-items: center;
 }
+
 .variantTitle{
   display:flex;
   align-items:center;
   gap:10px;
 }
+
+.actionCell {
+  display: flex;
+   /* ✅ align to right */
+  padding-right: 10px;       /* small spacing */
+}
+.editBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .variantTitle h3{
   font-size:20px;
@@ -302,7 +317,7 @@
 }
 .variantHead{
   display:grid;
-   grid-template-columns: 1.2fr 1fr 1.5fr 1fr 1fr;
+   grid-template-columns: 1.2fr 1fr 1.8fr 1fr 1fr 0.6fr;
   font-weight:600;
   color:#64748b;
   padding-bottom:12px;
@@ -310,7 +325,7 @@
 }
 .variantRow{
   display:grid;
-   grid-template-columns: 1.2fr 1fr 1.5fr 1fr 1fr;
+   grid-template-columns: 1.2fr 1fr 1.8fr 1fr 1fr 0.6fr;
   align-items:center;
   padding:16px 0;
   border-bottom:1px solid #f1f5f9;
@@ -711,7 +726,7 @@
 }
 
 .editBtn {
-  background: #4f46e5;
+  background-color: #9ca3af;
   color: white;
   border: none;
   padding: 6px 10px;

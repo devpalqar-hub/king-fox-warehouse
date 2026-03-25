@@ -87,7 +87,13 @@ useEffect(() => {
 
     try {
       const data = await getVariantsByProductId(Number(productId));
-      setVariants(data);
+      setVariants(
+        data.map((v: any) => ({
+          ...v,
+          costPrice: Number(v.costPrice || 0),
+          sellingPrice: Number(v.sellingPrice || 0),
+        }))
+      );
     } catch (err) {
       console.error(err);
     }
