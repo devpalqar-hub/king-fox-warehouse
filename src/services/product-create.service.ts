@@ -125,3 +125,28 @@ export const getCategories = async () => {
 
   return data;
 };
+
+
+export const updateVariant = async (variantId: number, data: any) => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(
+    `${BASE_URL}/v1/products/variants/${variantId}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    }
+  );
+
+  const response = await res.json();
+
+  if (!res.ok) {
+    throw new Error(response.message || "Failed to update variant");
+  }
+
+  return response;
+};

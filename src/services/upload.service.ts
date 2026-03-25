@@ -51,3 +51,27 @@ export const deleteImageFromS3 = async (url: string) => {
 
   return data;
 };
+
+export const uploadSingleImageToS3 = async (file: File) => {
+  const token = localStorage.getItem("token");
+
+  const formData = new FormData();
+  formData.append("file", file); // ✅ IMPORTANT (not "files")
+  formData.append("folder", "products");
+
+  const res = await fetch(`${BASE_URL}/v1/upload/image`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    throw new Error(data.message || "Upload failed");
+  }
+
+  return data.url; // ✅ single URL
+};

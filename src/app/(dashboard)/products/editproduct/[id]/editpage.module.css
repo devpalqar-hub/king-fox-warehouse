@@ -13,7 +13,32 @@
   flex-direction: column;
   gap: 24px;
 }
+.metaPreviewWrapper {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+}
 
+
+.metaPreview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.metaImageRemove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+}
 .rightCol{
   display:flex;
   flex-direction:column;
@@ -237,7 +262,12 @@
   align-items:center;
   margin-bottom:20px;
 }
-
+.variantHead,
+.variantRow {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1.5fr 1.5fr 1.5fr; /* 🔥 FIX */
+  align-items: center;
+}
 .variantTitle{
   display:flex;
   align-items:center;
@@ -297,14 +327,140 @@
   border:2px solid #cbd5e1;
   background:white;
 }
+/* 🔹 META CARD CONTAINER */
+.metaCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: #ffffff;
+  overflow: hidden;
+}
 
+/* 🔹 HEADER (title + close button) */
+.metaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* 🔹 TITLE INPUT */
+.metaTitleInput {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.metaTitleInput::placeholder {
+  color: #9ca3af;
+}
+
+/* 🔹 REMOVE BUTTON (X) */
+.metaRemoveBtn {
+  border: none;
+  background: #eef2f7;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.metaRemoveBtn:hover {
+  background: #e5e7eb;
+}
+
+/* 🔹 EDITOR AREA */
+.editorArea {
+  padding: 12px 16px;
+}
+
+/* 🔹 IMAGE INPUT */
+.metaImage {
+  padding: 12px 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.metaImage input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  outline: none;
+  font-size: 14px;
+}
+
+.metaImage input:focus {
+  border-color: #6366f1;
+}
+
+/* 🔹 ADD META BUTTON */
+.addMetaBtn {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #eef2ff;
+  color: #4f46e5;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.addMetaBtn:hover {
+  background: #e0e7ff;
+}
+
+/* 🔹 SECTION TITLE */
+.sectionTitle {
+  margin-bottom: 14px;
+}
+
+.sectionTitle h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+}
+.metaHeader span {
+  font-size: 16px;   /* 🔥 bigger like screenshot */
+  font-weight: 700;
+  color: #1e293b;    /* darker */
+}
 .colorBlack{
   width:16px;
   height:16px;
   border-radius:50%;
   background:#0f172a;
 }
-.priceInput,
+.priceGroup {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-start;
+}
+.variantHead span,
+.variantRow span {
+  display: flex;
+  align-items: center;
+}
+.priceInput {
+  width: 110px;         /* 🔥 better width */
+  height: 40px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f1f5f9;
+  text-align: center;
+  font-size: 14px;
+}
 .stockInput{
   border:1px solid #e2e8f0;
   padding:8px 10px;
@@ -315,15 +471,6 @@
   
 }
 
-.statusSelect {
-  border: 1px solid #e2e8f0;   /* same as input */
-  padding: 8px 10px;
-  border-radius: 8px;          /* same rounded */
-  width: 120px;                /* match price width */
-  background: #f8fafc;         /* same bg */
-  font-size: 14px;
-
-}
 .sku{
   font-size:13px;
   color:#64748b;
@@ -431,30 +578,6 @@
   opacity:0;
   width:0;
   height:0;
-}
-
-.slider{
-  position:absolute;
-  cursor:pointer;
-  top:0;
-  left:0;
-  right:0;
-  bottom:0;
-  background:#e2e8f0;
-  border-radius:20px;
-  transition:0.3s;
-}
-
-.slider:before{
-  position:absolute;
-  content:"";
-  height:18px;
-  width:18px;
-  left:2px;
-  bottom:2px;
-  background:white;
-  border-radius:50%;
-  transition:0.3s;
 }
 
 .switch input:checked + .slider{

@@ -9,7 +9,7 @@ import { getProducts } from "@/services/product.service";
 import { Product } from "@/types/product";
 import { getCategories } from "@/services/category.service";
 import { Category } from "@/types/category";
-
+import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMetaInfo";
 const ProductsPage = () => {
 
   const router = useRouter();
@@ -112,7 +112,7 @@ useEffect(() => {
             <tr>
               <th>PRODUCT</th>
               <th>CATEGORY</th>
-              <th>BRAND</th>
+             
               <th>PRICE RANGE</th>
               <th>VARIANTS</th>
               <th>STATUS</th>
@@ -163,7 +163,7 @@ useEffect(() => {
         </span>
         </td>
 
-        <td className={styles.textMuted}>{product.brand?.name}</td>
+        
 
         <td className={styles.priceText}>
           ${minPrice} - ${maxPrice}
