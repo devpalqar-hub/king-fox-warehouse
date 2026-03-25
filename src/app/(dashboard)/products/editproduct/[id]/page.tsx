@@ -23,6 +23,8 @@ const [categories, setCategories] = useState<any[]>([]);
 const [brands, setBrands] = useState<any[]>([]);
 const [imageFiles, setImageFiles] = useState<File[]>([]);
 const [loading, setLoading] = useState(false);
+const [isModalOpen, setIsModalOpen] = useState(false);
+const [selectedVariant, setSelectedVariant] = useState<any>(null);
 
 useEffect(() => {
   const fetchCategories = async () => {
@@ -557,7 +559,7 @@ const updateMetaValue = (title: string, value: string) => {
       <span>Size</span>
       <span>SKU</span>
       <span>Cost Price</span>
-      <span>Selling Price</span>
+      <span>Actions</span>
     </div>
 
     {/* ROW 1 */}
@@ -597,6 +599,16 @@ const updateMetaValue = (title: string, value: string) => {
       setVariants(updated);
     }}
   />
+
+  <button
+  className={styles.editBtn}
+  onClick={() => {
+    setSelectedVariant(v);
+    setIsModalOpen(true);
+  }}
+>
+  Edit
+</button>
 </div>
   
 ))}
@@ -617,6 +629,70 @@ const updateMetaValue = (title: string, value: string) => {
             Save Changes
         </button>
         </div>
+        {isModalOpen && selectedVariant && (
+  <div className={styles.modalOverlay}>
+    <div className={styles.modal}>
+      <h3>Edit Variant</h3>
+
+      <label>Size</label>
+      <input
+        value={selectedVariant.size}
+        onChange={(e) =>
+          setSelectedVariant({ ...selectedVariant, size: e.target.value })
+        }
+      />
+
+      <label>Color</label>
+      <input
+        value={selectedVariant.color}
+        onChange={(e) =>
+          setSelectedVariant({ ...selectedVariant, color: e.target.value })
+        }
+      />
+
+      <label>Cost Price</label>
+      <input
+        type="number"
+        value={selectedVariant.costPrice}
+        onChange={(e) =>
+          setSelectedVariant({
+            ...selectedVariant,
+            costPrice: Number(e.target.value),
+          })
+        }
+      />
+
+      <label>Selling Price</label>
+      <input
+        type="number"
+        value={selectedVariant.sellingPrice}
+        onChange={(e) =>
+          setSelectedVariant({
+            ...selectedVariant,
+            sellingPrice: Number(e.target.value),
+          })
+        }
+      />
+
+      <div className={styles.modalActions}>
+        <button onClick={() => setIsModalOpen(false)}>Cancel</button>
+
+        <button
+          onClick={() => {
+            const updated = variants.map((v) =>
+              v.id === selectedVariant.id ? selectedVariant : v
+            );
+
+            setVariants(updated);
+            setIsModalOpen(false);
+          }}
+        >
+          Save
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
     
   );
