@@ -7,12 +7,13 @@ import { updateVariant } from "@/services/product-create.service";
 import { useEffect,useState} from "react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { getProductById,getCategories } from "@/services/product-create.service";
-import { ArrowLeft, Info ,FileText,ImageIcon, PlusCircle, Upload,Layers, Plus, Settings} from "lucide-react";
+import { ArrowLeft, Info ,FileText,ImageIcon,  Upload,Layers, Plus, Settings,  PencilLine } from "lucide-react";
 import { uploadImagesToS3 } from "@/services/upload.service";
 import { deleteImageFromS3 } from "@/services/upload.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import { uploadSingleImageToS3 } from "@/services/upload.service";
 import { useRouter } from "next/navigation";
+
 export default function EditProductPage() {
   const router = useRouter();
 const { showToast } = useToast();
@@ -544,12 +545,16 @@ const updateMetaValue = (title: string, value: string) => {
     </div>
 
     <button
-      className={styles.addVariantBtn}
-      onClick={() => router.push("/products/addvariation")}
-    >
-      <Plus size={16}/>
-      Add Variant
-    </button>
+    className={styles.addVariantBtn}
+    onClick={() => {
+      if (!productId) return;
+
+      router.push(`/products/addvariation?productId=${productId}`);
+    }}
+  >
+    <Plus size={16}/>
+    Add Variant
+  </button>
   </div>
 
   <div className={styles.variantTable}>
@@ -559,6 +564,7 @@ const updateMetaValue = (title: string, value: string) => {
       <span>Size</span>
       <span>SKU</span>
       <span>Cost Price</span>
+      <span>Selling Price</span>
       <span>Actions</span>
     </div>
 
@@ -568,57 +574,52 @@ const updateMetaValue = (title: string, value: string) => {
     <div className={styles.colorCell}>
         <span className={styles.colorWhite}></span>
         {v.color}
-</div>
+    </div>
 
     <span>{v.size}</span>
-    <span className={styles.sku}>{v.sku}</span>
 
-   
-  {/* COST PRICE */}
+    <span className={styles.sku}>{v.sku}</span>
+    {/* ✅ COST PRICE */}
   <input
     type="number"
     placeholder="Cost"
     className={styles.priceInput}
-    value={v.costPrice ?? ""}
+    value={v.costPrice === "" ? "" : v.costPrice}
     onChange={(e) => {
       const updated = [...variants];
-      updated[i].costPrice = Number(e.target.value);
+      updated[i].costPrice = e.target.value === "" ? "" : Number(e.target.value);
       setVariants(updated);
     }}
   />
 
-  {/* SELLING PRICE */}
-  <input
-    type="number"
-    placeholder="Selling"
-    className={styles.priceInput}
-    value={v.sellingPrice ?? ""}
-    onChange={(e) => {
-      const updated = [...variants];
-      updated[i].sellingPrice = Number(e.target.value);
-      setVariants(updated);
-    }}
-  />
+    {/* SELLING PRICE */}
+    <input
+      type="number"
+      placeholder="Selling"
+      className={styles.priceInput}
+      value={v.sellingPrice ?? ""}
+      onChange={(e) => {
+        const updated = [...variants];
+        updated[i].sellingPrice = e.target.value === "" ? "" : Number(e.target.value);
+        setVariants(updated);
+      }}
+    />
 
-  <button
-  className={styles.editBtn}
-  onClick={() => {
-    setSelectedVariant(v);
-    setIsModalOpen(true);
-  }}
->
-  Edit
-</button>
-</div>
-  
-))}
+  {/* ✅ ACTION COLUMN */}
+    <div className={styles.actionCell}>
+      <button
+        className={styles.editBtn}
+        onClick={() => {
+          setSelectedVariant(v);
+          setIsModalOpen(true);
+        }}
+      >
+        <PencilLine size={16} />
+      </button>
+    </div>
   </div>
-
-  <div className={styles.manageVariants}>
-    <Settings size={16}/>
-    Manage All Variations
+  ))}
   </div>
-
 </section>
     </div>
    
@@ -657,7 +658,7 @@ const updateMetaValue = (title: string, value: string) => {
         onChange={(e) =>
           setSelectedVariant({
             ...selectedVariant,
-            costPrice: Number(e.target.value),
+            costPrice: e.target.value === "" ? "" : Number(e.target.value),
           })
         }
       />
@@ -669,7 +670,7 @@ const updateMetaValue = (title: string, value: string) => {
         onChange={(e) =>
           setSelectedVariant({
             ...selectedVariant,
-            sellingPrice: Number(e.target.value),
+            sellingPrice: e.target.value === "" ? "" : Number(e.target.value),
           })
         }
       />
@@ -678,17 +679,39 @@ const updateMetaValue = (title: string, value: string) => {
         <button onClick={() => setIsModalOpen(false)}>Cancel</button>
 
         <button
-          onClick={() => {
-            const updated = variants.map((v) =>
-              v.id === selectedVariant.id ? selectedVariant : v
-            );
+  onClick={async () => {
+    try {
+      // ✅ API CALL (🔥 IMPORTANT)
+      const updatedVariant = await updateVariant(selectedVariant.id, {
+        size: selectedVariant.size,
+        color: selectedVariant.color,
+        costPrice: Number(selectedVariant.costPrice || 0),
+        sellingPrice: Number(selectedVariant.sellingPrice || 0),
+      });
 
-            setVariants(updated);
-            setIsModalOpen(false);
-          }}
-        >
-          Save
-        </button>
+      // ✅ UPDATE UI
+      setVariants((prev) =>
+        prev.map((v) =>
+          v.id === selectedVariant.id
+          ? {
+              ...v,
+              ...selectedVariant, // ✅ keep your edited values
+            }
+          : v
+        )
+      );
+
+      setIsModalOpen(false);
+      showToast("Variant updated", "success");
+
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || "Update failed", "error");
+    }
+  }}
+>
+  Save
+</button>
       </div>
     </div>
   </div>
