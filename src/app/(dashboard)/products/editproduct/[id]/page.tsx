@@ -3,15 +3,18 @@ import styles from './editpage.module.css';
 import { useParams } from "next/navigation";
 import { getVariantsByProductId } from "@/services/product-create.service";
 import { updateProduct } from "@/services/product-create.service";
+import { updateVariant } from "@/services/product-create.service";
 import { useEffect,useState} from "react";
 import RichTextEditor from "@/components/editor/RichTextEditor";
-import { getBrands } from "@/services/brand.service";
 import { getProductById,getCategories } from "@/services/product-create.service";
 import { ArrowLeft, Info ,FileText,ImageIcon, PlusCircle, Upload,Layers, Plus, Settings} from "lucide-react";
 import { uploadImagesToS3 } from "@/services/upload.service";
 import { deleteImageFromS3 } from "@/services/upload.service";
 import { useToast } from "@/components/toast/ToastProvider";
+import { uploadSingleImageToS3 } from "@/services/upload.service";
+import { useRouter } from "next/navigation";
 export default function EditProductPage() {
+  const router = useRouter();
 const { showToast } = useToast();
 const params = useParams();
 const productId = params.id;
@@ -41,19 +44,66 @@ useEffect(() => {
   fetchCategories();
 }, []);
 
-useEffect(() => {
-  const fetchBrands = async () => {
-    try {
-      const data = await getBrands();
-      setBrands(data);
-    } catch (err) {
-      console.error(err);
+const fixFileType = (file: File) => {
+  if (!file.type || file.type === "application/octet-stream") {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    const mimeMap: any = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+      gif: "image/gif"
+    };
+
+    const correctType = mimeMap[ext || ""];
+
+    if (correctType) {
+      return new File([file], file.name, { type: correctType });
     }
-  };
+  }
+  return file;
+};
 
-  fetchBrands();
-}, []);
+const handleMetaImageUpload = async (index: number, file: File) => {
+  try {
+    const fixedFile = fixFileType(file);
 
+    const uploadedUrl = await uploadSingleImageToS3(fixedFile);
+
+    const updated = [...form.metaInfo];
+    updated[index].imageUrl = uploadedUrl;
+
+    setForm(prev => ({
+      ...prev,
+      metaInfo: updated
+    }));
+
+  } catch (err) {
+    console.error(err);
+    showToast("Image upload failed", "error");
+  }
+};
+const handleRemoveMetaImage = async (index: number) => {
+  try {
+    const imageUrl = form.metaInfo[index].imageUrl;
+
+    if (imageUrl) {
+      await deleteImageFromS3(imageUrl);
+    }
+
+    const updated = [...form.metaInfo];
+    updated[index].imageUrl = "";
+
+    setForm(prev => ({
+      ...prev,
+      metaInfo: updated
+    }));
+
+  } catch (err) {
+    console.error(err);
+  }
+};
 
 useEffect(() => {
   const fetchVariants = async () => {
@@ -61,7 +111,13 @@ useEffect(() => {
 
     try {
       const data = await getVariantsByProductId(Number(productId));
-      setVariants(data);
+      setVariants(
+      data.map((v: any) => ({
+        ...v,
+        costPrice: v.costPrice ?? 0,
+        sellingPrice: v.sellingPrice ?? 0
+      }))
+    );
     } catch (err) {
       console.error(err);
     }
@@ -76,9 +132,12 @@ const [form, setForm] = useState({
   brandId: "",
   categoryId: "",
   images: [] as string[],
-  metaInfo: [] as any[],
+  metaInfo: [] as {
+    title: string;
+    text: string;
+    imageUrl: string;
+  }[],
   tagIds: [] as number[],
-  variants: variants
 });
 
 const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,31 +161,25 @@ useEffect(() => {
   const fetchProduct = async () => {
     if (!productId) return;
 
-    try {
-      const data = await getProductById(Number(productId));
+    const data = await getProductById(Number(productId));
 
-      setForm({
-  name: data?.name || "",
-  description: data?.description || "",
-  brandId: data?.brandId || "",
-  categoryId: data?.categoryId || "",
-  images: data?.images || [],
+    setForm({
+      name: data?.name || "",
+      description: data?.description || "",
+      brandId: data?.brandId || "",
+      categoryId: data?.categoryId || "",
+      images: data?.images || [],
 
-  // ✅ FIXED META INFO
-  metaInfo: (data?.metaInfo || []).map((m: any) => ({
-    ...m,
-    text: m.text?.startsWith("<") ? m.text : `<p>${m.text}</p>`
-  })),
-
-  // ✅ FIX TAGS (important)
-  tagIds: data?.tagIds || [],
-
-  variants: []
-});
-
-    } catch (err) {
-      console.error(err);
-    }
+      metaInfo: (data?.metaInfo || []).map((m: any) => ({
+  title: m.title || "",
+  text:
+    m.text && m.text.trim() !== ""
+      ? `<p>${m.text}</p>`
+      : "<p></p>",
+  imageUrl: m.imageUrl || ""
+})),
+      tagIds: data?.tagIds || [],
+    });
   };
 
   fetchProduct();
@@ -149,16 +202,29 @@ const handleUpdate = async () => {
 
     const payload = {
       name: form.name,
-      description: form.description,
-      brandId: Number(form.brandId),
+      description: form.description,      
       categoryId: Number(form.categoryId),
       images: finalImages,
-      metaInfo: form.metaInfo,
+      metaInfo: cleanedMeta.map((m) => ({
+        ...m,
+        text: htmlToText(m.text),
+      })),
       tagIds: form.tagIds
     };
 
-    await updateProduct(Number(productId), payload);
-
+     await updateProduct(Number(productId), payload);
+       // ✅ UPDATE VARIANTS (🔥 THIS YOU MISSED)
+    await Promise.all(
+  variants.map((v) =>
+    updateVariant(v.id, {
+      sku: v.sku,
+      size: v.size,
+      color: v.color,
+      costPrice: Number(v.costPrice),
+      sellingPrice: Number(v.sellingPrice),
+    })
+  )
+);
     showToast("Product updated successfully ", "success");
 
   } catch (err: any) {
@@ -168,6 +234,7 @@ const handleUpdate = async () => {
     setLoading(false);
   }
 };
+
 const getMetaValue = (title: string) => {
   return (
     form.metaInfo.find((m) =>
@@ -175,6 +242,40 @@ const getMetaValue = (title: string) => {
     )?.text || ""
   );
 };
+
+const handleAddMeta = () => {
+  setForm(prev => ({
+    ...prev,
+    metaInfo: [
+      ...prev.metaInfo,
+      { title: "", text: "<p></p>", imageUrl: "" }
+    ]
+  }));
+};
+
+
+const handleRemoveMeta = (index: number) => {
+  setForm(prev => ({
+    ...prev,
+    metaInfo: prev.metaInfo.filter((_, i) => i !== index)
+  }));
+};
+
+const handleMetaChange = (
+  index: number,
+  field: "title" | "text" | "imageUrl",
+  value: string
+) => {
+  const updated = [...form.metaInfo];
+  updated[index][field] = value;
+
+  setForm(prev => ({
+    ...prev,
+    metaInfo: updated
+  }));
+};
+
+const cleanedMeta = form.metaInfo;
 const htmlToText = (html: string) => {
   const div = document.createElement("div");
   div.innerHTML = html;
@@ -252,25 +353,8 @@ const updateMetaValue = (title: string, value: string) => {
                 }
               />
             </div>
-            <div className={styles.row}>
-              <div className={styles.formGroup}>
-                <label>Brand</label>
-
-                <select
-                    value={String(form.brandId)}
-                    onChange={(e) =>
-                    setForm({ ...form, brandId: e.target.value })
-                    }
-                >
-                    <option value="">Select Brand</option>
-
-                    {brands.map((brand) => (
-                    <option key={brand.id} value={String(brand.id)}>
-                        {brand.name}
-                    </option>
-                    ))}
-                </select>
-              </div>
+            
+              
               <div className={styles.formGroup}>
                 <label>Category</label>
 
@@ -289,7 +373,7 @@ const updateMetaValue = (title: string, value: string) => {
                     ))}
                 </select>
                 </div>
-            </div>
+         
           </section>
 
         
@@ -300,29 +384,7 @@ const updateMetaValue = (title: string, value: string) => {
       <ImageIcon size={20} className={styles.icon}/>
       <h3>Media Management</h3>
     </div>
-
-    {/* Add Image Input */}
-    <input
-      type="text"
-      placeholder="Paste image URL & press Enter"
-      className={styles.imageInput}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          const value = (e.target as HTMLInputElement).value;
-
-          if (!value) return;
-
-          setForm((prev) => ({
-            ...prev,
-            images: [...prev.images, value],
-          }));
-
-          (e.target as HTMLInputElement).value = "";
-        }
-      }}
-    />
   </div>
-
   <div className={styles.mediaGrid}>
     
     {/* ✅ Dynamic Images */}
@@ -386,51 +448,88 @@ const updateMetaValue = (title: string, value: string) => {
 </section>
 
   {/* Detailed Specs */}
-      <section className={styles.card}>
+  {/* Detailed Specs */}
+<section className={styles.card}>
   <div className={styles.cardHeader}>
     <FileText size={20} className={styles.icon}/>
     <h3>Detailed Specs</h3>
   </div>
 
-  {/* 🔹 DYNAMIC META INFO */}
-{form.metaInfo.map((meta, index) => (
-  <div key={index} className={styles.formGroup}>
-    
-    {/* Title */}
-    <input
-      className={styles.metaTitleInput}
-      value={meta.title || ""}
-      onChange={(e) => {
-        const updated = [...form.metaInfo];
-        updated[index].title = e.target.value;
-        setForm({ ...form, metaInfo: updated });
-      }}
-    />
+  {form.metaInfo.map((meta, index) => (
+  <div key={index} className={styles.metaCard}>
 
-    {/* Text Editor */}
-    <RichTextEditor
-      value={meta.text || "<p></p>"}
-      onChange={(val) => {
-        const updated = [...form.metaInfo];
-        updated[index].text = val;
-        setForm({ ...form, metaInfo: updated });
-      }}
-    />
+    {/* HEADER */}
+    <div className={styles.metaHeader}>
+      <input
+        className={styles.metaTitleInput}
+        placeholder="Enter Title (Material, Size Guide...)"
+        value={meta.title}
+        onChange={(e) =>
+          handleMetaChange(index, "title", e.target.value)
+        }
+      />
 
-    {/* Image URL */}
-    <input
-      type="text"
-      placeholder="Meta Image URL"
-      value={meta.imageUrl || ""}
-      onChange={(e) => {
-        const updated = [...form.metaInfo];
-        updated[index].imageUrl = e.target.value;
-        setForm({ ...form, metaInfo: updated });
-      }}
-    />
+      <button
+        className={styles.metaRemoveBtn}
+        onClick={() => handleRemoveMeta(index)}
+      >
+        ✕
+      </button>
+    </div>
+
+    {/* EDITOR */}
+    <div className={styles.editorWrapper}>
+      <RichTextEditor
+        value={meta.text}
+        onChange={(val) =>
+          handleMetaChange(index, "text", val)
+        }
+      />
+    </div>
+
+    {/* IMAGE */}
+    <div className={styles.metaImage}>
+
+  {/* Upload */}
+  <input
+    type="file"
+    accept="image/jpeg,image/png,image/webp,image/gif"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        handleMetaImageUpload(index, file);
+      }
+    }}
+  />
+
+  {/* Preview */}
+  {meta.imageUrl && (
+    <div className={styles.metaPreviewWrapper}>
+      <img
+        src={meta.imageUrl}
+        alt="meta"
+        className={styles.metaPreview}
+      />
+
+      <button
+        type="button"
+        className={styles.metaImageRemove}
+        onClick={() => handleRemoveMetaImage(index)}
+      >
+        ✕
+      </button>
+    </div>
+  )}
+
+</div>
 
   </div>
 ))}
+
+{/* ADD BUTTON */}
+<button className={styles.addMetaBtn} onClick={handleAddMeta}>
+  + Add Meta Section
+</button>
 </section>
 
         {/* Product Variants */}
@@ -442,7 +541,10 @@ const updateMetaValue = (title: string, value: string) => {
       <h3>Product Variants</h3>
     </div>
 
-    <button className={styles.addVariantBtn}>
+    <button
+      className={styles.addVariantBtn}
+      onClick={() => router.push("/products/addvariation")}
+    >
       <Plus size={16}/>
       Add Variant
     </button>
@@ -454,8 +556,8 @@ const updateMetaValue = (title: string, value: string) => {
       <span>Color</span>
       <span>Size</span>
       <span>SKU</span>
-      <span>Price</span>
-      <span>Status</span>
+      <span>Cost Price</span>
+      <span>Selling Price</span>
     </div>
 
     {/* ROW 1 */}
@@ -469,29 +571,34 @@ const updateMetaValue = (title: string, value: string) => {
     <span>{v.size}</span>
     <span className={styles.sku}>{v.sku}</span>
 
-    <input
-      className={styles.priceInput}
-      value={v.price}
-      onChange={(e) => {
-        const updated = [...variants];
-        updated[i].price = e.target.value;
-        setVariants(updated);
-      }}
-    />
-    <select
-  className={styles.statusSelect}   // ✅ ADD THIS
-  value={v.status}
-  onChange={(e) => {
-    const updated = [...variants];
-    updated[i].status = e.target.value;
-    setVariants(updated);
-  }}
->
-  <option>In Stock</option>
-  <option>Low Stock</option>
-  <option>Out of Stock</option>
-</select>
-  </div>
+   
+  {/* COST PRICE */}
+  <input
+    type="number"
+    placeholder="Cost"
+    className={styles.priceInput}
+    value={v.costPrice ?? ""}
+    onChange={(e) => {
+      const updated = [...variants];
+      updated[i].costPrice = Number(e.target.value);
+      setVariants(updated);
+    }}
+  />
+
+  {/* SELLING PRICE */}
+  <input
+    type="number"
+    placeholder="Selling"
+    className={styles.priceInput}
+    value={v.sellingPrice ?? ""}
+    onChange={(e) => {
+      const updated = [...variants];
+      updated[i].sellingPrice = Number(e.target.value);
+      setVariants(updated);
+    }}
+  />
+</div>
+  
 ))}
   </div>
 

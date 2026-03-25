@@ -14,7 +14,7 @@ import {
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
-import Image from "@tiptap/extension-image"
+
 import { Table } from "@tiptap/extension-table"
 import { TableRow } from "@tiptap/extension-table-row"
 import { TableHeader } from "@tiptap/extension-table-header"
@@ -38,7 +38,6 @@ const RichTextEditor = forwardRef<any, Props>(({ value, onChange }, ref) => {
     extensions: [
       StarterKit,
       Link,
-      Image,
       TextStyle,
       Color,
       Underline,
@@ -154,16 +153,6 @@ const RichTextEditor = forwardRef<any, Props>(({ value, onChange }, ref) => {
     <LinkIcon size={16}/>
   </button>
 
-  {/* IMAGE */}
-  <button
-    className={styles.toolBtn}
-    onClick={() => {
-      const url = prompt("Enter image URL")
-      if (url) editor.chain().focus().setImage({ src: url }).run()
-    }}
-  >
-    <ImageIcon size={16}/>
-  </button>
 
   {/* TABLE */}
   <button

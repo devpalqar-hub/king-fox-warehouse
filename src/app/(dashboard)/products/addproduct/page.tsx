@@ -4,14 +4,12 @@ import { useRouter } from "next/navigation";
 import React from 'react';
 import { Info, ChevronDown, X,Image, Plus,Bold, Italic, List, Link ,FileText,Ruler, LayoutGrid,ShieldCheck, Eraser} from 'lucide-react';
 import styles from './addproduct.module.css';
-import { getBrands } from "@/services/brand.service";
 import { getCategories } from "@/services/category.service";
-import { Brand } from "@/types/brand";
 import { Category } from "@/types/category";
 import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMetaInfo";
 import { createProduct } from "@/services/product-create.service";
 import { useRef } from "react"
-import { uploadImagesToS3 } from "@/services/upload.service";
+import { uploadSingleImageToS3 } from "@/services/upload.service";
 import { getTags } from "@/services/product.service";
 import { useToast } from "@/components/toast/ToastProvider";
 
@@ -20,9 +18,7 @@ const router = useRouter();
 const { showToast } = useToast();
 const [name, setName] = useState("");
 const [description, setDescription] = useState("");
-const [brandId, setBrandId] = useState("");
 const [categoryId, setCategoryId] = useState("");
-const [brands, setBrands] = useState<Brand[]>([]);
 const [categories, setCategories] = useState<Category[]>([]);
 const [imageFiles, setImageFiles] = useState<File[]>([]);
 const [images, setImages] = useState<string[]>([]); // preview
@@ -58,14 +54,18 @@ const removeImage = (index: number) => {
 const handleSaveProduct = async () => {
 
   if (!name) return showToast("Product name is required", "error");
-  if (!brandId) return showToast("Please select a brand", "error");
   if (!categoryId) return showToast("Please select a category", "error");
 
   try {
     setLoading(true);
 
     // STEP 1: Upload images
-    const uploadedImageUrls = await uploadImagesToS3(imageFiles);
+    const uploadedImageUrls = await Promise.all(
+  imageFiles.map(file => {
+    const fixedFile = fixFileType(file);
+    return uploadSingleImageToS3(fixedFile);
+  })
+);
 
     // STEP 2: Clean meta
     const cleanedMeta = metaInfo
@@ -80,7 +80,6 @@ const handleSaveProduct = async () => {
     const payload = {
       name,
       description,
-      brandId: Number(brandId),
       categoryId: Number(categoryId),
       images: uploadedImageUrls,
       metaInfo: cleanedMeta,
@@ -103,15 +102,33 @@ const handleSaveProduct = async () => {
   }
 };
 
+const fixFileType = (file: File) => {
+  if (!file.type || file.type === "application/octet-stream") {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    const mimeMap: any = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+      gif: "image/gif"
+    };
+
+    const correctType = mimeMap[ext || ""];
+
+    if (correctType) {
+      return new File([file], file.name, { type: correctType });
+    }
+  }
+
+  return file;
+};
+
 useEffect(() => {
 
   const fetchData = async () => {
     try {
-
-      const brandData = await getBrands();
       const categoryData = await getCategories();
-
-      setBrands(brandData);
       setCategories(categoryData);
 
     } catch (error) {
@@ -126,11 +143,10 @@ useEffect(() => {
 useEffect(() => {
   const fetchData = async () => {
     try {
-      const brandData = await getBrands();
+    
       const categoryData = await getCategories();
       const tagData = await getTags(); // ✅ HERE
 
-      setBrands(brandData);
       setCategories(categoryData);
       setTags(tagData);
     } catch (error) {
@@ -190,27 +206,7 @@ const handleRemoveTag = (id: number) => {
           />
         </div>
 
-        <div className={styles.row}>
-          <div className={styles.formGroup}>
-            <label>Brand</label>
-            <div className={styles.selectWrapper}>
-              <select
-                value={brandId}
-                onChange={(e) => setBrandId(e.target.value)}
-              >
-                <option value="">Select Brand</option>
-
-                {brands.map((brand) => (
-                  <option key={brand.id} value={brand.id}>
-                    {brand.name}
-                  </option>
-                ))}
-
-              </select>
-              <ChevronDown className={styles.selectIcon} size={18} />
-            </div>
-          </div>
-
+        
           <div className={styles.formGroup}>
             <label>Category</label>
             <div className={styles.selectWrapper}>
@@ -230,7 +226,7 @@ const handleRemoveTag = (id: number) => {
               <ChevronDown className={styles.selectIcon} size={18} />
             </div>
           </div>
-        </div>
+   
 
         <div className={styles.formGroup}>
           <label>Tags</label>
@@ -322,7 +318,7 @@ const handleRemoveTag = (id: number) => {
         </div>
 
         <p className={styles.helpText}>
-          Drag and drop to reorder images. Supported formats: JPG, PNG, WEBP (Max 5MB each)
+           Supported formats: JPG, PNG, WEBP (Max 5MB each)
         </p>
       </section>
     

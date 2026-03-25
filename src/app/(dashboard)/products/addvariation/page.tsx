@@ -26,13 +26,14 @@ const [product, setProduct] = useState<any>(null);
 const [imageFile, setImageFile] = useState<File | null>(null);
 const [preview, setPreview] = useState<string>("");
 const [loading, setLoading] = useState(false);
+const [sizeInput, setSizeInput] = useState("");
 const [variation, setVariation] = useState({
   sku: "",
-  size: "",
+  size: [] as string[],   // ✅ change to array
   color: "",
   costPrice: "",
   sellingPrice: "",
-  barcode: "",
+  weight: "", 
   image: ""
 });
 
@@ -95,29 +96,28 @@ const handleAddToList = async () => {
     }
 
     const payload = {
-      sku: variation.sku,
-      costPrice: Number(variation.costPrice || 0),
-      sellingPrice: Number(variation.sellingPrice || 0),
-      size: variation.size,
-      color: variation.color,
-      barcode: variation.barcode || Date.now().toString(),
-      image: imageUrl || "https://via.placeholder.com/150"
-    };
-
+  sku: variation.sku,
+  costPrice: Number(variation.costPrice || 0),
+  sellingPrice: Number(variation.sellingPrice || 0),
+  size: variation.size.join(","), // ✅ convert here
+  color: variation.color,
+  weight: Number(variation.weight || 0),
+  image: imageUrl || "https://via.placeholder.com/150"
+};
     const newVariant = await createVariant(Number(productId), payload);
 
     setVariants((prev) => [...prev, newVariant]);
 
     // reset form
     setVariation({
-      sku: "",
-      size: "",
-      color: "",
-      costPrice: "",
-      sellingPrice: "",
-      barcode: "",
-      image: ""
-    });
+  sku: "",
+  size: [], // ✅ reset as array
+  color: "",
+  costPrice: "",
+  sellingPrice: "",
+  weight: "",
+  image: ""
+});
 
     setImageFile(null);
     setPreview("");
@@ -241,11 +241,20 @@ const handleAddToList = async () => {
           <input
             type="text"
             className={styles.inputField}
-            placeholder="e.g. M, XL"
-            value={variation.size}
-            onChange={(e) =>
-              setVariation({ ...variation, size: e.target.value })
-            }
+            placeholder="e.g. M, XL, XS or M XL XS"
+            value={sizeInput}
+            onChange={(e) => setSizeInput(e.target.value)}
+            onBlur={() => {
+              const sizes = sizeInput
+                .split(/[,\s]+/)
+                .map(s => s.trim())
+                .filter(Boolean);
+
+              setVariation({ ...variation, size: sizes });
+
+              // format nicely after typing finished
+              setSizeInput(sizes.join(", "));
+            }}
           />
         </div>
         <div className={styles.inputGroup}>
@@ -288,17 +297,17 @@ const handleAddToList = async () => {
           />
         </div>
         <div className={styles.inputGroup}>
-          <label className={styles.fieldLabel}>Barcode</label>
-          <input
-            type="text"
-            className={styles.inputField}
-            placeholder="Enter barcode"
-            value={variation.barcode}
-            onChange={(e) =>
-              setVariation({ ...variation, barcode: e.target.value })
-            }
-          />
-        </div>
+  <label className={styles.fieldLabel}>Weight (g)</label>
+  <input
+    type="number"
+    className={styles.inputField}
+    placeholder="e.g. 500"
+    value={variation.weight}
+    onChange={(e) =>
+      setVariation({ ...variation, weight: e.target.value })
+    }
+  />
+</div>
       </div>
 
       <div className={styles.actionRow}>

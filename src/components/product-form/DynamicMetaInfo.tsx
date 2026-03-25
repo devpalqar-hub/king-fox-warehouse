@@ -3,7 +3,8 @@
 import { Plus, X } from "lucide-react";
 import styles from "@/app/(dashboard)/products/addproduct/addproduct.module.css";
 import RichTextEditor from "@/components/editor/RichTextEditor";
-
+import { uploadSingleImageToS3 } from "@/services/upload.service";
+import { deleteImageFromS3 } from "@/services/upload.service";
 export interface MetaItem {
   title: string;
   text: string;
@@ -21,9 +22,19 @@ export default function DynamicMetaInfo({ value, onChange }: Props) {
     onChange([...value, { title: "", text: "", imageUrl: "" }]);
   };
 
-  const removeMeta = (index: number) => {
+  const removeMeta = async (index: number) => {
+  try {
+    const imageUrl = value[index]?.imageUrl;
+
+    if (imageUrl) {
+      await deleteImageFromS3(imageUrl);
+    }
+
     onChange(value.filter((_, i) => i !== index));
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const updateMeta = (index: number, field: string, val: string) => {
     const updated = [...value];
@@ -31,6 +42,63 @@ export default function DynamicMetaInfo({ value, onChange }: Props) {
     onChange(updated);
   };
 
+
+  const fixFileType = (file: File) => {
+  if (!file.type || file.type === "application/octet-stream") {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    const mimeMap: any = {
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      png: "image/png",
+      webp: "image/webp",
+      gif: "image/gif"
+    };
+
+    const correctType = mimeMap[ext || ""];
+
+    if (correctType) {
+      return new File([file], file.name, { type: correctType });
+    }
+  }
+
+  return file;
+};
+
+  const handleMetaImageUpload = async (index: number, file: File) => {
+  try {
+    const fixedFile = fixFileType(file);
+    const uploadedUrl = await uploadSingleImageToS3(fixedFile);
+
+    onChange(
+      value.map((item, i) =>
+        i === index
+          ? { ...item, imageUrl: uploadedUrl }
+          : item
+      )
+    );
+
+  } catch (err) {
+    console.error(err);
+  }
+};
+const handleRemoveMetaImage = async (index: number) => {
+  try {
+    const imageUrl = value[index].imageUrl;
+
+    // Optional: delete from S3
+    if (imageUrl) {
+      await deleteImageFromS3(imageUrl);
+    }
+
+    const updated = [...value];
+    updated[index].imageUrl = "";
+
+    onChange(updated);
+  } catch (err) {
+    console.error(err);
+  }
+};
   return (
     <section className={styles.formCard}>
 
@@ -68,13 +136,40 @@ export default function DynamicMetaInfo({ value, onChange }: Props) {
 
           {/* IMAGE */}
           <div className={styles.metaImage}>
-            <input
-              type="text"
-              placeholder="Enter Image URL"
-              value={meta.imageUrl}
-              onChange={(e) => updateMeta(index, "imageUrl", e.target.value)}
-            />
-          </div>
+  
+  {/* Upload Input */}
+  <input
+  type="file"
+  accept="image/jpeg,image/png,image/webp,image/gif"
+  onChange={(e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleMetaImageUpload(index, file);
+    }
+  }}
+/>
+
+  {/* Preview + Remove Button */}
+  {meta.imageUrl && (
+    <div className={styles.metaPreviewWrapper}>
+      
+      <img
+        src={meta.imageUrl}
+        alt="meta"
+        className={styles.metaPreview}
+      />
+
+      <button
+        type="button"
+        className={styles.metaImageRemove}
+        onClick={() => handleRemoveMetaImage(index)}
+      >
+        <X size={14} />
+      </button>
+
+    </div>
+  )}
+</div>
 
         </div>
       ))}
