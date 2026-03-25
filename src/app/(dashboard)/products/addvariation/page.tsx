@@ -16,6 +16,7 @@ import { getVariantsByProductId } from "@/services/product-create.service";
 import { uploadImagesToS3 } from "@/services/upload.service";
 import {  X } from "lucide-react";
 import { useToast } from "@/components/toast/ToastProvider";
+import  {  useRef } from "react";
 
 export default function AddVariationPage() {
 const { showToast } = useToast();
@@ -26,16 +27,35 @@ const [product, setProduct] = useState<any>(null);
 const [imageFile, setImageFile] = useState<File | null>(null);
 const [preview, setPreview] = useState<string>("");
 const [loading, setLoading] = useState(false);
+const [sizeInput, setSizeInput] = useState("");
+const dropdownRef = useRef<HTMLDivElement>(null);
 const [variation, setVariation] = useState({
-  sku: "",
-  size: "",
+  size: [] as string[],
   color: "",
   costPrice: "",
   sellingPrice: "",
-  barcode: "",
+  weight: "", 
   image: ""
 });
+const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
+useEffect(() => {
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !dropdownRef.current.contains(event.target as Node)
+    ) {
+      setIsOpen(false);
+    }
+  };
 
+  document.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, []);
+
+const [isOpen, setIsOpen] = useState(false);
 const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
   if (!file) return;
@@ -80,9 +100,6 @@ const handleAddToList = async () => {
     return showToast("Product ID missing", "error");
   }
 
-  if (!variation.sku) {
-    return showToast("SKU is required", "error");
-  }
 
   try {
     setLoading(true);
@@ -95,29 +112,26 @@ const handleAddToList = async () => {
     }
 
     const payload = {
-      sku: variation.sku,
-      costPrice: Number(variation.costPrice || 0),
-      sellingPrice: Number(variation.sellingPrice || 0),
-      size: variation.size,
-      color: variation.color,
-      barcode: variation.barcode || Date.now().toString(),
-      image: imageUrl || "https://via.placeholder.com/150"
-    };
-
+  costPrice: Number(variation.costPrice || 0),
+  sellingPrice: Number(variation.sellingPrice || 0),
+  size: variation.size.join(","), // ✅ convert here
+  color: variation.color,
+  weight: Number(variation.weight || 0),
+  image: imageUrl || "https://via.placeholder.com/150"
+};
     const newVariant = await createVariant(Number(productId), payload);
 
     setVariants((prev) => [...prev, newVariant]);
 
     // reset form
     setVariation({
-      sku: "",
-      size: "",
-      color: "",
-      costPrice: "",
-      sellingPrice: "",
-      barcode: "",
-      image: ""
-    });
+  size: [], // ✅ reset as array
+  color: "",
+  costPrice: "",
+  sellingPrice: "",
+  weight: "",
+  image: ""
+});
 
     setImageFile(null);
     setPreview("");
@@ -146,119 +160,124 @@ const handleAddToList = async () => {
 
       {/* Base Product Card */}
       <section className={styles.card}>
-  <div className={styles.baseProduct}>
+      <div className={styles.baseProduct}>
 
-    <div className={styles.productImage}>
-      <img 
-        src={product?.images?.[0] || "/tshirt.png"} 
-        alt="Product" 
-      />
-    </div>
-
-    <div className={styles.productInfo}>
-      <span className={styles.badge}>BASE PRODUCT</span>
-
-      <h2 className={styles.productTitle}>
-          {product?.name || "Loading..."}
-        </h2>
-
-        <div className={styles.productMeta}>
-          <span className={styles.productMetaItem}>
-            <Package size={16}/>
-            {product?.category?.name || "Category"}
-          </span>
-
-          <span className={styles.sku}>
-            # SKU: {product?.sku || "N/A"}
-          </span>
+        <div className={styles.productImage}>
+          <img 
+            src={product?.images?.[0] || "/tshirt.png"} 
+            alt="Product" 
+          />
         </div>
-    </div>
 
-  </div>
-</section>
+        <div className={styles.productInfo}>
+          <span className={styles.badge}>BASE PRODUCT</span>
 
-      {/* Form Section */}
-      {/* Configure New Variation Section */}
-<section className={styles.card}>
-  <div className={styles.cardHeader}>
-    <h3>Configure New Variation</h3>
-  </div>
-  
-  <div className={styles.configContent}>
-    {/* Left: Image Upload */}
-    <div className={styles.uploadSection}>
-      <label className={styles.fieldLabel}>Variation Image</label>
-      <div className={styles.uploadBox}>
-          {preview ? (
-            <div className={styles.previewWrapper}>
-              <img src={preview} className={styles.previewImg} />
+          <h2 className={styles.productTitle}>
+              {product?.name || "Loading..."}
+            </h2>
 
-              {/* ✅ REMOVE BUTTON HERE */}
-              <button
-                className={styles.removeBtn}
-                onClick={() => {
-                  setPreview("");
-                  setImageFile(null);
-                }}
-              >
-                <X size={14} />
-              </button>
-               
+            <div className={styles.productMeta}>
+              <span className={styles.productMetaItem}>
+                <Package size={16}/>
+                {product?.category?.name || "Category"}
+              </span>
+
+              <span className={styles.sku}>
+                # SKU: {product?.sku || "N/A"}
+              </span>
             </div>
-          ) : (
-            <label className={styles.uploadPlaceholder}>
-              <UploadCloud size={24} />
-              <span>Upload Image</span>
-
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                hidden
-              />
-            </label>
-          )}
         </div>
-    </div>
 
-    {/* Right: Form Fields */}
-    <div className={styles.formSection}>
-      {/* ✅ ADD SKU HERE */}
-      <div className={styles.inputGroup}>
-        <label className={styles.fieldLabel}>SKU</label>
-        <input
-          type="text"
-          className={styles.inputField}
-          value={variation.sku}
-          onChange={(e) =>
-            setVariation({ ...variation, sku: e.target.value })
-          }
-        />
       </div>
-      <div className={styles.inputRow}>
-        <div className={styles.inputGroup}>
+     </section>
+
+      {/* Configure New Variation Section */}
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <h3>Configure New Variation</h3>
+          </div>
+          
+          <div className={styles.configContent}>
+            {/* Left: Image Upload */}
+            <div className={styles.uploadSection}>
+              <label className={styles.fieldLabel}>Variation Image</label>
+              <div className={styles.uploadBox}>
+                  {preview ? (
+                    <div className={styles.previewWrapper}>
+                      <img src={preview} className={styles.previewImg} />
+
+                      {/* ✅ REMOVE BUTTON HERE */}
+                      <button
+                        className={styles.removeBtn}
+                        onClick={() => {
+                          setPreview("");
+                          setImageFile(null);
+                        }}
+                      >
+                        <X size={14} />
+                      </button>
+                      
+                    </div>
+                  ) : (
+                    <label className={styles.uploadPlaceholder}>
+                      <UploadCloud size={24} />
+                      <span>Upload Image</span>
+
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        hidden
+                      />
+                    </label>
+                  )}
+                </div>
+            </div>
+
+            {/* Right: Form Fields */}
+            <div className={styles.formSection}>
+              {/* ✅ ADD SKU HERE */}
+              <div className={styles.inputRow}>
+              <div className={styles.inputGroup}>
           <label className={styles.fieldLabel}>Size</label>
-          <input
-            type="text"
-            className={styles.inputField}
-            placeholder="e.g. M, XL"
-            value={variation.size}
-            onChange={(e) =>
-              setVariation({ ...variation, size: e.target.value })
-            }
-          />
-        </div>
-        <div className={styles.inputGroup}>
-          <label className={styles.fieldLabel}>Color</label>
-          <input
-            type="text"
-            className={styles.inputField}
-            placeholder="e.g. Navy Blue"
-            value={variation.color}
-            onChange={(e) =>
-              setVariation({ ...variation, color: e.target.value })
-            }
-          />
+
+          <div className={styles.multiSelectWrapper} ref={dropdownRef}>
+            {/* Selected Display */}
+            <div
+              className={styles.selectBox}
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {variation.size.length > 0
+                ? variation.size.join(", ")
+                : "Select Sizes"}
+            </div>
+
+            {/* Dropdown */}
+            {isOpen && (
+              <div className={styles.dropdown}>
+                {sizeOptions.map((size) => (
+                  <label key={size} className={styles.option}>
+                    <input
+                      type="checkbox"
+                      checked={variation.size.includes(size)}
+                      onChange={() => {
+                        let updated;
+
+                        if (variation.size.includes(size)) {
+                          updated = variation.size.filter((s) => s !== size);
+                        } else {
+                          updated = [...variation.size, size];
+                        }
+
+                        setVariation({ ...variation, size: updated });
+                      }}
+                    />
+                    {size}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -287,33 +306,34 @@ const handleAddToList = async () => {
             }
           />
         </div>
+        </div>
         <div className={styles.inputGroup}>
-          <label className={styles.fieldLabel}>Barcode</label>
+          <label className={styles.fieldLabel}>Weight (g)</label>
           <input
-            type="text"
+            type="number"
             className={styles.inputField}
-            placeholder="Enter barcode"
-            value={variation.barcode}
+            placeholder="e.g. 500"
+            value={variation.weight}
             onChange={(e) =>
-              setVariation({ ...variation, barcode: e.target.value })
+              setVariation({ ...variation, weight: e.target.value })
             }
           />
         </div>
-      </div>
+      
 
-      <div className={styles.actionRow}>
-        <button 
-          className={styles.addToListBtn} 
-          onClick={handleAddToList}
-          disabled={loading}
-        >
-          {loading ? "Adding..." : <><span>+</span> Add to List</>}
-        </button>
+        <div className={styles.actionRow}>
+            <button 
+              className={styles.addToListBtn} 
+              onClick={handleAddToList}
+              disabled={loading}
+            >
+              {loading ? "Adding..." : <><span>+</span> Add to List</>}
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</section>
-<section className={styles.variantsCard}>
+    </section>
+    <section className={styles.variantsCard}>
         <div className={styles.variantsHeader}>
           <h3>Existing Variants (10)</h3>
           <div className={styles.variantsActions}>
@@ -335,50 +355,50 @@ const handleAddToList = async () => {
             </tr>
           </thead>
           <tbody>
-  {variants.map((variant) => (
-    <tr key={variant.id}>
-      <td>
-        <div className={styles.tableImgWrapper}>
-          <img
-            src={variant.image || "/tshirt.png"}
-            className={styles.placeholderImg}
-          />
-        </div>
-      </td>
+            {variants.map((variant) => (
+              <tr key={variant.id}>
+                <td>
+                  <div className={styles.tableImgWrapper}>
+                    <img
+                      src={variant.image || "/tshirt.png"}
+                      className={styles.placeholderImg}
+                    />
+                  </div>
+                </td>
 
-      <td className={styles.skuText}>{variant.sku}</td>
-      <td className={styles.sizeText}>{variant.size}</td>
+                <td className={styles.skuText}>{variant.sku}</td>
+                <td className={styles.sizeText}>{variant.size}</td>
 
-      <td>
-        <div className={styles.colorWrapper}>
-          {variant.color}
-        </div>
-      </td>
+                <td>
+                  <div className={styles.colorWrapper}>
+                    {variant.color}
+                  </div>
+                </td>
 
-      <td className={styles.priceText}>
-        ${Number(variant.costPrice)}
-      </td>
+                <td className={styles.priceText}>
+                  ${Number(variant.costPrice)}
+                </td>
 
-      <td className={styles.sellingPriceText}>
-        ${Number(variant.sellingPrice)}
-      </td>
+                <td className={styles.sellingPriceText}>
+                  ${Number(variant.sellingPrice)}
+                </td>
 
-      <td>
-        <div className={styles.actionButtons}>
-          <button className={styles.editBtn}>
-            <PencilLine size={18} />
-          </button>
-          <button className={styles.deleteBtn}>
-            <Trash2 size={18} />
-          </button>
-        </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
+                <td>
+                  <div className={styles.actionButtons}>
+                    <button className={styles.editBtn}>
+                      <PencilLine size={18} />
+                    </button>
+                    <button className={styles.deleteBtn}>
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
         </table>
 
-        <div className={styles.tableFooter}>
+        {/* <div className={styles.tableFooter}>
           <p className={styles.variantsLeft}>6 more variants listed below...</p>
         </div>
 
@@ -390,7 +410,7 @@ const handleAddToList = async () => {
             <button className={styles.pageBtn}>2</button>
             <button className={styles.nextBtn}>Next</button>
           </div>
-        </div>
+        </div> */}
       </section>
 
     </div>

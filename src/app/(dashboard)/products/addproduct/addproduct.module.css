@@ -739,7 +739,35 @@
   padding: 4px 8px;
   background: white;
 }
+.metaPreviewWrapper {
+  position: relative;
+  display: inline-block;
+  margin-top: 10px;
+}
 
+.metaPreview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.metaImageRemove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4d4f;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 .colorPicker {
   width: 28px;
   height: 28px;

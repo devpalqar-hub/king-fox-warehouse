@@ -1,0 +1,378 @@
+/* ── Container ────────────────────────────────── */
+.container {
+  padding: 28px 36px;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ── Loading / Error ──────────────────────────── */
+.loadingWrapper,
+.errorWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  gap: 14px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.errorWrapper {
+  color: #ef4444;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #4f46e5;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.backLink {
+  color: #4f46e5;
+  font-size: 13.5px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+/* ── Header ───────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 26px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+
+.backBtn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.headerLeft h1 {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.headerLeft p {
+  font-size: 13.5px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── Status Badge ─────────────────────────────── */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: capitalize;
+}
+
+.active {
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.expired {
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+.scheduled {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+/* ── Edit Button ──────────────────────────────── */
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: inherit;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.editBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38);
+}
+
+/* ── Stats Row ────────────────────────────────── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.statCard {
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.statCard:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+.statIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.statCard > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Body Grid ────────────────────────────────── */
+.bodyGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+/* ── Card ─────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #4f46e5;
+}
+
+.cardHeader h2 {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+/* ── Fields ───────────────────────────────────── */
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+}
+
+.fieldLabel {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.fieldValue {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.codeChip {
+  display: inline-block;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.06em;
+  color: #4f46e5 !important;
+  background: #eef2ff;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.highlight {
+  color: #4f46e5 !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+}
+
+/* ── Usage Section ────────────────────────────── */
+.usageSection {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.usageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.usageCount {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.usagePercent {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 900px) {
+  .statsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .bodyGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+  }
+
+  .headerLeft {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

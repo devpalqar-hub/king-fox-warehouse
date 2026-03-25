@@ -9,6 +9,7 @@ import {
 import Link from "next/link";
 import { updateShippingConfig } from "@/services/shipping.service";
 import { useToast } from "@/components/toast/ToastProvider";
+import { Pen, Truck } from "lucide-react";
 
 const ShippingPage = () => {
   const [config, setConfig] = useState<any>(null);
@@ -70,23 +71,31 @@ const ShippingPage = () => {
       {config && (
         <div className={styles.card}>
           <div className={styles.defaultRow}>
-            <div>
-              <p className={styles.defaultTitle}>Default Shipping Rate</p>
-              <small className={styles.defaultSub}>
-                Applies when no weight rule matches
-              </small>
+            <div className={styles.defaultInfo}>
+              <div className={styles.defaultIcon}>
+                <Truck size={18} /> 
+              </div>
+              <div>
+                <p className={styles.defaultTitle}>Default Shipping Rate</p>
+                <small className={styles.defaultSub}>
+                  Applies when no weight rule matches
+                </small>
+              </div>
             </div>
-            <div className={styles.charge}>₹{config.defaultCharge}</div>
+
+            <div className={styles.defaultRight}>
+              <div className={styles.charge}>₹{config.defaultCharge}</div>
+              <button
+                className={styles.updateBtn}
+                onClick={() => {
+                  setNewCharge(config.defaultCharge);
+                  setShowModal(true);
+                }}
+              >
+                <Pen size={13} /> Update
+              </button>
+            </div>
           </div>
-          <button
-            className={styles.updateBtn}
-            onClick={() => {
-              setNewCharge(config.defaultCharge);
-              setShowModal(true);
-            }}
-          >
-            Update default
-          </button>
         </div>
       )}
 

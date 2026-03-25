@@ -85,6 +85,7 @@ export default function OrderDetailPage() {
         </header>
       </section>
 
+
       <div className={styles.grid}>
         {/* Main Content (Left Column) */}
         <div className={styles.mainContent}>
