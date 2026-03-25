@@ -100,47 +100,54 @@ const handleAddToList = async () => {
     return showToast("Product ID missing", "error");
   }
 
-
   try {
     setLoading(true);
 
     let imageUrl = "";
 
-    if (imageFile) {
-      const uploaded = await uploadImagesToS3([imageFile]);
-      imageUrl = uploaded[0];
-    }
+// ✅ Upload ONLY ONCE
+if (imageFile) {
+  const uploaded = await uploadImagesToS3([imageFile]);
+  imageUrl = uploaded[0]; // ✅ single URL
+}
 
-    const payload = {
-  costPrice: Number(variation.costPrice || 0),
-  sellingPrice: Number(variation.sellingPrice || 0),
-  size: variation.size.join(","), // ✅ convert here
-  color: variation.color,
-  weight: Number(variation.weight || 0),
-  image: imageUrl || "https://via.placeholder.com/150"
-};
-    const newVariant = await createVariant(Number(productId), payload);
+// ✅ Loop sizes
+const createdVariants: any[] = [];
 
-    setVariants((prev) => [...prev, newVariant]);
+for (const size of variation.size) {
+  const payload = {
+    costPrice: Number(variation.costPrice || 0),
+    sellingPrice: Number(variation.sellingPrice || 0),
+    size: size,
+    color: variation.color,
+    weight: Number(variation.weight || 0),
+    image: imageUrl || "https://via.placeholder.com/150" // ✅ SAME IMAGE
+  };
+
+  const newVariant = await createVariant(Number(productId), payload);
+  createdVariants.push(newVariant);
+}
+
+setVariants((prev) => [...prev, ...createdVariants]);
 
     // reset form
     setVariation({
-  size: [], // ✅ reset as array
-  color: "",
-  costPrice: "",
-  sellingPrice: "",
-  weight: "",
-  image: ""
-});
+      size: [],
+      color: "",
+      costPrice: "",
+      sellingPrice: "",
+      weight: "",
+      image: ""
+    });
 
     setImageFile(null);
     setPreview("");
 
-    showToast("Variant added successfully ", "success");
+    showToast("Variant(s) added successfully", "success");
 
   } catch (error: any) {
     console.error(error);
-    showToast(error.message || "Failed to add variant ", "error");
+    showToast(error.message || "Failed to add variant", "error");
   } finally {
     setLoading(false);
   }
@@ -279,6 +286,20 @@ const handleAddToList = async () => {
             )}
           </div>
         </div>
+        {/* 🔥 COLOR INPUT (single value) */}
+        <div className={styles.inputGroup}>
+          <label className={styles.fieldLabel}>Color</label>
+          <input
+            type="text"
+            placeholder="e.g. Red"
+            className={styles.inputField}
+            value={variation.color}
+            onChange={(e) =>
+              setVariation({ ...variation, color: e.target.value })
+            }
+          />
+        </div>
+
       </div>
 
       <div className={styles.inputRow}>
