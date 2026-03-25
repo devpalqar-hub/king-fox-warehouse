@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "./sidebar.module.css";
 import {
@@ -16,34 +16,50 @@ import {
   Users,
   Truck,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { MdReviews } from "react-icons/md";
 
 const menuItems = [
   {
     name: "Dashboard",
-    icon: <LayoutDashboard size={22} />,
+    icon: <LayoutDashboard size={20} />,
     path: "/dashboard",
   },
-  { name: "Inventory", icon: <Warehouse size={22} />, path: "/inventory" },
-  { name: "Products", icon: <Package size={22} />, path: "/products" },
-  { name: "Category", icon: <Tag size={22} />, path: "/category" },
-  { name: "Coupons", icon: <Ticket size={22} />, path: "/coupons" },
-  { name: "Orders", icon: <ShoppingBag size={22} />, path: "/orders" },
-  { name: "Lucky Draw", icon: <Trophy size={22} />, path: "/luckydraw" },
-  { name: "Shipping Charge", icon: <Truck size={22} />, path: "/shipping" },
+  { name: "Inventory", icon: <Warehouse size={20} />, path: "/inventory" },
+  { name: "Products", icon: <Package size={20} />, path: "/products" },
+  { name: "Category", icon: <Tag size={20} />, path: "/category" },
+  { name: "Coupons", icon: <Ticket size={20} />, path: "/coupons" },
+  { name: "Orders", icon: <ShoppingBag size={20} />, path: "/orders" },
+  { name: "Lucky Draw", icon: <Trophy size={20} />, path: "/luckydraw" },
+  { name: "Shipping Charge", icon: <Truck size={20} />, path: "/shipping" },
   {
     name: "User Management",
-    icon: <Users size={22} />,
+    icon: <Users size={20} />,
     path: "/usermanagement",
   },
-  { name: "Reviews", icon: <MdReviews size={22} />, path: "/reviews" },
+  { name: "Reviews", icon: <MdReviews size={20} />, path: "/reviews" },
 ];
 
 const Sidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Close drawer on route change
+  useEffect(() => {
+    setIsOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    document.body.style.overflow = isOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -52,16 +68,44 @@ const Sidebar = () => {
 
   return (
     <>
-      <aside className={styles.sidebar}>
+      {/* ── Mobile top bar ─────────────────────── */}
+      <div className={styles.mobileTopBar}>
+        <button
+          className={styles.hamburger}
+          onClick={() => setIsOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu size={20} />
+        </button>
+        <span className={styles.mobileTitle}>Kingfox Admin</span>
+      </div>
+
+      {/* ── Backdrop ───────────────────────────── */}
+      {isOpen && (
+        <div className={styles.backdrop} onClick={() => setIsOpen(false)} />
+      )}
+
+      {/* ── Sidebar ────────────────────────────── */}
+      <aside
+        className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}
+      >
         {/* Logo */}
         <div className={styles.logoSection}>
           <div className={styles.logoIcon}>
-            <Store color="white" size={24} />
+            <Store color="white" size={22} />
           </div>
-          <div>
+          <div className={styles.brandText}>
             <h1 className={styles.brandName}>Kingfox Admin</h1>
             <p className={styles.brandSub}>Manage your shop</p>
           </div>
+          {/* Close button — mobile only */}
+          <button
+            className={styles.closeBtn}
+            onClick={() => setIsOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -94,7 +138,7 @@ const Sidebar = () => {
         </div>
       </aside>
 
-      {/* Confirm Dialog */}
+      {/* ── Logout Confirm Dialog ───────────────── */}
       {showConfirm && (
         <div className={styles.overlay} onClick={() => setShowConfirm(false)}>
           <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
