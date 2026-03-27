@@ -8,16 +8,10 @@ import type {
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 const token = localStorage.getItem("token");
-/**
- * GET /v1/branches
- *
- * Currently the backend returns a flat array.
- * When pagination is added server-side, it will return PaginatedBranches.
- * This function normalises both shapes so callers always get PaginatedBranches.
- */
+
 export async function getBranches(
   params: BranchListParams = {},
-): Promise<PaginatedBranches> {
+): Promise<Branch[]> {
   const query = new URLSearchParams();
   if (params.type) query.set("type", params.type);
   if (params.page != null) query.set("page", String(params.page));
@@ -31,24 +25,13 @@ export async function getBranches(
       Authorization: `Bearer ${token}`,
     },
   });
+
   if (!res.ok) throw new Error(`Failed to fetch branches: ${res.status}`);
 
   const json = await res.json();
 
-  /* Normalise flat array → paginated shape */
-  if (Array.isArray(json)) {
-    const limit = (params.limit ?? json.length) || 1;
-    return {
-      data: json as Branch[],
-      total: json.length,
-      page: params.page ?? 1,
-      limit,
-      totalPages: Math.ceil(json.length / limit) || 1,
-    };
-  }
 
-  /* Already paginated */
-  return json as PaginatedBranches;
+  return Array.isArray(json) ? json : json.data || [];
 }
 
 /** GET /v1/branches/:id */
