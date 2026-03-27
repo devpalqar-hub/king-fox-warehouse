@@ -13,6 +13,8 @@ import {
   Phone,
   MapPin,
   Store,
+  ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
 import { getBranches } from "@/services/branch.service";
 import { updateOrderStatus } from "@/services/order.service";
@@ -39,97 +41,182 @@ export default function OrderDetailPage() {
     trackingUrl: "",
   });
 
+  // ── Status change state ──────────────────────────────────────────────────
+  const [statusLoading, setStatusLoading] = useState(false);
+  const [showStatusConfirm, setShowStatusConfirm] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchBranches = async () => {
       const data = await getBranches();
       setBranches(data);
     };
-
     fetchBranches();
   }, []);
+
   useEffect(() => {
     const fetchOrder = async () => {
       const data = await getOrderById(id);
       setOrder(data);
     };
-
     if (id) fetchOrder();
   }, [id]);
+
   if (!order) return <p>Loading...</p>;
 
   const shipment = order.shipments?.[0];
+
+  // ── Status helpers ───────────────────────────────────────────────────────
+  const nextStep = steps[currentIndex + 1] ?? null;
+  const canAdvance = currentIndex >= 0 && currentIndex < steps.length - 1;
+
+  const handleStatusClick = (targetStatus: string) => {
+    // Only allow moving to the immediately next step
+    const targetIndex = steps.indexOf(targetStatus);
+    if (targetIndex !== currentIndex + 1) return;
+    setPendingStatus(targetStatus);
+    setShowStatusConfirm(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!pendingStatus) return;
+    try {
+      setStatusLoading(true);
+      await updateOrderStatus(order.id, {
+        status: pendingStatus,
+        warehouseBranchId: order?.warehouseBranch?.id,
+      });
+      setOrder((prev: any) => ({
+        ...prev,
+        status: pendingStatus,
+        updatedAt: new Date().toISOString(),
+      }));
+      setShowStatusConfirm(false);
+      setPendingStatus(null);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  const stepIcon = (step: string, isCompleted: boolean) => {
+    if (isCompleted) return <CheckCircle size={20} />;
+    if (step === "PACKED") return <Package size={20} />;
+    if (step === "SHIPPED") return <Truck size={20} />;
+    return <Clock size={20} />;
+  };
+
   return (
     <div className={styles.container}>
       <BackButton />
+
       {/* Header Card */}
       <section className={`${styles.card} ${styles.headerCard}`}>
         <header className={styles.header}>
-          {/* LEFT */}
           <div className={styles.headerLeft}>
             <div className={styles.titleRow}>
               <h1>#{order.orderNumber}</h1>
               <span className={styles.badge}>{order.status}</span>
             </div>
-
             <p className={styles.timestamp}>
               <Clock size={14} />
               Placed on {new Date(order.createdAt).toLocaleString()}
             </p>
           </div>
-
-          {/* RIGHT */}
-          {/* <div className={styles.headerActions}>
-            <button className={styles.btnSecondary}>Download Invoice</button>
-            <button className={styles.btnPrimary}>Ship Order</button>
-          </div> */}
         </header>
       </section>
 
-
       <div className={styles.grid}>
-        {/* Main Content (Left Column) */}
+        {/* ── Main Content ── */}
         <div className={styles.mainContent}>
           {/* Status Flow Card */}
           <section className={styles.card}>
-            <h3>Status Flow</h3>
+            <div className={styles.statusCardHeader}>
+              <h3>Status Flow</h3>
+              {canAdvance && (
+                <button
+                  className={styles.advanceBtn}
+                  onClick={() => nextStep && handleStatusClick(nextStep)}
+                  disabled={statusLoading}
+                >
+                  {statusLoading ? (
+                    "Updating…"
+                  ) : (
+                    <>
+                      Move to {nextStep}
+                      <ChevronRight size={15} />
+                    </>
+                  )}
+                </button>
+              )}
+              {!canAdvance && order.status === "SHIPPED" && (
+                <span className={styles.finalBadge}>
+                  <CheckCircle size={13} /> Order Shipped
+                </span>
+              )}
+            </div>
 
+            {/* Stepper */}
             <div className={styles.statusStepper}>
+              {/* Progress line */}
+              <div
+                className={styles.progressLine}
+                style={{
+                  width:
+                    currentIndex <= 0
+                      ? "0%"
+                      : `${(currentIndex / (steps.length - 1)) * 100}%`,
+                }}
+              />
+
               {steps.map((step, index) => {
                 const isCompleted = index < currentIndex;
                 const isActive = index === currentIndex;
+                const isNext = index === currentIndex + 1;
+                const isFuture = index > currentIndex + 1;
 
                 return (
                   <div
                     key={step}
-                    className={`${styles.step} 
-            ${isCompleted ? styles.completed : ""} 
-            ${isActive ? styles.active : ""}`}
+                    className={`${styles.step}
+                      ${isCompleted ? styles.completed : ""}
+                      ${isActive ? styles.active : ""}
+                      ${isNext ? styles.nextStep : ""}
+                      ${isFuture ? styles.futureStep : ""}
+                    `}
                   >
-                    <div className={styles.iconCircle}>
-                      {isCompleted ? (
-                        <CheckCircle size={20} />
-                      ) : step === "PACKED" ? (
-                        <Package size={20} />
-                      ) : step === "SHIPPED" ? (
-                        <Truck size={20} />
-                      ) : (
-                        <Clock size={20} />
-                      )}
-                    </div>
+                    <button
+                      className={styles.iconCircle}
+                      onClick={() => isNext && handleStatusClick(step)}
+                      disabled={!isNext || statusLoading}
+                      title={isNext ? `Advance to ${step}` : undefined}
+                    >
+                      {stepIcon(step, isCompleted)}
+                    </button>
 
                     <div className={styles.stepInfo}>
                       <strong>{step}</strong>
-
                       <span>
                         {isCompleted || isActive
                           ? new Date(order.updatedAt).toLocaleString()
-                          : "Waiting..."}
+                          : isNext
+                            ? "Click to advance"
+                            : "Waiting…"}
                       </span>
                     </div>
                   </div>
                 );
               })}
             </div>
+
+            {/* Inline hint */}
+            {canAdvance && (
+              <p className={styles.statusHint}>
+                Click the <strong>{nextStep}</strong> circle or the button above
+                to advance the order.
+              </p>
+            )}
           </section>
 
           {/* Order Items Card */}
@@ -162,7 +249,6 @@ export default function OrderDetailPage() {
                         </p>
                       </div>
                     </td>
-
                     <td className={styles.skuText}>{item.variant.sku}</td>
                     <td>{item.quantity}</td>
                     <td>{item.price}</td>
@@ -174,7 +260,7 @@ export default function OrderDetailPage() {
           </section>
         </div>
 
-        {/* Sidebar (Right Column) */}
+        {/* ── Sidebar ── */}
         <aside className={styles.sidebar}>
           {/* Pricing Summary */}
           <section className={`${styles.card} ${styles.darkCard}`}>
@@ -186,8 +272,8 @@ export default function OrderDetailPage() {
               <span>{order.subtotal}</span>
             </div>
             <div className={styles.priceRow}>
+              <span className={styles.discountText}>Discount</span>
               <span className={styles.discountText}>- {order.discount}</span>
-              <span className={styles.discountText}>- 100</span>
             </div>
             <div className={styles.priceRow}>
               <span>Voucher</span>
@@ -214,28 +300,20 @@ export default function OrderDetailPage() {
               <div className={styles.warehouseIcon}>
                 <Store size={20} />
               </div>
-
               <div className={styles.warehouseContent}>
-                {/* 🔽 DROPDOWN */}
                 <select
                   className={styles.select}
                   value={order?.warehouseBranch?.id || ""}
                   onChange={async (e) => {
                     const branchId = Number(e.target.value);
-
                     const selectedBranch = branches.find(
                       (b: any) => b.id === branchId,
                     );
-
-                    // update UI always
                     setOrder((prev: any) => ({
                       ...prev,
                       warehouseBranch: selectedBranch,
                     }));
-
-                    // call API only for warehouse
                     if (selectedBranch?.type !== "WAREHOUSE") return;
-
                     await updateOrderStatus(order.id, {
                       warehouseBranchId: branchId,
                       status: order.status,
@@ -248,8 +326,6 @@ export default function OrderDetailPage() {
                     </option>
                   ))}
                 </select>
-
-                {/* INFO */}
                 <p className={styles.metaText}>
                   ID: {order?.warehouseBranch?.id} •{" "}
                   {order?.warehouseBranch?.type}
@@ -258,18 +334,15 @@ export default function OrderDetailPage() {
             </div>
 
             <p className={styles.sidebarLabel}>SHIPMENT INFORMATION</p>
-
             <div className={styles.shipmentDetails}>
               <div className={styles.detailRow}>
                 <span>Provider</span>
                 <strong>{shipment?.providerName || "Not assigned"}</strong>
               </div>
-
               <div className={styles.detailRow}>
                 <span>Tracking ID</span>
                 <strong>{shipment?.trackingId || "N/A"}</strong>
               </div>
-
               <div className={styles.detailRow}>
                 <span>Link</span>
                 {shipment?.trackingUrl ? (
@@ -284,7 +357,6 @@ export default function OrderDetailPage() {
                   <span className={styles.disabledText}>Not available</span>
                 )}
               </div>
-
               {shipment?.shippedAt && (
                 <div className={styles.detailRow}>
                   <span>Shipped On</span>
@@ -329,12 +401,12 @@ export default function OrderDetailPage() {
           </section>
         </aside>
       </div>
+
+      {/* ── Tracking Modal ── */}
       {showModal && (
         <div className={styles.modalOverlay}>
           <div className={styles.modalBox}>
             <h3>Update Tracking</h3>
-
-            {/* Provider */}
             <input
               type="text"
               placeholder="Provider Name"
@@ -347,8 +419,6 @@ export default function OrderDetailPage() {
               }
               className={styles.input}
             />
-
-            {/* Tracking ID */}
             <input
               type="text"
               placeholder="Tracking ID"
@@ -358,8 +428,6 @@ export default function OrderDetailPage() {
               }
               className={styles.input}
             />
-
-            {/* URL */}
             <input
               type="text"
               placeholder="Tracking URL"
@@ -372,8 +440,6 @@ export default function OrderDetailPage() {
               }
               className={styles.input}
             />
-
-            {/* Buttons */}
             <div className={styles.modalActions}>
               <button
                 className={styles.btnSecondary}
@@ -381,22 +447,15 @@ export default function OrderDetailPage() {
               >
                 Cancel
               </button>
-
               <button
                 className={styles.btnPrimary}
                 onClick={async () => {
                   try {
                     const res = await updateTracking(order.id, trackingForm);
-
                     if (res) {
-                      // ✅ refresh order data
                       const updated = await getOrderById(order.id);
                       setOrder(updated);
-
-                      // ✅ close modal
                       setShowModal(false);
-
-                      // ✅ reset form
                       setTrackingForm({
                         providerName: "",
                         trackingId: "",
@@ -409,6 +468,63 @@ export default function OrderDetailPage() {
                 }}
               >
                 Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Status Confirm Modal ── */}
+      {showStatusConfirm && pendingStatus && (
+        <div
+          className={styles.modalOverlay}
+          onClick={() => {
+            if (!statusLoading) {
+              setShowStatusConfirm(false);
+              setPendingStatus(null);
+            }
+          }}
+        >
+          <div
+            className={styles.statusModal}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.statusModalIcon}>
+              <Truck size={26} />
+            </div>
+            <h3 className={styles.statusModalTitle}>Confirm Status Change</h3>
+            <p className={styles.statusModalDesc}>
+              You're about to change this order's status from{" "}
+              <span className={styles.statusFrom}>{order.status}</span> to{" "}
+              <span className={styles.statusTo}>{pendingStatus}</span>.
+            </p>
+            <p className={styles.statusModalWarning}>
+              This action will update the order for the customer. Please
+              confirm.
+            </p>
+            <div className={styles.statusModalActions}>
+              <button
+                className={styles.statusCancelBtn}
+                onClick={() => {
+                  setShowStatusConfirm(false);
+                  setPendingStatus(null);
+                }}
+                disabled={statusLoading}
+              >
+                Cancel
+              </button>
+              <button
+                className={styles.statusConfirmBtn}
+                onClick={confirmStatusChange}
+                disabled={statusLoading}
+              >
+                {statusLoading ? (
+                  "Updating…"
+                ) : (
+                  <>
+                    <CheckCircle size={15} /> Confirm
+                  </>
+                )}
               </button>
             </div>
           </div>

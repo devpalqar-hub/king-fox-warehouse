@@ -20,6 +20,7 @@ import {
   X,
   Contact,
   HomeIcon,
+  Logs,
 } from "lucide-react";
 import { MdReviews } from "react-icons/md";
 import Home from "@/app/page";
@@ -36,6 +37,7 @@ const menuItems = [
   { name: "Category", icon: <Tag size={20} />, path: "/category" },
   { name: "Coupons", icon: <Ticket size={20} />, path: "/coupons" },
   { name: "Orders", icon: <ShoppingBag size={20} />, path: "/orders" },
+  { name: "Stock Log", icon: <Logs size={20} />, path: "/stock" },
   { name: "Lucky Draw", icon: <Trophy size={20} />, path: "/luckydraw" },
   { name: "Contact Us", icon: <Contact size={20} />, path: "/contactus" },
   { name: "Shipping Charge", icon: <Truck size={20} />, path: "/shipping" },
