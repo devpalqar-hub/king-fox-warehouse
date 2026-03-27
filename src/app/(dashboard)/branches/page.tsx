@@ -58,9 +58,9 @@ const BranchListPage = () => {
         page: pg,
         limit: PAGE_SIZE,
       });
-      setBranches(res.data);
-      setTotal(res.total);
-      setTotalPages(res.totalPages);
+      setBranches(res);
+      setTotal(res.length);
+      setTotalPages(Math.ceil(res.length / PAGE_SIZE));
     } catch (err) {
       console.error(err);
       setBranches([]);
