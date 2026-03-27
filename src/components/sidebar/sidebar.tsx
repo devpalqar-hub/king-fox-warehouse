@@ -18,8 +18,11 @@ import {
   LogOut,
   Menu,
   X,
+  Contact,
+  HomeIcon,
 } from "lucide-react";
 import { MdReviews } from "react-icons/md";
+import Home from "@/app/page";
 
 const menuItems = [
   {
@@ -28,11 +31,13 @@ const menuItems = [
     path: "/dashboard",
   },
   { name: "Inventory", icon: <Warehouse size={20} />, path: "/inventory" },
+  { name: "Branch", icon: <HomeIcon size={20} />, path: "/branches" },
   { name: "Products", icon: <Package size={20} />, path: "/products" },
   { name: "Category", icon: <Tag size={20} />, path: "/category" },
   { name: "Coupons", icon: <Ticket size={20} />, path: "/coupons" },
   { name: "Orders", icon: <ShoppingBag size={20} />, path: "/orders" },
   { name: "Lucky Draw", icon: <Trophy size={20} />, path: "/luckydraw" },
+  { name: "Contact Us", icon: <Contact size={20} />, path: "/contactus" },
   { name: "Shipping Charge", icon: <Truck size={20} />, path: "/shipping" },
   {
     name: "User Management",
@@ -47,6 +52,7 @@ const Sidebar = () => {
   const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState(0);
 
   // Close drawer on route change
   useEffect(() => {
@@ -55,11 +61,31 @@ const Sidebar = () => {
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "";
+    if (typeof window !== "undefined") {
+      document.body.style.overflow = isOpen ? "hidden" : "";
+      document.body.style.touchAction = isOpen ? "none" : "";
+    }
     return () => {
-      document.body.style.overflow = "";
+      if (typeof window !== "undefined") {
+        document.body.style.overflow = "";
+        document.body.style.touchAction = "";
+      }
     };
   }, [isOpen]);
+
+  // Handle swipe gesture to close sidebar on mobile
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.touches[0].clientX);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isOpen) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+    if (diff > 50) {
+      setIsOpen(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -88,6 +114,8 @@ const Sidebar = () => {
       {/* ── Sidebar ────────────────────────────── */}
       <aside
         className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ""}`}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Logo */}
         <div className={styles.logoSection}>

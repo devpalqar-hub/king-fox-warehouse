@@ -3,6 +3,7 @@
 import AuthGuard from "@/auth/AuthGuard";
 import Header from "@/components/header/header";
 import Sidebar from "@/components/sidebar/sidebar";
+import styles from "./layout.module.css";
 
 export default function DashboardLayout({
   children,
@@ -11,28 +12,17 @@ export default function DashboardLayout({
 }) {
   return (
     <AuthGuard>
-      <div>
+      <div className={styles.dashboardContainer}>
         {/* Sidebar */}
         <Sidebar />
 
         {/* Main Area */}
-        <div
-          style={{
-            marginLeft: "300px", 
-          }}
-        >
+        <div className={styles.mainContent}>
           {/* Header */}
           <Header />
 
           {/* Content */}
-          <main
-            style={{
-              marginTop: "85px",
-              padding: "24px",
-            }}
-          >
-            {children}
-          </main>
+          <main className={styles.contentArea}>{children}</main>
         </div>
       </div>
     </AuthGuard>

@@ -1,0 +1,937 @@
+/* ── Base ─────────────────────────────────────── */
+.container {
+  padding: 28px 36px;
+  min-height: 100vh;
+  color: #0f172a;
+}
+
+/* ── Stats Grid ───────────────────────────────── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 26px;
+}
+
+.statCard {
+  background: #fff;
+  padding: 22px 24px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.statCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.statCard p {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.statCard h2 {
+  font-size: 30px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+/* ── Header ───────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.header p {
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* ── Buttons ──────────────────────────────────── */
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+  padding: 11px 22px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38);
+}
+
+.btnPrimary:active:not(:disabled) {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+.btnPrimary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.btnSecondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btnDanger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 11px 22px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  letter-spacing: 0.02em;
+  border: 1px solid #fecaca;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.btnDanger:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+}
+
+.btnDanger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Tabs ─────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.tab:hover {
+  color: #4f46e5;
+}
+
+.activeTab {
+  color: #4f46e5;
+  border-bottom: 2px solid #4f46e5;
+}
+
+/* ── Table Wrapper ────────────────────────────── */
+.tableWrapper {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.tableWrapper:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+/* ── Table ────────────────────────────────────── */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.colName {
+  width: 22%;
+}
+.colPhone {
+  width: 15%;
+}
+.colAddress {
+  width: 28%;
+}
+.colType {
+  width: 13%;
+}
+.colDate {
+  width: 14%;
+}
+.colActions {
+  width: 8%;
+}
+
+.table th {
+  text-align: left;
+  padding: 14px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f8fafc;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table td {
+  padding: 16px 18px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #0f172a;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table tr:hover td {
+  background: #f8fafc;
+}
+
+/* ── Name Cell ────────────────────────────────── */
+.nameCell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.branchIcon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconShop {
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+}
+
+.iconWarehouse {
+  background: #fef3c7;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.nameText {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Phone Cell ───────────────────────────────── */
+.phoneCell {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13.5px;
+  color: #475569;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.phoneCell svg {
+  color: #a5b4fc;
+  flex-shrink: 0;
+}
+
+/* ── Address Cell ─────────────────────────────── */
+.addressCell {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.addressCell svg {
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Date Cell ────────────────────────────────── */
+.dateCell {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.dateCell svg {
+  color: #a5b4fc;
+  flex-shrink: 0;
+}
+
+/* ── Type Badge ───────────────────────────────── */
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 11px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.typeShop {
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+.typeWarehouse {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+/* ── Action Buttons ───────────────────────────── */
+.actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.actionBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.actionBtn:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+  transform: translateY(-1px);
+}
+
+.actionBtn.danger:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+/* ── Empty / Loading State ────────────────────── */
+.emptyState {
+  padding: 56px 24px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loadingDots::after {
+  content: "…";
+  animation: blink 1.2s steps(3, end) infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    content: "";
+  }
+  33% {
+    content: ".";
+  }
+  66% {
+    content: "..";
+  }
+}
+
+/* ── Feedback ─────────────────────────────────── */
+.errorMsg {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* ── Pagination ───────────────────────────────── */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.paginationInfo {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.paginationInfo strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pageBtn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.pageBtn:hover:not(:disabled) {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #4f46e5;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageBtnActive {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  border-color: #4f46e5;
+  color: #fff !important;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.3);
+}
+
+.pageBtnActive:hover {
+  background: linear-gradient(135deg, #4338ca, #4f46e5) !important;
+}
+
+.pageEllipsis {
+  min-width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+/* ── Delete Modal ─────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(3px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 440px;
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.14),
+    0 2px 8px rgba(15, 23, 42, 0.08);
+  animation: scaleIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.modalTitleDanger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.modalBody {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.deleteMsg {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.deleteMsg strong {
+  color: #0f172a;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.drawerClose {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.drawerClose:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+/* ── Responsive ───────────────────────────────── */
+@media (max-width: 1023px) {
+  .container {
+    padding: 24px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .statCard {
+    padding: 18px 20px;
+  }
+  .statCard h2 {
+    font-size: 26px;
+  }
+  .header h1 {
+    font-size: 24px;
+  }
+
+  .btnPrimary,
+  .btnSecondary,
+  .btnDanger {
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+
+  .tab {
+    padding: 9px 16px;
+    font-size: 12px;
+  }
+
+  .table th {
+    padding: 12px 14px;
+    font-size: 10px;
+  }
+  .table td {
+    padding: 14px 14px;
+    font-size: 13px;
+  }
+
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table {
+    min-width: 760px;
+  }
+}
+
+@media (max-width: 767px) {
+  .container {
+    padding: 16px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .statCard {
+    padding: 16px 18px;
+    border-radius: 12px;
+  }
+  .statCard p {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .statCard h2 {
+    font-size: 24px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+  .header p {
+    font-size: 13px;
+  }
+
+  .btnPrimary {
+    width: 100%;
+    justify-content: center;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  /* Card layout */
+  .tableWrapper {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  .table {
+    display: block;
+    min-width: 100%;
+    table-layout: auto;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .table tr {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+    transition: box-shadow 0.2s ease;
+  }
+
+  .table tr:hover {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-top: 1px solid #f1f5f9;
+    font-size: 13px;
+    overflow: visible;
+    text-overflow: unset;
+  }
+
+  .table td:first-child {
+    border-top: none;
+    padding-top: 14px;
+  }
+  .table td:last-child {
+    padding-bottom: 14px;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+
+  .nameCell {
+    justify-content: flex-end;
+  }
+  .phoneCell {
+    justify-content: flex-end;
+  }
+
+  .addressCell {
+    justify-content: flex-end;
+    text-align: right;
+    max-width: 200px;
+    margin-left: auto;
+  }
+
+.addressCell span {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+
+  -webkit-line-clamp: 3; /* for older WebKit browsers */
+  line-clamp: 3;         /* standard property */
+
+  overflow: hidden;
+}
+
+  .actions {
+    justify-content: flex-end;
+  }
+  .actionBtn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .modalActions {
+    flex-direction: column-reverse;
+  }
+
+  .btnSecondary,
+  .btnDanger {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .emptyState {
+    padding: 40px 16px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 12px;
+  }
+  .statsGrid {
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .statCard {
+    padding: 14px 16px;
+    border-radius: 10px;
+  }
+  .statCard p {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+  .statCard h2 {
+    font-size: 22px;
+  }
+  .header h1 {
+    font-size: 20px;
+  }
+  .header p {
+    font-size: 12px;
+  }
+  .btnPrimary {
+    padding: 9px 14px;
+    font-size: 12px;
+  }
+  .tab {
+    padding: 7px 12px;
+    font-size: 11px;
+  }
+  .table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+  .table td::before {
+    font-size: 11px;
+  }
+  .pageBtn {
+    min-width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+}

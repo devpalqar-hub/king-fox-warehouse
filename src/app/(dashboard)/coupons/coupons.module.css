@@ -405,27 +405,334 @@
 }
 
 /* ── Responsive ───────────────────────────────── */
-@media (max-width: 768px) {
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
   .container {
-    padding: 16px;
+    padding: 24px 20px;
   }
 
   .header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .header h1 {
+    font-size: 20px;
+  }
+
+  .header p {
+    font-size: 12px;
   }
 
   .btnPrimary {
     width: 100%;
     justify-content: center;
+    font-size: 12px;
+    padding: 9px 16px;
+  }
+
+  .tabs {
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .tableWrapper {
+    border-radius: 10px;
   }
 
   .table {
     font-size: 12px;
   }
 
+  .table th {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .code {
+    font-size: 9px;
+    padding: 2px 8px;
+  }
+
+  .codeCell p {
+    font-size: 11px;
+  }
+
   .modal {
-    padding: 28px 24px;
+    padding: 24px 20px;
+  }
+
+  .modal h2 {
+    font-size: 16px;
+  }
+
+  .modal p {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .header p {
+    font-size: 11px;
+    color: #64748b;
+  }
+
+  .btnPrimary {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 8px 12px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+
+  .tabs {
+    gap: 2px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .tab {
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .tableWrapper {
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 500px;
+    font-size: 11px;
+  }
+
+  .table th {
+    padding: 10px 10px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .table td {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .emptyRow {
+    font-size: 12px !important;
+    padding: 24px 10px !important;
+  }
+
+  .code {
+    font-size: 8px;
+    padding: 2px 6px;
+  }
+
+  .codeCell p {
+    font-size: 10px;
+  }
+
+  .progressWrapper {
+    gap: 3px;
+    font-size: 10px;
+  }
+
+  .progressBar {
+    height: 4px;
+  }
+
+  .status {
+    padding: 2px 8px;
+    font-size: 9px;
+  }
+
+  .actions {
+    gap: 4px;
+  }
+
+  .iconBtn {
+    padding: 4px;
+    border-radius: 4px;
+  }
+
+  .pagination {
+    padding: 10px 10px;
+    font-size: 11px;
+  }
+
+  .modalOverlay {
+    padding: 16px;
+  }
+
+  .modal {
+    width: 95%;
+    max-width: 100%;
+    padding: 16px 14px;
+    border-radius: 12px;
+  }
+
+  .modalIcon {
+    width: 44px;
+    height: 44px;
+  }
+
+  .modalIcon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .modal h2 {
+    font-size: 14px;
+    margin-bottom: 8px;
+  }
+
+  .modal p {
+    font-size: 11px;
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .modalActions {
+    gap: 8px;
+  }
+
+  .btnSecondary,
+  .btnDanger {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 8px;
+  }
+
+  .header {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .header h1 {
+    font-size: 16px;
+  }
+
+  .header p {
+    font-size: 10px;
+  }
+
+  .btnPrimary {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  .tab {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .table {
+    min-width: 100%;
+    font-size: 10px;
+  }
+
+  .table th {
+    padding: 8px 8px;
+    font-size: 8px;
+  }
+
+  .table td {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .code {
+    font-size: 7px;
+    padding: 1px 4px;
+  }
+
+  .codeCell p {
+    font-size: 9px;
+  }
+
+  .progressWrapper {
+    font-size: 9px;
+  }
+
+  .status {
+    padding: 2px 6px;
+    font-size: 8px;
+  }
+
+  .iconBtn {
+    padding: 3px;
+    width: 20px;
+    height: 20px;
+  }
+
+  .iconBtn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .pagination {
+    padding: 8px 8px;
+    font-size: 10px;
+  }
+
+  .modal {
+    padding: 12px 12px;
+  }
+
+  .modalIcon {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 12px;
+  }
+
+  .modal h2 {
+    font-size: 13px;
+  }
+
+  .modal p {
+    font-size: 10px;
+  }
+
+  .btnSecondary,
+  .btnDanger {
+    padding: 7px 8px;
+    font-size: 10px;
   }
 }

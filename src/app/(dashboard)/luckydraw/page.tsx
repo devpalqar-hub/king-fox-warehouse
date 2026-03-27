@@ -120,13 +120,13 @@ const LuckyDrawPage = () => {
               filtered.map((c) => (
                 <tr key={c.id}>
                   {/* Campaign */}
-                  <td>
+                  <td data-label="Campaign">
                     <div className={styles.campaignTitle}>{c.title}</div>
                     <div className={styles.campaignDesc}>{c.description}</div>
                   </td>
 
                   {/* Date */}
-                  <td>
+                  <td data-label="Date Range">
                     <div className={styles.dateCell}>
                       <Calendar size={13} />
                       {c.date}
@@ -134,19 +134,19 @@ const LuckyDrawPage = () => {
                   </td>
 
                   {/* Status */}
-                  <td>
+                  <td data-label="Status">
                     <span className={`${styles.status} ${styles[c.status]}`}>
                       {c.status}
                     </span>
                   </td>
 
                   {/* Total */}
-                  <td>
+                  <td data-label="Total">
                     <span className={styles.voucherCount}>{c.vouchers}</span>
                   </td>
 
                   {/* Redeemed + Progress */}
-                  <td>
+                  <td data-label="Redeemed">
                     <div className={styles.progressCell}>
                       <div className={styles.progressTop}>
                         <span className={styles.progressCount}>
@@ -164,7 +164,7 @@ const LuckyDrawPage = () => {
                   </td>
 
                   {/* Actions */}
-                  <td>
+                  <td data-label="Actions">
                     <div className={styles.actions}>
                       <button
                         className={styles.actionBtn}

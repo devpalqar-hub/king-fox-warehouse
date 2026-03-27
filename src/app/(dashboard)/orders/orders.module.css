@@ -2,7 +2,7 @@
   padding: 2.5rem;
   background-color: #fcfcfd;
   min-height: 100vh;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: #1e293b;
 }
 
@@ -51,7 +51,7 @@
   padding: 1.5rem;
   border-radius: 16px;
   border: 1px solid #f1f5f9;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .cardHeader {
@@ -95,7 +95,7 @@
 .filterSection {
   background: white;
   padding: 1.25rem;
-   border: 1px solid #e2e8f0;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   display: flex;
   gap: 1rem;
@@ -124,7 +124,8 @@
   background: #f8fafc;
 }
 
-.selectInput, .iconBtn {
+.selectInput,
+.iconBtn {
   padding: 0.65rem 1rem;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -151,8 +152,6 @@
   margin-top: 19px;
   border: 1px solid #dedfe1;
   border-radius: 12px;
-  
-  
 }
 
 .table {
@@ -224,19 +223,43 @@
   font-weight: 600;
 }
 
-.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
 
-.pending { background: #fffbeb; color: #d97706; }
-.pending .dot { background: #f59e0b; }
+.pending {
+  background: #fffbeb;
+  color: #d97706;
+}
+.pending .dot {
+  background: #f59e0b;
+}
 
-.shipped { background: #eff6ff; color: #2563eb; }
-.shipped .dot { background: #3b82f6; }
+.shipped {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.shipped .dot {
+  background: #3b82f6;
+}
 
-.delivered { background: #f0fdf4; color: #16a34a; }
-.delivered .dot { background: #22c55e; }
+.delivered {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.delivered .dot {
+  background: #22c55e;
+}
 
-.cancelled { background: #fef2f2; color: #dc2626; }
-.cancelled .dot { background: #ef4444; }
+.cancelled {
+  background: #fef2f2;
+  color: #dc2626;
+}
+.cancelled .dot {
+  background: #ef4444;
+}
 
 /* Pagination */
 .pagination {
@@ -270,4 +293,317 @@
   background: #5850ec;
   color: white;
   border-color: #5850ec;
+}
+
+/* ── Responsive ───────────────────────────────── */
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    padding: 20px 18px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .headerTitle h1 {
+    font-size: 1.5rem;
+  }
+
+  .headerTitle p {
+    font-size: 12px;
+  }
+
+  .createBtn {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 0.65rem 1rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .statCard {
+    padding: 12px 14px;
+  }
+
+  .statValue {
+    font-size: 1.4rem;
+  }
+
+  .statLabel {
+    font-size: 11px;
+  }
+
+  .filterSection {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .searchWrapper {
+    width: 100%;
+  }
+
+  .searchInput,
+  .selectInput {
+    font-size: 12px;
+    padding: 0.55rem 0.85rem;
+  }
+
+  .table th {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .table td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .pagination {
+    font-size: 12px;
+    padding: 12px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 12px 10px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .headerTitle h1 {
+    font-size: 1.25rem;
+  }
+
+  .headerTitle p {
+    font-size: 11px;
+  }
+
+  .createBtn {
+    width: 100%;
+    justify-content: center;
+    font-size: 11px;
+    padding: 0.6rem 0.9rem;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .statCard {
+    padding: 10px 12px;
+  }
+
+  .cardHeader {
+    margin-bottom: 10px;
+  }
+
+  .statValue {
+    font-size: 1.2rem;
+  }
+
+  .statLabel {
+    font-size: 9px;
+  }
+
+  .filterSection {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  .searchWrapper {
+    width: 100%;
+  }
+
+  .searchIcon {
+    left: 10px;
+  }
+
+  .searchInput,
+  .selectInput {
+    font-size: 11px;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+  }
+
+  .searchInput {
+    padding-left: 2.2rem;
+  }
+
+  .resetBtn {
+    font-size: 11px;
+  }
+
+  .tableWrapper {
+    overflow-x: auto;
+    border-radius: 10px;
+  }
+
+  .table {
+    min-width: 550px;
+  }
+
+  .table th {
+    padding: 8px 10px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .table td {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .customer {
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+  }
+
+  .status {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .viewBtn {
+    font-size: 10px;
+  }
+
+  .pagination {
+    font-size: 11px;
+    padding: 10px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .pageButtons {
+    gap: 4px;
+  }
+
+  .pageBtn {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px 8px;
+  }
+
+  .header {
+    gap: 8px;
+  }
+
+  .headerTitle h1 {
+    font-size: 1rem;
+  }
+
+  .headerTitle p {
+    font-size: 10px;
+  }
+
+  .createBtn {
+    padding: 0.5rem 0.75rem;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .statCard {
+    padding: 8px 10px;
+  }
+
+  .statValue {
+    font-size: 1rem;
+  }
+
+  .statLabel {
+    font-size: 8px;
+  }
+
+  .filterSection {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .searchInput,
+  .selectInput {
+    font-size: 10px;
+    padding: 0.45rem 0.6rem;
+  }
+
+  .searchInput {
+    padding-left: 2rem;
+  }
+
+  .table {
+    min-width: 100%;
+    font-size: 10px;
+  }
+
+  .table th {
+    padding: 6px 8px;
+    font-size: 8px;
+  }
+
+  .table td {
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+
+  .avatar {
+    width: 24px;
+    height: 24px;
+  }
+
+  .status {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+
+  .pagination {
+    font-size: 10px;
+    padding: 8px;
+  }
+
+  .pageBtn {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
 }

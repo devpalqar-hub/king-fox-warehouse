@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "./inventory.module.css";
-import { Search, ChevronDown, Edit2, Plus} from "lucide-react";
+import { Search, ChevronDown, Edit2, Plus } from "lucide-react";
 import { getInventory } from "@/services/inventory.service";
 import { getCategories } from "@/services/category.service";
 import { InventoryVariant } from "@/types/variant";
@@ -69,7 +69,7 @@ const InventoryPage = () => {
 
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.name} 
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -93,19 +93,21 @@ const InventoryPage = () => {
           <tbody>
             {variants.map((item) => (
               <tr key={item.id}>
-                <td className={styles.productName}>
+                <td className={styles.productName} data-label="Product Name">
                   {item.product.name}
                 </td>
 
-                <td>
+                <td data-label="Variant">
                   <span className={styles.variantBadge}>
                     {item.size} / {item.color}
                   </span>
                 </td>
 
-                <td className={styles.textMuted}>{item.sku}</td>
+                <td className={styles.textMuted} data-label="SKU">
+                  {item.sku}
+                </td>
 
-                <td>
+                <td data-label="Total Stock">
                   <span
                     className={`${styles.stock} ${
                       item.lowStock ? styles.lowStock : styles.goodStock
@@ -115,9 +117,12 @@ const InventoryPage = () => {
                   </span>
                 </td>
 
-                <td>
-                  <Edit2 size={18} className={styles.editIcon} 
-                    onClick={() => router.push(`/inventory/${item.id}`)}/>
+                <td data-label="Actions">
+                  <Edit2
+                    size={18}
+                    className={styles.editIcon}
+                    onClick={() => router.push(`/inventory/${item.id}`)}
+                  />
                 </td>
               </tr>
             ))}

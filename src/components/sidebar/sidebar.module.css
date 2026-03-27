@@ -4,7 +4,7 @@
 
 .sidebar {
   width: 260px;
-  height: 100vh;
+  min-height: 100vh;
   background: #ffffff;
   border-right: 1px solid #eef2f6;
   display: flex;
@@ -20,6 +20,26 @@
   z-index: 101;
   /* smooth slide for mobile */
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: none;
+  overflow-y: auto;
+}
+
+/* Prevent scrollbar on ios */
+.sidebar {
+  -webkit-overflow-scrolling: touch;
+}
+
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 2px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 /* ---------- Logo Section ---------- */
@@ -367,12 +387,45 @@
    RESPONSIVE
    ================================================================ */
 
-@media (max-width: 768px) {
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .brandName {
+    font-size: 15px;
+  }
+
+  .brandSub {
+    font-size: 11px;
+  }
+
+  .navItem {
+    padding: 10px 12px;
+    font-size: 13px;
+    gap: 10px;
+  }
+
+  .label {
+    font-size: 13px;
+  }
+
+  .logoutBtn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
+
+/* Mobile (max 767px) */
+@media (max-width: 767px) {
   /* Sidebar slides off-screen by default */
   .sidebar {
+    width: 100%;
+    max-width: 280px;
     transform: translateX(-100%);
     box-shadow: none;
-    width: 260px;
+    border-right: none;
   }
 
   /* Slides in when open */
@@ -394,5 +447,138 @@
   /* Show the close X inside the sidebar header */
   .closeBtn {
     display: flex;
+  }
+
+  /* Adjust logo section for mobile */
+  .logoSection {
+    padding: 16px 12px;
+    gap: 10px;
+  }
+
+  .logoIcon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .brandName {
+    font-size: 15px;
+  }
+
+  .brandSub {
+    font-size: 11px;
+  }
+
+  /* Adjust nav */
+  .nav {
+    padding: 8px 8px;
+  }
+
+  .navItem {
+    font-size: 13px;
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .icon {
+    min-width: 18px;
+  }
+
+  /* Footer adjustments */
+  .footer {
+    padding: 12px 8px;
+  }
+
+  .logoutBtn {
+    font-size: 13px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+}
+
+/* Small mobile (max 480px) */
+@media (max-width: 480px) {
+  .sidebar {
+    max-width: 260px;
+  }
+
+  .mobileTopBar {
+    height: 52px;
+    padding: 0 12px;
+    gap: 10px;
+  }
+
+  .hamburger {
+    width: 32px;
+    height: 32px;
+  }
+
+  .mobileTitle {
+    font-size: 14px;
+  }
+
+  .logoSection {
+    padding: 14px 10px;
+  }
+
+  .logoIcon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .brandName {
+    font-size: 14px;
+  }
+
+  .brandSub {
+    font-size: 10px;
+    display: none;
+  }
+
+  .nav {
+    padding: 6px 6px;
+    gap: 2px;
+  }
+
+  .navItem {
+    font-size: 12px;
+    padding: 8px 10px;
+    gap: 10px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  .logoutBtn {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}
+
+/* Large desktop (1400px+) */
+@media (min-width: 1400px) {
+  .sidebar {
+    width: 280px;
+  }
+
+  .logoSection {
+    padding: 24px 18px;
+  }
+
+  .nav {
+    padding: 14px 12px;
+  }
+
+  .navItem {
+    padding: 12px 16px;
+  }
+
+  .footer {
+    padding: 16px 14px;
+  }
+
+  .logoutBtn {
+    padding: 12px 16px;
   }
 }

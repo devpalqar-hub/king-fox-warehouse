@@ -147,3 +147,197 @@
 .saveBtn:hover {
   background: #2f3ea8;
 }
+
+/* ── Responsive ───────────────────────────── */
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    padding: 20px 16px;
+  }
+
+  .breadcrumbs {
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+
+  .headerTitle {
+    font-size: 26px;
+    margin-bottom: 0.4rem;
+  }
+
+  .headerSub {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .formCard {
+    padding: 20px 22px;
+    border-radius: 12px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .label {
+    font-size: 13px;
+  }
+
+  .input,
+  .select {
+    padding: 0.65rem 0.65rem 0.65rem 2.2rem;
+    font-size: 14px;
+  }
+
+  .inputIcon {
+    left: 10px;
+  }
+
+  .buttonGroup {
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 14px;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    padding: 0.65rem 16px;
+    font-size: 13px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 12px 10px;
+  }
+
+  .breadcrumbs {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .headerTitle {
+    font-size: 20px;
+    margin-bottom: 0.3rem;
+  }
+
+  .headerSub {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .formCard {
+    padding: 14px 14px;
+    border-radius: 10px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .fullWidth {
+    grid-column: span 1;
+  }
+
+  .formGroup {
+    gap: 4px;
+  }
+
+  .label {
+    font-size: 12px;
+  }
+
+  .input,
+  .select {
+    padding: 0.6rem 0.6rem 0.6rem 2.1rem;
+    font-size: 13px;
+    border-radius: 6px;
+  }
+
+  .inputIcon {
+    left: 8px;
+  }
+
+  .buttonGroup {
+    flex-direction: column-reverse;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    width: 100%;
+    padding: 0.6rem 12px;
+    font-size: 12px;
+    justify-content: center;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px 8px;
+  }
+
+  .breadcrumbs {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .headerTitle {
+    font-size: 18px;
+    margin-bottom: 0.2rem;
+  }
+
+  .headerSub {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+
+  .formCard {
+    padding: 12px 12px;
+    border-radius: 8px;
+  }
+
+  .formGrid {
+    gap: 8px;
+  }
+
+  .formGroup {
+    gap: 3px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  .input,
+  .select {
+    padding: 0.5rem 0.5rem 0.5rem 2rem;
+    font-size: 12px;
+  }
+
+  .inputIcon {
+    left: 6px;
+  }
+
+  .buttonGroup {
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .cancelBtn,
+  .saveBtn {
+    padding: 0.55rem 10px;
+    font-size: 11px;
+  }
+}

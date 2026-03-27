@@ -1,56 +1,57 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from 'react';
-import styles from './products.module.css';
-import { Search, Plus, Upload, Edit2, Trash2, ChevronDown, X } from 'lucide-react';
+import styles from "./products.module.css";
+import { Search, Plus, Edit2, Trash2, ChevronDown, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getProducts } from "@/services/product.service";
 import { Product } from "@/types/product";
 import { getCategories } from "@/services/category.service";
 import { Category } from "@/types/category";
-import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMetaInfo";
+import DynamicMetaInfo, {
+  MetaItem,
+} from "@/components/product-form/DynamicMetaInfo";
 const ProductsPage = () => {
-
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryId, setCategoryId] = useState("");
+  const [status, setStatus] = useState("");
+  const STATUS_OPTIONS = ["ACTIVE", "INACTIVE"];
   useEffect(() => {
-  const fetchProducts = async () => {
-    const data = await getProducts();
-    setProducts(data);
-  };
-
-  fetchProducts();
-}, []);
-
-// Fetch Products When Searching
-useEffect(() => {
-
-  const delay = setTimeout(() => {
     const fetchProducts = async () => {
-      const data = await getProducts({
-        search,
-        categoryId
-      });
+      const data = await getProducts();
       setProducts(data);
     };
+
     fetchProducts();
-  }, 500);
-  return () => clearTimeout(delay);
-}, [search, categoryId]);
+  }, []);
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    const data = await getCategories();
-    setCategories(data);
-  };
+  // Fetch Products When Searching
+  useEffect(() => {
+    const delay = setTimeout(() => {
+      const fetchProducts = async () => {
+        const data = await getProducts({
+          search,
+          categoryId,
+          status,
+        });
+        setProducts(data);
+      };
+      fetchProducts();
+    }, 500);
+    return () => clearTimeout(delay);
+  }, [search, categoryId, status]);
 
-  fetchCategories();
-}, []);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getCategories();
+      setCategories(data);
+    };
 
+    fetchCategories();
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -73,34 +74,43 @@ useEffect(() => {
           <div className={styles.searchWrapper}>
             <Search className={styles.searchIcon} size={18} />
             <input
-                type="text"
-                placeholder="Search by name, SKU, or brand..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                />
+              type="text"
+              placeholder="Search by name, SKU, or brand..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <div className={styles.selectWrapper}>
             <select onChange={(e) => setCategoryId(e.target.value)}>
-                <option value="">All Categories</option>
+              <option value="">All Categories</option>
 
-                {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                    {category.name}
-                    </option>
-                ))}
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
             </select>
             <ChevronDown className={styles.selectArrow} size={16} />
           </div>
           <div className={styles.selectWrapper}>
-            <select>
-              <option>status</option>
+            <select value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="">All Status</option>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
             </select>
             <ChevronDown className={styles.selectArrow} size={16} />
           </div>
         </div>
         {/* <div className={styles.tagRow}>
-          <span className={styles.tag}>New Arrivals <X size={14} /></span>
-          <span className={styles.tag}>Best Sellers <X size={14} /></span>
+          <span className={styles.tag}>
+            New Arrivals <X size={14} />
+          </span>
+          <span className={styles.tag}>
+            Best Sellers <X size={14} />
+          </span>
           <button className={styles.clearBtn}>Clear all</button>
         </div> */}
       </section>
@@ -112,7 +122,7 @@ useEffect(() => {
             <tr>
               <th>PRODUCT</th>
               <th>CATEGORY</th>
-             
+
               <th>PRICE RANGE</th>
               <th>VARIANTS</th>
               <th>STATUS</th>
@@ -120,79 +130,79 @@ useEffect(() => {
             </tr>
           </thead>
           <tbody>
-  {products.map((product) => {
+            {products.map((product) => {
+              const prices =
+                product.variants?.map((v) => Number(v.sellingPrice)) || [];
 
-    const prices = product.variants?.map(v => Number(v.sellingPrice)) || [];
+              const minPrice = prices.length ? Math.min(...prices) : 0;
+              const maxPrice = prices.length ? Math.max(...prices) : 0;
 
-    const minPrice = prices.length ? Math.min(...prices) : 0;
-    const maxPrice = prices.length ? Math.max(...prices) : 0;
+              return (
+                <tr key={product.id}>
+                  <td data-label="Product">
+                    <div className={styles.productCell}>
+                      <div className={styles.productImg}>
+                        {product.images?.length ? (
+                          <img src={product.images[0]} width={40} />
+                        ) : (
+                          "📦"
+                        )}
+                      </div>
 
-    return (
-      <tr key={product.id}>
-        <td>
-          <div className={styles.productCell}>
-            <div className={styles.productImg}>
-              {product.images?.length ? (
-                <img src={product.images[0]} width={40} />
-              ) : (
-                "📦"
-              )}
-            </div>
+                      <div>
+                        <div className={styles.productName}>{product.name}</div>
+                        <div className={styles.productSku}>
+                          SKU: {product.variants?.[0]?.sku || "N/A"}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
 
-            <div>
-              <div className={styles.productName}>{product.name}</div>
-              <div className={styles.productSku}>
-                SKU: {product.variants?.[0]?.sku || "N/A"}
-              </div>
-            </div>
-          </div>
-        </td>
+                  <td data-label="Category">
+                    <span
+                      className={`${styles.categoryBadge} ${
+                        styles[
+                          product.category?.name
+                            ?.toLowerCase()
+                            .replace(/\s/g, "")
+                            .replace(/-/g, "")
+                        ] || styles.defaultCategory
+                      }`}
+                    >
+                      {product.category?.name}
+                    </span>
+                  </td>
 
-        <td>
-          <span
-          className={`${styles.categoryBadge} ${
-            styles[
-              product.category?.name
-                ?.toLowerCase()
-                .replace(/\s/g, "")      
-                .replace(/-/g, "")       
-            ] || styles.defaultCategory
-          }`}
-        >
-          {product.category?.name}
-        </span>
-        </td>
+                  <td data-label="Price Range" className={styles.priceText}>
+                    ${minPrice} - ${maxPrice}
+                  </td>
 
-        
+                  <td data-label="Variants" className={styles.textMuted}>
+                    {product.variants?.length || 0} Variants
+                  </td>
 
-        <td className={styles.priceText}>
-          ${minPrice} - ${maxPrice}
-        </td>
+                  <td data-label="Status">
+                    <div className={`${styles.status} ${styles.active}`}>
+                      <span className={styles.dot}></span> Active
+                    </div>
+                  </td>
 
-        <td className={styles.textMuted}>
-          {product.variants?.length || 0} Variants
-        </td>
-
-        <td>
-          <div className={`${styles.status} ${styles.active}`}>
-            <span className={styles.dot}></span> Active
-          </div>
-        </td>
-
-        <td>
-          <div className={styles.actions}>
-            <Edit2
-              size={18}
-              className={styles.editIcon}
-              onClick={() => router.push(`/products/editproduct/${product.id}`)}
-            />
-            <Trash2 size={18} className={styles.deleteIcon} />
-          </div>
-        </td>
-      </tr>
-    );
-  })}
-</tbody>
+                  <td data-label="Actions">
+                    <div className={styles.actions}>
+                      <Edit2
+                        size={18}
+                        className={styles.editIcon}
+                        onClick={() =>
+                          router.push(`/products/editproduct/${product.id}`)
+                        }
+                      />
+                      <Trash2 size={18} className={styles.deleteIcon} />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
         </table>
 
         {/* Pagination */}

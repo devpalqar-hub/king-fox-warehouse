@@ -150,3 +150,15 @@ export const updateVariant = async (variantId: number, data: any) => {
 
   return response;
 };
+
+const deleteVariant = async (variantId: number) => {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${BASE_URL}/v1/products/variants/${variantId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.message || "Failed to delete variant");
+  }
+};

@@ -2,7 +2,10 @@
   padding: 24px;
   background-color: #f8fafc;
   min-height: 100vh;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
   color: #1e293b;
 }
 .avatar
@@ -11,7 +14,7 @@
   margin-bottom: 24px;
   padding: 20px 24px;
   border-radius: 14px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
 }
 .header {
   display: flex;
@@ -164,7 +167,7 @@
   z-index: 0;
 }
 .step {
-position: relative;
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -436,7 +439,7 @@ position: relative;
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: url('/avatar.png') center/cover no-repeat;
+  background: url("/avatar.png") center/cover no-repeat;
 }
 
 .contactItem {
@@ -469,7 +472,7 @@ position: relative;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
 .modalBox h3 {
@@ -493,4 +496,443 @@ position: relative;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 10px;
+}
+
+/* ── Responsive ───────────────────────────────── */
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    padding: 20px 16px;
+  }
+
+  .headerCard {
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+
+  .titleRow h1 {
+    font-size: 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    padding: 16px 18px;
+  }
+
+  .card h3 {
+    font-size: 14px;
+  }
+
+  .table th {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .table td {
+    padding: 12px 12px;
+    font-size: 12px;
+  }
+
+  .productImg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .darkCard {
+    padding: 16px 18px;
+  }
+
+  .select {
+    font-size: 12px;
+    padding: 10px 12px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 12px 10px;
+  }
+
+  .headerCard {
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .titleRow {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .titleRow h1 {
+    font-size: 16px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+
+  .timestamp {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    font-size: 11px;
+    padding: 8px 12px;
+    justify-content: center;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+
+  .card h3 {
+    font-size: 13px;
+    margin-bottom: 14px;
+  }
+
+  .cardHeader {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
+  .cardHeader span {
+    font-size: 12px;
+  }
+
+  .table th {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .table td {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .productCell {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .productImg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .productName {
+    font-size: 12px;
+  }
+
+  .skuText,
+  .productMeta {
+    font-size: 10px;
+  }
+
+  .darkCard {
+    padding: 12px 14px;
+  }
+
+  .darkCard h3 {
+    font-size: 12px;
+    margin-bottom: 12px;
+  }
+
+  .statusStepper {
+    margin-bottom: 12px;
+  }
+
+  .step {
+    gap: 6px;
+    flex: 1;
+  }
+
+  .iconCircle {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 8px;
+  }
+
+  .stepInfo strong {
+    font-size: 11px;
+  }
+
+  .stepInfo span {
+    font-size: 10px;
+  }
+
+  .priceRow {
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .totalRow h2 {
+    font-size: 24px;
+  }
+
+  .select {
+    font-size: 11px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+  }
+
+  .warehouseBox {
+    padding: 10px 12px;
+    margin-bottom: 14px;
+  }
+
+  .warehouseIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .metaText {
+    font-size: 12px;
+  }
+
+  .sidebarLabel {
+    font-size: 10px;
+    margin-bottom: 10px;
+  }
+
+  .customerProfile {
+    margin-bottom: 14px;
+  }
+
+  .customerProfile strong {
+    font-size: 12px;
+  }
+
+  .customerProfile p {
+    font-size: 11px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .contactItem {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .modalBox {
+    width: 90%;
+    max-width: 100%;
+    padding: 14px 12px;
+  }
+
+  .modalBox h3 {
+    font-size: 13px;
+  }
+
+  .input {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .modalActions {
+    gap: 8px;
+    margin-top: 8px;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px 8px;
+  }
+
+  .headerCard {
+    padding: 10px 12px;
+  }
+
+  .titleRow {
+    gap: 6px;
+  }
+
+  .titleRow h1 {
+    font-size: 14px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+
+  .timestamp {
+    font-size: 11px;
+  }
+
+  .headerActions {
+    gap: 6px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    font-size: 10px;
+    padding: 7px 10px;
+  }
+
+  .grid {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+
+  .card h3 {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .cardHeader {
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+  }
+
+  .table th {
+    padding: 6px 8px;
+    font-size: 9px;
+  }
+
+  .table td {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .productCell {
+    gap: 6px;
+  }
+
+  .productImg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .darkCard {
+    padding: 10px 12px;
+  }
+
+  .darkCard h3 {
+    font-size: 11px;
+    margin-bottom: 10px;
+  }
+
+  .step {
+    gap: 4px;
+  }
+
+  .iconCircle {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 6px;
+  }
+
+  .stepInfo strong {
+    font-size: 10px;
+  }
+
+  .stepInfo span {
+    font-size: 9px;
+  }
+
+  .priceRow {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+
+  .totalRow h2 {
+    font-size: 20px;
+  }
+
+  .select {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .warehouseBox {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .warehouseIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .customerProfile {
+    gap: 8px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .contactItem {
+    font-size: 11px;
+    gap: 8px;
+  }
+
+  .modalBox {
+    padding: 10px 10px;
+  }
+
+  .input {
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+
+  .modalActions {
+    gap: 6px;
+  }
 }

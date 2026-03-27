@@ -115,14 +115,14 @@ const CouponsPage = () => {
 
                 return (
                   <tr key={c.id}>
-                    <td>
+                    <td data-label="COUPON CODE">
                       <div className={styles.codeCell}>
                         <span className={styles.code}>{c.code}</span>
                         <p>{c.description}</p>
                       </div>
                     </td>
-                    <td>{getDiscountLabel(c)}</td>
-                    <td>
+                    <td data-label="TYPE & VALUE">{getDiscountLabel(c)}</td>
+                    <td data-label="USAGE">
                       <div className={styles.progressWrapper}>
                         <span>
                           {c.usedCount}/{c.usageLimit ?? "∞"} used
@@ -136,10 +136,10 @@ const CouponsPage = () => {
                         <span>{percent}%</span>
                       </div>
                     </td>
-                    <td>
+                    <td data-label="VALIDITY">
                       Ends {new Date(c.endDate).toLocaleDateString("en-IN")}
                     </td>
-                    <td>
+                    <td data-label="STATUS">
                       <span
                         className={`${styles.status} ${
                           status === "active"
@@ -152,7 +152,7 @@ const CouponsPage = () => {
                         {status}
                       </span>
                     </td>
-                    <td className={styles.actions}>
+                    <td data-label="ACTION" className={styles.actions}>
                       <Link href={`/coupons/${c.id}`}>
                         <button className={styles.iconBtn} title="View">
                           <Eye size={15} />

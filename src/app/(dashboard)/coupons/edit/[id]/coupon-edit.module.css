@@ -339,27 +339,236 @@
 }
 
 /* ── Responsive ───────────────────────────────── */
-@media (max-width: 900px) {
-  .formGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
   .container {
-    padding: 16px;
+    padding: 24px 20px;
   }
 
   .header {
     flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
   }
 
-  .headerLeft {
-    flex-direction: column;
-    gap: 12px;
+  .headerLeft h1 {
+    font-size: 20px;
+  }
+
+  .headerLeft p {
+    font-size: 12px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .card {
+    padding: 18px 20px;
+  }
+
+  .card:hover {
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 8px 12px;
+    font-size: 12px;
   }
 
   .twoCol {
     grid-template-columns: 1fr;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .alertError,
+  .alertSuccess {
+    padding: 10px 12px;
+    font-size: 11px;
+    margin-bottom: 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .headerLeft {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .backBtn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .headerLeft h1 {
+    font-size: 16px;
+  }
+
+  .headerLeft p {
+    font-size: 11px;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .card {
+    padding: 14px 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+
+  .cardHeader {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .cardHeader h2 {
+    font-size: 13px;
+  }
+
+  .fields {
+    gap: 12px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  .hint {
+    font-size: 10px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 8px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+
+  .textarea {
+    min-height: 80px;
+  }
+
+  .twoCol {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .addon {
+    font-size: 12px;
+    padding: 0 8px;
+  }
+
+  .formFooter {
+    flex-direction: column;
+    gap: 8px;
+    justify-content: stretch;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 12px;
+    justify-content: center;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 8px;
+  }
+
+  .alertError,
+  .alertSuccess {
+    padding: 8px 10px;
+    font-size: 10px;
+  }
+
+  .header {
+    gap: 8px;
+  }
+
+  .headerLeft h1 {
+    font-size: 14px;
+  }
+
+  .headerLeft p {
+    font-size: 10px;
+  }
+
+  .formGrid {
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px 10px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+  }
+
+  .cardHeader {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+  }
+
+  .cardHeader h2 {
+    font-size: 12px;
+  }
+
+  .fields {
+    gap: 10px;
+  }
+
+  .label {
+    font-size: 10px;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .textarea {
+    min-height: 70px;
+  }
+
+  .twoCol {
+    gap: 8px;
+  }
+
+  .addon {
+    font-size: 11px;
+    padding: 0 6px;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    padding: 8px 10px;
+    font-size: 11px;
   }
 }

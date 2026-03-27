@@ -6,6 +6,7 @@ interface ProductFilters {
   search?: string;
   categoryId?: string;
   brandId?: string;
+  status?: string;
 }
 
 export const getProducts = async (
@@ -18,6 +19,7 @@ export const getProducts = async (
     const params = new URLSearchParams();
 
     if (filters?.search) params.append("search", filters.search);
+    if (filters?.status) params.append("status", filters.status);
     if (filters?.categoryId) params.append("categoryId", filters.categoryId);
     if (filters?.brandId) params.append("brandId", filters.brandId);
 

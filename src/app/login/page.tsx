@@ -1,7 +1,6 @@
 'use client'
-import React from 'react';
 import { useRouter } from "next/navigation";
-import { Mail, Lock, Eye, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 import styles from './login.module.css';
 import { useState } from "react";
 import { loginRequest } from "@/services/auth.service";
@@ -16,8 +15,8 @@ export default function LoginPage() {
 const [email, setEmail] = useState("");
 const [password, setPassword] = useState("");
 const { showToast } = useToast();
-const handleLogin = async () => {
-
+const handleLogin = async (e?: React.FormEvent) => {
+  if (e) e.preventDefault();
   try {
 
     const data = await loginRequest(email, password);
@@ -43,7 +42,7 @@ const handleLogin = async () => {
           <p>Please enter your credentials to access the admin portal.</p>
         </header>
 
-        <form className={styles.form}>
+        <form className={styles.form} onSubmit={handleLogin}>
 
           {/* Email */}
           <div className={styles.inputGroup}>
@@ -74,23 +73,14 @@ const handleLogin = async () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 />
-              <button type="button" className={styles.eyeButton}>
-                <Eye size={20}/>
-              </button>
             </div>
-          </div>
-
-          {/* Remember */}
-          <div className={styles.checkboxGroup}>
-            <input type="checkbox"/>
-            <span>Remember this device for 30 days</span>
           </div>
 
           {/* Button */}
           <button
-            type="button"
+            type="submit"
             className={styles.submitButton}
-            onClick={handleLogin}
+            onSubmit={handleLogin}
             >
             Sign In to Dashboard
             <ArrowRight size={20}/>
@@ -100,15 +90,10 @@ const handleLogin = async () => {
 
         <div className={styles.divider}></div>
 
-        <footer className={styles.footer}>
-          <p>Protected by hardware-grade encryption. Need help?</p>
-          <a href="#">Contact Support</a>
-        </footer>
-
       </div>
 
       <div className={styles.copyright}>
-        © 2024 STOREADMIN INC. ALL RIGHTS RESERVED.
+        © 2026 KINGFOX ADMIN.
       </div>
     </div>
   );
