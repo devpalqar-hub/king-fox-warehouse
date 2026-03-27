@@ -42,7 +42,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     const fetchBranches = async () => {
       const data = await getBranches();
-      setBranches(data?.data || data);
+      setBranches(data);
     };
 
     fetchBranches();
