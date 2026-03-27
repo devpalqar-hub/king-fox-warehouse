@@ -29,7 +29,7 @@ const CreateCampaignPage = () => {
   useEffect(() => {
     const fetchBranches = async () => {
       const data = await getBranches();
-      setBranches(data);
+      setBranches(data.data);
     };
 
     fetchBranches();
