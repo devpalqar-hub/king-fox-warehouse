@@ -45,7 +45,7 @@ export default function AddUser() {
         const data = await getBranches();
         console.log("branches response:", data);
 
-        setBranches(data.data); 
+        setBranches(data); 
       } catch (error) {
         console.error("Branch fetch error:", error);
         setBranches([]);
