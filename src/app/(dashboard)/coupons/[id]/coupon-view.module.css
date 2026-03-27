@@ -352,27 +352,259 @@
 }
 
 /* ── Responsive ───────────────────────────────── */
-@media (max-width: 900px) {
-  .statsRow {
-    grid-template-columns: 1fr;
-  }
-
-  .bodyGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
   .container {
-    padding: 16px;
+    padding: 24px 20px;
   }
 
   .header {
     flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .headerLeft h1 {
+    font-size: 20px;
+  }
+
+  .headerLeft p {
+    font-size: 12px;
+  }
+
+  .statsRow {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .statCard {
+    padding: 14px 16px;
+  }
+
+  .statValue {
+    font-size: 18px;
+  }
+
+  .card {
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
   }
 
   .headerLeft {
+    width: 100%;
+    gap: 8px;
     flex-direction: column;
+  }
+
+  .backBtn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .headerLeft h1 {
+    font-size: 16px;
+  }
+
+  .headerLeft p {
+    font-size: 11px;
+  }
+
+  .headerActions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .statusBadge {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .editBtn {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 12px;
+    justify-content: center;
+  }
+
+  .statsRow {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .statCard {
+    padding: 12px 14px;
+  }
+
+  .statIcon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .statValue {
+    font-size: 16px;
+  }
+
+  .statLabel {
+    font-size: 11px;
+  }
+
+  .bodyGrid {
+    grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .card {
+    padding: 14px 12px;
+    margin-bottom: 12px;
+    border-radius: 10px;
+  }
+
+  .cardHeader {
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .cardHeader h2 {
+    font-size: 13px;
+  }
+
+  .fields {
+    gap: 10px;
+  }
+
+  .field {
+    padding: 8px 10px;
+  }
+
+  .fieldLabel {
+    font-size: 11px;
+  }
+
+  .fieldValue {
+    font-size: 12px;
+  }
+
+  .codeChip {
+    font-size: 10px !important;
+    padding: 2px 8px;
+  }
+
+  .usageSection {
+    margin-top: 14px;
+    padding-top: 12px;
+  }
+
+  .usageHeader {
+    font-size: 12px;
+  }
+
+  .progressBar {
+    height: 6px;
+  }
+
+  .usagePercent {
+    font-size: 11px;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 8px;
+  }
+
+  .header {
+    gap: 8px;
+  }
+
+  .headerLeft h1 {
+    font-size: 14px;
+  }
+
+  .headerLeft p {
+    font-size: 10px;
+  }
+
+  .editBtn {
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+
+  .statsRow {
+    gap: 8px;
+  }
+
+  .statCard {
+    padding: 10px 12px;
+  }
+
+  .statIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .statValue {
+    font-size: 14px;
+  }
+
+  .statLabel {
+    font-size: 10px;
+  }
+
+  .card {
+    padding: 12px 10px;
+    margin-bottom: 10px;
+  }
+
+  .fields {
+    gap: 8px;
+  }
+
+  .field {
+    padding: 8px 8px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .fieldLabel {
+    font-size: 10px;
+  }
+
+  .fieldValue {
+    font-size: 11px;
+  }
+
+  .codeChip {
+    font-size: 9px !important;
+    padding: 1px 6px;
+  }
+
+  .usageSection {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+
+  .usageHeader {
+    font-size: 11px;
+  }
+
+  .usagePercent {
+    font-size: 10px;
   }
 }

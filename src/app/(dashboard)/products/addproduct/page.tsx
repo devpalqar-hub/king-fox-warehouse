@@ -2,13 +2,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import React from 'react';
-import { Info, ChevronDown, X,Image, Plus,Bold, Italic, List, Link ,FileText,Ruler, LayoutGrid,ShieldCheck, Eraser} from 'lucide-react';
+import { Info, ChevronDown, X,Image, Plus} from 'lucide-react';
 import styles from './addproduct.module.css';
 import { getCategories } from "@/services/category.service";
 import { Category } from "@/types/category";
 import DynamicMetaInfo, { MetaItem } from "@/components/product-form/DynamicMetaInfo";
 import { createProduct } from "@/services/product-create.service";
-import { useRef } from "react"
 import { uploadSingleImageToS3 } from "@/services/upload.service";
 import { getTags } from "@/services/product.service";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -60,7 +59,6 @@ const handleSaveProduct = async () => {
   try {
     setLoading(true);
 
-    // STEP 1: Upload images
     const uploadedImageUrls = await Promise.all(
   imageFiles.map(file => {
     const fixedFile = fixFileType(file);
@@ -84,7 +82,7 @@ const handleSaveProduct = async () => {
       categoryId: Number(categoryId),
       images: uploadedImageUrls,
       metaInfo: cleanedMeta,
-      tagIds: selectedTags.map(tag => Number(tag.id)) // 🔥 FIX (important)
+      tagIds: selectedTags.map(tag => Number(tag.id)) 
     };
 
     const product = await createProduct(payload);
@@ -146,7 +144,7 @@ useEffect(() => {
     try {
     
       const categoryData = await getCategories();
-      const tagData = await getTags(); // ✅ HERE
+      const tagData = await getTags(); 
 
       setCategories(categoryData);
       setTags(tagData);

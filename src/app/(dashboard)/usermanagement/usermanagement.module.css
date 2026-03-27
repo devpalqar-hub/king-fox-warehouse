@@ -1,9 +1,25 @@
-
 .container {
   padding: 2rem;
   background-color: var(--bg-light);
   min-height: 100vh;
   font-family: "Inter", sans-serif;
+}
+
+.pageHeader {
+  margin-bottom: 2rem;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.5rem 0;
+}
+
+.pageSubtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
 }
 
 /* Header & Filters */
@@ -30,7 +46,7 @@
   font-size: 0.875rem;
   color: var(--text-muted);
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 .addButton {
   display: flex;
@@ -52,7 +68,6 @@
   outline: none;
   cursor: pointer;
 }
-
 
 /* Table Section */
 .tableContainer {
@@ -110,7 +125,8 @@
   color: var(--text-main);
 }
 
-.userEmail, .branchText {
+.userEmail,
+.branchText {
   color: var(--text-muted);
   font-size: 0.875rem;
 }
@@ -123,10 +139,22 @@
   font-weight: 700;
 }
 
-.manager { background: #fff7ed; color: #ea580c; }
-.admin { background: #eef2ff; color: #4f46e5; }
-.staff { background: #f0fdf4; color: #16a34a; }
-.cashier { background: #ecfeff; color: #0891b2; }
+.manager {
+  background: #fff7ed;
+  color: #ea580c;
+}
+.admin {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.staff {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.cashier {
+  background: #ecfeff;
+  color: #0891b2;
+}
 
 /* Actions */
 .actions {
@@ -143,8 +171,12 @@
   transition: color 0.2s;
 }
 
-.actionBtn:hover { color: var(--primary); }
-.deleteBtn:hover { color: #ef4444; }
+.actionBtn:hover {
+  color: var(--primary);
+}
+.deleteBtn:hover {
+  color: #ef4444;
+}
 
 /* Pagination */
 .footer {
@@ -177,4 +209,302 @@
   border: none;
   border-radius: 6px;
   font-weight: 600;
+}
+
+/* ── Responsive ───────────────────────────── */
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    padding: 20px 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filterGroup {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filterItem {
+    flex: 1;
+    min-width: 150px;
+    font-size: 13px;
+    padding: 0.4rem 0.85rem;
+  }
+
+  .selectFilter {
+    font-size: 13px;
+  }
+
+  .addButton {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+
+  .userTable th {
+    padding: 10px 12px;
+    font-size: 11px;
+  }
+
+  .userTable td {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 13px;
+  }
+
+  .userInfo {
+    gap: 8px;
+  }
+
+  .userName {
+    font-size: 13px;
+  }
+
+  .userEmail,
+  .branchText {
+    font-size: 12px;
+  }
+
+  .badge {
+    font-size: 10px;
+    padding: 0.2rem 0.65rem;
+  }
+
+  .actions {
+    gap: 0.5rem;
+  }
+
+  .actionBtn {
+    opacity: 0.7;
+  }
+
+  .footer {
+    padding: 12px;
+    font-size: 12px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .pageNav {
+    font-size: 12px;
+    padding: 0.35rem 0.7rem;
+  }
+
+  .pageActive {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 12px 10px;
+  }
+
+  .header {
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .filterGroup {
+    width: 100%;
+    gap: 6px;
+    flex-direction: column;
+  }
+
+  .filterItem {
+    width: 100%;
+    font-size: 12px;
+    padding: 0.35rem 0.75rem;
+  }
+
+  .selectFilter {
+    font-size: 12px;
+  }
+
+  .addButton {
+    width: 100%;
+    font-size: 11px;
+    padding: 7px 10px;
+    gap: 6px;
+  }
+
+  .tableContainer {
+    border-radius: 10px;
+    overflow-x: auto;
+  }
+
+  .userTable {
+    min-width: 500px;
+  }
+
+  .userTable th {
+    padding: 10px 10px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .userTable td {
+    padding: 10px;
+    font-size: 11px;
+  }
+
+  .userTable td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: #64748b;
+    display: inline-block;
+    width: 70px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .userInfo {
+    gap: 8px;
+  }
+
+  .userName {
+    font-size: 12px;
+  }
+
+  .userEmail,
+  .branchText {
+    font-size: 11px;
+  }
+
+  .badge {
+    font-size: 9px;
+    padding: 0.2rem 0.6rem;
+  }
+
+  .actions {
+    gap: 0.4rem;
+  }
+
+  .actionBtn {
+    padding: 4px;
+  }
+
+  .footer {
+    padding: 10px;
+    font-size: 11px;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .pageNav,
+  .pageActive {
+    font-size: 11px;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .pageActive {
+    width: 26px;
+    height: 26px;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 10px 8px;
+  }
+
+  .header {
+    gap: 8px;
+  }
+
+  .filterGroup {
+    gap: 4px;
+  }
+
+  .filterItem {
+    font-size: 11px;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .addButton {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+
+  .userTable {
+    min-width: 100%;
+    font-size: 10px;
+  }
+
+  .userTable th {
+    padding: 8px 8px;
+    font-size: 8px;
+  }
+
+  .userTable td {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+
+  .userName {
+    font-size: 11px;
+  }
+
+  .userEmail,
+  .branchText {
+    font-size: 10px;
+  }
+
+  .badge {
+    font-size: 8px;
+    padding: 0.15rem 0.5rem;
+  }
+
+  .actions {
+    gap: 0.3rem;
+  }
+
+  .actionBtn {
+    opacity: 0.6;
+  }
+
+  .footer {
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .pageNav,
+  .pageActive {
+    font-size: 10px;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .pageActive {
+    width: 24px;
+    height: 24px;
+  }
 }

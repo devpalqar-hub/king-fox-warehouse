@@ -73,7 +73,7 @@ const ShippingPage = () => {
           <div className={styles.defaultRow}>
             <div className={styles.defaultInfo}>
               <div className={styles.defaultIcon}>
-                <Truck size={18} /> 
+                <Truck size={18} />
               </div>
               <div>
                 <p className={styles.defaultTitle}>Default Shipping Rate</p>
@@ -115,10 +115,10 @@ const ShippingPage = () => {
           <tbody>
             {rates.map((r) => (
               <tr key={r.id}>
-                <td>{r.label}</td>
-                <td>{r.minWeight}</td>
-                <td>{r.maxWeight}</td>
-                <td>
+                <td data-label="Label">{r.label}</td>
+                <td data-label="Min Weight (g)">{r.minWeight}</td>
+                <td data-label="Max Weight (g)">{r.maxWeight}</td>
+                <td data-label="Charge (₹)">
                   <span className={styles.badge}>₹{r.charge}</span>
                 </td>
                 {/* <td>-</td> */}

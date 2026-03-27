@@ -209,22 +209,189 @@
 }
 
 /* ── Responsive ───────────────────────────── */
-@media (max-width: 768px) {
+/* TABLET (768px - 1023px) */
+@media (max-width: 1023px) {
   .container {
-    padding: 16px;
+    padding: 24px 20px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  .form {
+    gap: 14px;
+    padding: 18px 20px;
   }
 
   .row {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .label {
+    font-size: 11px;
+  }
+
+  .input {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .footer {
+    gap: 8px;
+    padding: 14px 20px;
+  }
+
+  .btnPrimary,
+  .btnGhost {
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+}
+
+/* MOBILE (≤767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  .subtitle {
+    font-size: 11px;
+  }
+
+  .card {
+    border-radius: 12px;
+  }
+
+  .form {
+    gap: 12px;
+    padding: 14px 14px;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .label {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .input {
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .inputGroup .input {
+    padding-right: 32px;
+  }
+
+  .unit {
+    font-size: 11px;
+    right: 10px;
+  }
+
+  .checkboxRow {
+    font-size: 12px;
+  }
+
+  .checkboxDesc {
+    font-size: 11px;
+    margin-left: 20px;
   }
 
   .footer {
     flex-direction: column-reverse;
+    gap: 8px;
+    padding: 12px 14px;
   }
 
   .btnPrimary,
   .btnGhost {
     width: 100%;
     justify-content: center;
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+}
+
+/* SMALL MOBILE (≤480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 8px;
+  }
+
+  .title {
+    font-size: 14px;
+  }
+
+  .subtitle {
+    font-size: 10px;
+  }
+
+  .form {
+    gap: 10px;
+    padding: 12px 10px;
+  }
+
+  .row {
+    gap: 8px;
+  }
+
+  .label {
+    font-size: 9px;
+    margin-bottom: 3px;
+  }
+
+  .input {
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
+
+  .unit {
+    font-size: 10px;
+  }
+
+  .checkboxRow {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .checkboxDesc {
+    font-size: 10px;
+  }
+
+  .footer {
+    gap: 6px;
+    padding: 10px 10px;
+  }
+
+  .btnPrimary,
+  .btnGhost {
+    font-size: 10px;
+    padding: 7px 10px;
   }
 }

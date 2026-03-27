@@ -49,9 +49,7 @@ const CreateCouponPage = () => {
       };
 
       await createCoupon(payload);
-
       showToast("Coupon created successfully!", "success");
-
       router.push("/coupons");
     } catch (error) {
       showToast("Failed to create coupon", "error");
@@ -68,25 +66,43 @@ const CreateCouponPage = () => {
         <h3>General Information</h3>
 
         <div className={styles.grid}>
-          <input
-            className={styles.input}
-            name="code"
-            placeholder="Coupon Code"
-            onChange={handleChange}
-          />
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Coupon Code <span className={styles.required}>*</span>
+            </label>
+            <input
+              className={styles.input}
+              name="code"
+              placeholder="e.g. SUMMER20"
+              onChange={handleChange}
+              style={{ textTransform: "uppercase" }}
+            />
+          </div>
 
-          <select className={styles.select} name="discountType" onChange={handleChange}>
-            <option value="PERCENTAGE">Percentage (%)</option>
-            <option value="FIXED">Fixed (₹)</option>
-          </select>
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Discount Type <span className={styles.required}>*</span>
+            </label>
+            <select
+              className={styles.select}
+              name="discountType"
+              onChange={handleChange}
+            >
+              <option value="PERCENTAGE">Percentage (%)</option>
+              <option value="FIXED">Fixed Amount (₹)</option>
+            </select>
+          </div>
         </div>
 
-        <textarea
-          className={styles.textarea}
-          name="description"
-          placeholder="Description"
-          onChange={handleChange}
-        />
+        <div className={styles.field}>
+          <label className={styles.label}>Description</label>
+          <textarea
+            className={styles.textarea}
+            name="description"
+            placeholder="Brief description of this coupon"
+            onChange={handleChange}
+          />
+        </div>
       </section>
 
       {/* Discount */}
@@ -94,32 +110,58 @@ const CreateCouponPage = () => {
         <h3>Discount Configuration</h3>
 
         <div className={styles.grid}>
-          <input
-            className={styles.input}
-            name="discountValue"
-            placeholder="Discount Value"
-            onChange={handleChange}
-          />
-          <input
-            className={styles.input}
-            name="minPurchaseAmount"
-            placeholder="Min Purchase"
-            onChange={handleChange}
-          />
-          <input
-            className={styles.input}
-            name="maxDiscountAmount"
-            placeholder="Max Discount"
-            onChange={handleChange}
-          />
-        </div>
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Discount Value <span className={styles.required}>*</span>
+            </label>
+            <input
+              className={styles.input}
+              name="discountValue"
+              type="number"
+              placeholder={
+                form.discountType === "PERCENTAGE" ? "e.g. 10" : "e.g. 100"
+              }
+              onChange={handleChange}
+              min={0}
+            />
+          </div>
 
-        <input
-          className={styles.input}
-          name="usageLimit"
-          placeholder="Usage Limit"
-          onChange={handleChange}
-        />
+          <div className={styles.field}>
+            <label className={styles.label}>Min. Purchase Amount (₹)</label>
+            <input
+              className={styles.input}
+              name="minPurchaseAmount"
+              type="number"
+              placeholder="e.g. 500"
+              onChange={handleChange}
+              min={0}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Max. Discount Amount (₹)</label>
+            <input
+              className={styles.input}
+              name="maxDiscountAmount"
+              type="number"
+              placeholder="Leave blank for no cap"
+              onChange={handleChange}
+              min={0}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Usage Limit</label>
+            <input
+              className={styles.input}
+              name="usageLimit"
+              type="number"
+              placeholder="Leave blank for unlimited"
+              onChange={handleChange}
+              min={1}
+            />
+          </div>
+        </div>
       </section>
 
       {/* Dates */}
@@ -127,15 +169,40 @@ const CreateCouponPage = () => {
         <h3>Validity Period</h3>
 
         <div className={styles.grid}>
-          <input className={styles.input} type="date" name="startDate" onChange={handleChange} />
-          <input className={styles.input} type="date" name="endDate" onChange={handleChange} />
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Start Date <span className={styles.required}>*</span>
+            </label>
+            <input
+              className={styles.input}
+              type="date"
+              name="startDate"
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>
+              End Date <span className={styles.required}>*</span>
+            </label>
+            <input
+              className={styles.input}
+              type="date"
+              name="endDate"
+              onChange={handleChange}
+            />
+          </div>
         </div>
       </section>
 
       {/* Actions */}
       <div className={styles.actions}>
-        <button className={styles.secondaryBtn}onClick={() => router.push("/coupons")}>Cancel</button>
-
+        <button
+          className={styles.secondaryBtn}
+          onClick={() => router.push("/coupons")}
+        >
+          Cancel
+        </button>
         <button className={styles.primaryBtn} onClick={handleSubmit}>
           Save Coupon Template
         </button>
