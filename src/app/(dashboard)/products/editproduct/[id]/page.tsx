@@ -279,7 +279,7 @@ export default function EditProductPage() {
         </div>
         <div className={styles.headerActions}>
           <button className={styles.btnSecondary}>View on Store</button>
-          <button className={styles.btnDanger}>Archive</button>
+          {/* <button className={styles.btnDanger}>Archive</button> */}
         </div>
       </header>
 
