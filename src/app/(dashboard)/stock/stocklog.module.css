@@ -1,11 +1,15 @@
-/* ── Container ────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   stocklog.module.css — fully responsive
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Container ─────────────────────────────────────────── */
 .container {
   padding: 28px 36px;
   min-height: 100vh;
   color: #0f172a;
 }
 
-/* ── Header ───────────────────────────────── */
+/* ── Header ────────────────────────────────────────────── */
 .header {
   display: flex;
   justify-content: space-between;
@@ -27,7 +31,7 @@
   font-weight: 400;
 }
 
-/* ── Summary Row ──────────────────────────── */
+/* ── Summary Row ───────────────────────────────────────── */
 .summaryRow {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -69,12 +73,10 @@
   background: #eef2ff;
   color: #4f46e5;
 }
-
 .iconGreen {
   background: #f0fdf4;
   color: #16a34a;
 }
-
 .iconOrange {
   background: #fff7ed;
   color: #ea580c;
@@ -101,7 +103,7 @@
   color: #94a3b8;
 }
 
-/* ── Table Wrapper ────────────────────────── */
+/* ── Table Wrapper ─────────────────────────────────────── */
 .tableWrapper {
   background: #fff;
   border-radius: 16px;
@@ -119,7 +121,7 @@
     0 8px 24px rgba(15, 23, 42, 0.07);
 }
 
-/* ── Toolbar ──────────────────────────────── */
+/* ── Toolbar ───────────────────────────────────────────── */
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -163,7 +165,6 @@
   border-color: #6366f1;
   color: #4f46e5;
 }
-
 .filterActive:hover {
   background: #e0e7ff;
 }
@@ -207,10 +208,17 @@
   color: #94a3b8;
 }
 
-/* ── Table ────────────────────────────────── */
+/* ── Table scroll container (hidden on mobile) ─────────── */
+.tableScroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Table ─────────────────────────────────────────────── */
 .table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 720px; /* prevents collapse before mobile breakpoint */
 }
 
 .table th {
@@ -223,6 +231,7 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .table td {
@@ -245,7 +254,7 @@
   padding: 40px 16px !important;
 }
 
-/* ── User Cell ────────────────────────────── */
+/* ── User Cell ─────────────────────────────────────────── */
 .userCell {
   display: flex;
   align-items: center;
@@ -282,7 +291,7 @@
   white-space: nowrap;
 }
 
-/* ── Type Badge ───────────────────────────── */
+/* ── Type Badge ────────────────────────────────────────── */
 .typeBadge {
   display: inline-flex;
   align-items: center;
@@ -299,20 +308,19 @@
   background: #f0fdf4;
   color: #16a34a;
 }
-
 .badgeOrange {
   background: #fff7ed;
   color: #ea580c;
 }
 
-/* ── Product ──────────────────────────────── */
+/* ── Product ───────────────────────────────────────────── */
 .productName {
   font-size: 13.5px;
   color: #334155;
   font-weight: 500;
 }
 
-/* ── Branch ───────────────────────────────── */
+/* ── Branch ────────────────────────────────────────────── */
 .branchTransfer {
   display: flex;
   align-items: center;
@@ -354,7 +362,7 @@
   border-radius: 6px;
 }
 
-/* ── Amount Badge ─────────────────────────── */
+/* ── Amount Badge ──────────────────────────────────────── */
 .badge {
   display: inline-block;
   font-size: 11px;
@@ -367,14 +375,13 @@
   white-space: nowrap;
 }
 
-/* ── Date / Time ──────────────────────────── */
+/* ── Date / Time ───────────────────────────────────────── */
 .dateText {
   font-size: 13px;
   color: #334155;
   font-weight: 500;
   white-space: nowrap;
 }
-
 .timeText {
   font-size: 12.5px;
   color: #94a3b8;
@@ -382,7 +389,78 @@
   white-space: nowrap;
 }
 
-/* ── Pagination ───────────────────────────── */
+/* ── Mobile Card List (shown only on mobile) ───────────── */
+.mobileCardList {
+  display: none;
+}
+
+.mobileCard {
+  padding: 14px 16px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: background 0.12s ease;
+}
+
+.mobileCard:first-child {
+  border-top: none;
+}
+.mobileCard:hover {
+  background: #f8fafc;
+}
+
+.mobileCardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.mobileCardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobileCardLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.mobileCardBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 4px;
+  border-top: 1px dashed #f1f5f9;
+}
+
+.mobileMeta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mobileMetaDot {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.emptyMobile {
+  padding: 40px 16px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+/* ── Pagination ────────────────────────────────────────── */
 .pagination {
   padding: 14px 16px;
   font-size: 13px;
@@ -392,6 +470,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.paginationBtns {
+  display: flex;
+  gap: 8px;
 }
 
 .btnPage {
@@ -427,27 +511,21 @@
   cursor: not-allowed;
 }
 
-/* ── Responsive ───────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
 
-/* TABLET (768px – 1023px) */
+/* ── Tablet 768–1023px ─────────────────────────────────── */
 @media (max-width: 1023px) {
   .container {
     padding: 24px 20px;
   }
 
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-
   .header h1 {
-    font-size: 20px;
+    font-size: 22px;
   }
-
   .header p {
-    font-size: 12px;
+    font-size: 12.5px;
   }
 
   .summaryRow {
@@ -457,17 +535,21 @@
 
   .summaryCard {
     padding: 14px 16px;
-    gap: 10px;
+    gap: 12px;
   }
-
   .summaryValue {
-    font-size: 17px;
+    font-size: 18px;
   }
 
   .toolbar {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .filterGroup {
+    width: 100%;
   }
 
   .searchBox {
@@ -476,72 +558,69 @@
   }
 
   .table th {
-    padding: 10px 12px;
+    padding: 11px 13px;
     font-size: 10px;
   }
-
   .table td {
-    padding: 10px 12px;
-    font-size: 12px;
+    padding: 11px 13px;
+    font-size: 13px;
   }
 
   .userName {
-    font-size: 12.5px;
+    font-size: 13px;
   }
-
   .userRole {
     font-size: 11px;
   }
 }
 
-/* MOBILE (≤767px) */
+/* ── Mobile ≤767px: switch to card layout ──────────────── */
 @media (max-width: 767px) {
   .container {
     padding: 16px 12px;
   }
 
   .header {
-    gap: 6px;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
   }
-
   .header h1 {
-    font-size: 16px;
+    font-size: 20px;
   }
-
   .header p {
-    font-size: 11px;
+    font-size: 12px;
   }
 
+  /* Summary: 2-col grid at mobile */
   .summaryRow {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin-bottom: 14px;
   }
 
+  /* Make the first card span full width */
+  .summaryCard:first-child {
+    grid-column: 1 / -1;
+  }
+
   .summaryCard {
-    padding: 12px 14px;
+    padding: 14px 16px;
     border-radius: 12px;
+    gap: 12px;
   }
 
   .summaryIcon {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
+    border-radius: 9px;
   }
-
   .summaryLabel {
-    font-size: 11px;
+    font-size: 11.5px;
   }
-
   .summaryValue {
-    font-size: 16px;
+    font-size: 17px;
   }
 
-  .tableWrapper {
-    border-radius: 12px;
-    overflow-x: auto;
-  }
-
+  /* Toolbar */
   .toolbar {
     padding: 12px;
     flex-direction: column;
@@ -551,11 +630,21 @@
 
   .filterGroup {
     width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .filterGroup::-webkit-scrollbar {
+    display: none;
   }
 
   .filterBtn {
-    font-size: 11.5px;
-    padding: 5px 12px;
+    flex-shrink: 0;
+    font-size: 12px;
+    padding: 5px 13px;
   }
 
   .searchBox {
@@ -563,39 +652,168 @@
     min-width: unset;
   }
 
-  /* Horizontal scroll table on mobile */
-  .table {
-    min-width: 640px;
+  /* Hide table, show cards */
+  .tableScroll {
+    display: none;
+  }
+  .mobileCardList {
+    display: block;
   }
 
-  .table th {
-    padding: 10px 10px;
-    font-size: 9px;
-    white-space: nowrap;
-  }
-
-  .table td {
-    padding: 10px;
-    font-size: 11px;
-  }
-
+  /* Mobile card sizing */
   .avatar {
-    width: 28px;
-    height: 28px;
-    font-size: 9px;
+    width: 32px;
+    height: 32px;
+    font-size: 10px;
   }
 
   .userName {
+    font-size: 13px;
+  }
+  .userRole {
+    font-size: 11px;
+  }
+
+  .productName {
+    font-size: 13px;
+  }
+
+  .branchFrom,
+  .branchTo,
+  .branchSingle {
+    font-size: 12px;
+    padding: 2px 7px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 3px 9px;
+  }
+
+  .dateText {
+    font-size: 12px;
+  }
+  .timeText {
+    font-size: 11.5px;
+  }
+
+  /* Pagination */
+  .pagination {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
     font-size: 12px;
   }
 
+  .paginationBtns {
+    align-self: flex-end;
+  }
+
+  .btnPage {
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+}
+
+/* ── Small Mobile ≤480px ───────────────────────────────── */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 10px;
+  }
+
+  .header h1 {
+    font-size: 18px;
+  }
+  .header p {
+    font-size: 11px;
+  }
+
+  /* Summary: single column */
+  .summaryRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .summaryCard:first-child {
+    grid-column: auto;
+  }
+
+  .summaryCard {
+    padding: 12px 14px;
+    border-radius: 10px;
+    gap: 10px;
+  }
+
+  .summaryIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+  .summaryLabel {
+    font-size: 11px;
+  }
+  .summaryValue {
+    font-size: 16px;
+  }
+
+  /* Table wrapper */
+  .tableWrapper {
+    border-radius: 12px;
+  }
+
+  .toolbar {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .filterBtn {
+    font-size: 11px;
+    padding: 4px 11px;
+  }
+
+  .searchBox {
+    padding: 6px 10px;
+  }
+  .searchInput {
+    font-size: 12px;
+  }
+
+  /* Mobile card tweaks */
+  .mobileCard {
+    padding: 12px 14px;
+    gap: 9px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 9px;
+  }
+
+  .userCell {
+    gap: 8px;
+  }
+  .userName {
+    font-size: 12.5px;
+  }
   .userRole {
     font-size: 10.5px;
   }
 
   .typeBadge {
     font-size: 10px;
-    padding: 3px 8px;
+    padding: 3px 9px;
+    gap: 4px;
+  }
+
+  .mobileCardLabel {
+    font-size: 10px;
+  }
+
+  .productName {
+    font-size: 12.5px;
   }
 
   .branchFrom,
@@ -613,136 +831,53 @@
   .dateText {
     font-size: 11.5px;
   }
-
   .timeText {
     font-size: 11px;
   }
 
   .pagination {
+    padding: 10px 12px;
     font-size: 11px;
-    padding: 10px;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
   }
 
   .btnPage {
     font-size: 11px;
-    padding: 6px 12px;
+    padding: 5px 12px;
   }
 }
 
-/* SMALL MOBILE (≤480px) */
-@media (max-width: 480px) {
+/* ── Extra small ≤360px ────────────────────────────────── */
+@media (max-width: 360px) {
   .container {
-    padding: 12px 8px;
-  }
-
-  .header h1 {
-    font-size: 14px;
-  }
-
-  .header p {
-    font-size: 10px;
+    padding: 10px 8px;
   }
 
   .summaryCard {
     padding: 10px 12px;
-    gap: 10px;
   }
-
-  .summaryIcon {
-    width: 32px;
-    height: 32px;
-  }
-
-  .summaryLabel {
-    font-size: 10px;
-  }
-
   .summaryValue {
     font-size: 15px;
   }
 
-  .toolbar {
-    padding: 10px;
+  .mobileCard {
+    padding: 10px 12px;
+  }
+
+  .mobileCardTop {
+    flex-wrap: wrap;
     gap: 8px;
   }
 
-  .filterBtn {
-    font-size: 10.5px;
-    padding: 4px 10px;
+  .userName {
+    font-size: 12px;
   }
-
-  .searchBox {
-    padding: 6px 10px;
-  }
-
-  .searchInput {
+  .productName {
     font-size: 12px;
   }
 
-  .table th {
-    padding: 8px 8px;
-    font-size: 8px;
-  }
-
-  .table td {
-    padding: 8px;
-    font-size: 10px;
-  }
-
-  .avatar {
-    width: 26px;
-    height: 26px;
-    font-size: 8px;
-  }
-
-  .userCell {
-    gap: 7px;
-  }
-
-  .userName {
-    font-size: 11px;
-  }
-
-  .userRole {
-    font-size: 10px;
-  }
-
-  .typeBadge {
-    font-size: 9px;
-    padding: 2px 7px;
-    gap: 4px;
-  }
-
-  .badge {
-    font-size: 9px;
-    padding: 1px 6px;
-  }
-
-  .branchFrom,
-  .branchTo,
-  .branchSingle {
-    font-size: 10px;
-    padding: 2px 5px;
-  }
-
-  .dateText {
-    font-size: 10.5px;
-  }
-
-  .timeText {
-    font-size: 10px;
-  }
-
-  .pagination {
-    font-size: 10px;
-    padding: 8px;
-  }
-
-  .btnPage {
-    font-size: 10px;
-    padding: 5px 10px;
+  .mobileCardBottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
   }
 }

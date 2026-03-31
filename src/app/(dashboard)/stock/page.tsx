@@ -7,7 +7,6 @@ import {
   ArrowLeftRight,
   ClipboardList,
   Search,
-
 } from "lucide-react";
 
 // ── Mock data (replace with API later) ──────────────────────────────────────
@@ -207,103 +206,187 @@ const StockLogPage = () => {
           </div>
         </div>
 
-        {/* Table */}
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>User</th>
-              <th>Type</th>
-              <th>Product / SKU</th>
-              <th>Branch</th>
-              <th>Amount</th>
-              <th>Date</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filtered.length === 0 ? (
+        {/* ── Desktop / Tablet: standard table ── */}
+        <div className={styles.tableScroll}>
+          <table className={styles.table}>
+            <thead>
               <tr>
-                <td colSpan={7} className={styles.emptyRow}>
-                  No stock log entries found.
-                </td>
+                <th>User</th>
+                <th>Type</th>
+                <th>Product / SKU</th>
+                <th>Branch</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Time</th>
               </tr>
-            ) : (
-              filtered.map((log) => (
-                <tr key={log.id}>
-                  {/* User */}
-                  <td>
-                    <div className={styles.userCell}>
-                      <div className={styles.avatar}>{log.avatar}</div>
-                      <div>
-                        <p className={styles.userName}>{log.user}</p>
-                        <p className={styles.userRole}>{log.userRole}</p>
-                      </div>
-                    </div>
+            </thead>
+
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className={styles.emptyRow}>
+                    No stock log entries found.
                   </td>
-
-                  {/* Type */}
-                  <td>
-                    {log.type === "new_stock" ? (
-                      <span
-                        className={`${styles.typeBadge} ${styles.badgeGreen}`}
-                      >
-                        <ArrowDownToLine size={11} />
-                        New Stock
-                      </span>
-                    ) : (
-                      <span
-                        className={`${styles.typeBadge} ${styles.badgeOrange}`}
-                      >
-                        <ArrowLeftRight size={11} />
-                        Transfer
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Product */}
-                  <td data-label="Product">
-                    <span className={styles.productName}>{log.product}</span>
-                  </td>
-
-                  {/* Branch */}
-                  <td>
-                    {log.type === "transfer" && log.toBranch ? (
-                      <div className={styles.branchTransfer}>
-                        <span className={styles.branchFrom}>{log.branch}</span>
-                        <ArrowLeftRight
-                          size={12}
-                          className={styles.branchArrow}
-                        />
-                        <span className={styles.branchTo}>{log.toBranch}</span>
-                      </div>
-                    ) : (
-                      <span className={styles.branchSingle}>{log.branch}</span>
-                    )}
-                  </td>
-
-                  {/* Amount */}
-                  <td>
-                    <span className={styles.badge}>{log.amount} units</span>
-                  </td>
-
-                  {/* Date */}
-                  <td className={styles.dateText}>{formatDate(log.date)}</td>
-
-                  {/* Time */}
-                  <td className={styles.timeText}>{formatTime(log.date)}</td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filtered.map((log) => (
+                  <tr key={log.id}>
+                    {/* User */}
+                    <td>
+                      <div className={styles.userCell}>
+                        <div className={styles.avatar}>{log.avatar}</div>
+                        <div>
+                          <p className={styles.userName}>{log.user}</p>
+                          <p className={styles.userRole}>{log.userRole}</p>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Type */}
+                    <td>
+                      {log.type === "new_stock" ? (
+                        <span
+                          className={`${styles.typeBadge} ${styles.badgeGreen}`}
+                        >
+                          <ArrowDownToLine size={11} />
+                          New Stock
+                        </span>
+                      ) : (
+                        <span
+                          className={`${styles.typeBadge} ${styles.badgeOrange}`}
+                        >
+                          <ArrowLeftRight size={11} />
+                          Transfer
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Product */}
+                    <td>
+                      <span className={styles.productName}>{log.product}</span>
+                    </td>
+
+                    {/* Branch */}
+                    <td>
+                      {log.type === "transfer" && log.toBranch ? (
+                        <div className={styles.branchTransfer}>
+                          <span className={styles.branchFrom}>
+                            {log.branch}
+                          </span>
+                          <ArrowLeftRight
+                            size={12}
+                            className={styles.branchArrow}
+                          />
+                          <span className={styles.branchTo}>
+                            {log.toBranch}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className={styles.branchSingle}>
+                          {log.branch}
+                        </span>
+                      )}
+                    </td>
+
+                    {/* Amount */}
+                    <td>
+                      <span className={styles.badge}>{log.amount} units</span>
+                    </td>
+
+                    {/* Date */}
+                    <td className={styles.dateText}>{formatDate(log.date)}</td>
+
+                    {/* Time */}
+                    <td className={styles.timeText}>{formatTime(log.date)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ── Mobile: card list (hidden on desktop via CSS) ── */}
+        <div className={styles.mobileCardList}>
+          {filtered.length === 0 ? (
+            <div className={styles.emptyMobile}>
+              No stock log entries found.
+            </div>
+          ) : (
+            filtered.map((log) => (
+              <div key={log.id} className={styles.mobileCard}>
+                {/* Card top row: user + type badge */}
+                <div className={styles.mobileCardTop}>
+                  <div className={styles.userCell}>
+                    <div className={styles.avatar}>{log.avatar}</div>
+                    <div>
+                      <p className={styles.userName}>{log.user}</p>
+                      <p className={styles.userRole}>{log.userRole}</p>
+                    </div>
+                  </div>
+                  {log.type === "new_stock" ? (
+                    <span
+                      className={`${styles.typeBadge} ${styles.badgeGreen}`}
+                    >
+                      <ArrowDownToLine size={11} />
+                      New Stock
+                    </span>
+                  ) : (
+                    <span
+                      className={`${styles.typeBadge} ${styles.badgeOrange}`}
+                    >
+                      <ArrowLeftRight size={11} />
+                      Transfer
+                    </span>
+                  )}
+                </div>
+
+                {/* Product */}
+                <div className={styles.mobileCardRow}>
+                  <span className={styles.mobileCardLabel}>Product</span>
+                  <span className={styles.productName}>{log.product}</span>
+                </div>
+
+                {/* Branch */}
+                <div className={styles.mobileCardRow}>
+                  <span className={styles.mobileCardLabel}>Branch</span>
+                  {log.type === "transfer" && log.toBranch ? (
+                    <div className={styles.branchTransfer}>
+                      <span className={styles.branchFrom}>{log.branch}</span>
+                      <ArrowLeftRight
+                        size={11}
+                        className={styles.branchArrow}
+                      />
+                      <span className={styles.branchTo}>{log.toBranch}</span>
+                    </div>
+                  ) : (
+                    <span className={styles.branchSingle}>{log.branch}</span>
+                  )}
+                </div>
+
+                {/* Bottom row: amount + date + time */}
+                <div className={styles.mobileCardBottom}>
+                  <span className={styles.badge}>{log.amount} units</span>
+                  <span className={styles.mobileMeta}>
+                    <span className={styles.dateText}>
+                      {formatDate(log.date)}
+                    </span>
+                    <span className={styles.mobileMetaDot}>·</span>
+                    <span className={styles.timeText}>
+                      {formatTime(log.date)}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
 
         {/* Pagination */}
         <div className={styles.pagination}>
           <span>
             Showing {filtered.length} of {MOCK_LOGS.length} entries
           </span>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className={styles.paginationBtns}>
             <button className={styles.btnPage} disabled>
               Prev
             </button>

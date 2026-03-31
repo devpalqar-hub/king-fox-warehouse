@@ -44,7 +44,55 @@
 }
 
 .full {
-  grid-column: span 2;
+  width: 100%;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+/* Hide default input */
+.hiddenInput {
+  display: none;
+}
+
+/* Custom button */
+.uploadBtn {
+  display: inline-block;
+  padding: 10px 16px;
+  background-color: #2563eb; /* blue */
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.uploadBtn:hover {
+  background-color: #1d4ed8;
+}
+
+.uploadBtn:active {
+  transform: scale(0.98);
+}
+
+/* Image preview grid */
+.previewGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+}
+
+.previewImg {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
 }
 
 /* ── Label ────────────────────────────────── */

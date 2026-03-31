@@ -25,6 +25,7 @@ export interface Variant {
 export interface Product {
   id: number;
   name: string;
+  status: String;
   description: string;
   brandId: number;
   categoryId: number;

@@ -1,0 +1,1031 @@
+/* ═══════════════════════════════════════════════════════════
+   dashboard.module.css  — matches stocklog / luckydraw tokens
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Base ───────────────────────────────────────────────── */
+.container {
+  padding: 28px 36px;
+  min-height: 100vh;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ── Page Title ─────────────────────────────────────────── */
+.pageTitle h1 {
+  font-size: 28px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+
+.pageTitle p {
+  font-size: 14px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+/* ── Stat Cards Grid ────────────────────────────────────── */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+/* ── Stat Card ──────────────────────────────────────────── */
+.statCard {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 22px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.statCard::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: 0 0 16px 16px;
+}
+
+.statAccent_blue::after {
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+}
+.statAccent_green::after {
+  background: linear-gradient(90deg, #16a34a, #22c55e);
+}
+.statAccent_orange::after {
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+}
+.statAccent_red::after {
+  background: linear-gradient(90deg, #dc2626, #ef4444);
+}
+
+.statCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+  transform: translateY(-2px);
+}
+
+/* icon backgrounds */
+.statIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 4px;
+}
+
+.iconBg_blue {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.iconBg_green {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.iconBg_orange {
+  background: #fff7ed;
+  color: #ea580c;
+}
+.iconBg_red {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.statTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.statValue {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.statSub {
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.statExtra {
+  margin-top: 6px;
+}
+
+/* Trend */
+.statTrend {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+}
+
+.trendUp {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+.trendDown {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+/* Badges on stat cards */
+.statBadge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.badge_green {
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.badge_blue {
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+.badge_orange {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.badge_red {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+/* ── Ratio Bar ──────────────────────────────────────────── */
+.ratioWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ratioBar {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ratioFillOnline {
+  height: 100%;
+  background: linear-gradient(90deg, #4f46e5, #6366f1);
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.ratioLabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* ── Health Bar (stat card) ─────────────────────────────── */
+.healthBarWrap {
+  margin-top: 2px;
+}
+
+.healthBarTrack {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.healthBarFill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+/* ── Charts Row ─────────────────────────────────────────── */
+.chartsRow {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 18px;
+}
+
+/* ── Chart Card (Sales) ─────────────────────────────────── */
+.chartCard {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px 18px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chartCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.chartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.chartTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 3px;
+  letter-spacing: -0.01em;
+}
+
+.chartSub {
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.chartTabs {
+  display: flex;
+  gap: 2px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.chartTab {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.chartTab:hover {
+  color: #4f46e5;
+}
+
+.chartTabActive {
+  background: #fff;
+  color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.chartSvgWrap {
+  width: 100%;
+  aspect-ratio: 580 / 200;
+}
+
+.chartSvg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chartLegend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.legendDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendLabel {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  margin-right: 12px;
+}
+
+/* ── Category Card ──────────────────────────────────────── */
+.catCard {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.catCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.catHeader {
+  margin-bottom: 18px;
+}
+
+.catBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+}
+
+.donutWrap {
+  width: 160px;
+  flex-shrink: 0;
+}
+.donutSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.catLegend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.catLegendRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.catDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.catLegendLabel {
+  flex: 1;
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.catLegendValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* ── Warehouse Analytics ────────────────────────────────── */
+.warehouseCard {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.warehouseCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.warehouseHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.sectionTitle {
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 3px;
+  letter-spacing: -0.01em;
+}
+
+.sectionSub {
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.viewLogLink {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4f46e5;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.viewLogLink:hover {
+  color: #4338ca;
+}
+
+.warehouseTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.warehouseTable th {
+  text-align: left;
+  padding: 11px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f8fafc;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.warehouseTable td {
+  padding: 14px 14px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+.warehouseTable tr:hover td {
+  background: #f8fafc;
+}
+
+.hubLocation {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 14px;
+}
+
+.mapPin {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.hubManager {
+  color: #475569;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.healthCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.healthBar {
+  width: 140px;
+  height: 7px;
+  background: #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.healthFill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.health_healthy {
+  background: #22c55e;
+}
+.health_lowstock {
+  background: #f59e0b;
+}
+.health_critical {
+  background: #ef4444;
+}
+
+.healthLabel {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.healthTxt_healthy {
+  color: #16a34a;
+}
+.healthTxt_lowstock {
+  color: #d97706;
+}
+.healthTxt_critical {
+  color: #dc2626;
+}
+
+.utilisationCell {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  text-align: right;
+}
+
+/* ── Bottom Row ─────────────────────────────────────────── */
+.bottomRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+/* ── Recent Orders ──────────────────────────────────────── */
+.ordersCard {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.ordersCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.ordersHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.ordersSubBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.orderRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.orderRow:last-child {
+  border-bottom: none;
+}
+
+.orderAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+.orderInfo {
+  flex: 1;
+}
+
+.orderName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.orderId {
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.orderRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.orderAmount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.orderStatus {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.orderStatus_delivered {
+  color: #16a34a;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.orderStatus_processing {
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+.orderStatus_shipped {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+.orderStatus_cancelled {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+/* ── Latest Feedback ────────────────────────────────────── */
+.feedbackCard {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 22px 24px;
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, 0.06),
+    0 4px 16px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease;
+}
+
+.feedbackCard:hover {
+  box-shadow:
+    0 2px 6px rgba(15, 23, 42, 0.08),
+    0 8px 24px rgba(15, 23, 42, 0.07);
+}
+
+.feedbackHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.feedbackBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  padding: 3px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.04em;
+}
+
+.feedbackList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.feedbackItem {
+  padding: 13px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.feedbackItem:last-child {
+  border-bottom: none;
+}
+
+.feedbackTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.starFilled {
+  color: #f59e0b;
+}
+.starEmpty {
+  color: #e2e8f0;
+}
+
+.feedbackTime {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.feedbackProduct {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.feedbackReview {
+  font-size: 12.5px;
+  color: #64748b;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════ */
+
+/* Laptop narrow */
+@media (max-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .chartsRow {
+    grid-template-columns: 1fr;
+  }
+  .catCard {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: start;
+  }
+  .catHeader {
+    grid-column: 1 / -1;
+    margin-bottom: 0;
+  }
+  .catBody {
+    flex-direction: row;
+    align-items: center;
+  }
+  .donutWrap {
+    width: 140px;
+  }
+}
+
+/* Tablet */
+@media (max-width: 1023px) {
+  .container {
+    padding: 24px 20px;
+  }
+
+  .pageTitle h1 {
+    font-size: 24px;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .statValue {
+    font-size: 22px;
+  }
+
+  .chartsRow {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .bottomRow {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .warehouseTable th,
+  .warehouseTable td {
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  .healthBar {
+    width: 100px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .container {
+    padding: 16px 12px;
+    gap: 16px;
+  }
+
+  .pageTitle h1 {
+    font-size: 20px;
+  }
+  .pageTitle p {
+    font-size: 12.5px;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .statCard {
+    padding: 18px 18px 14px;
+  }
+  .statValue {
+    font-size: 24px;
+  }
+
+  .chartsRow {
+    gap: 12px;
+  }
+
+  .catCard {
+    display: flex;
+    flex-direction: column;
+    padding: 18px;
+  }
+
+  .catBody {
+    flex-direction: column;
+  }
+
+  .warehouseHeader {
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  /* Horizontal scroll on mobile */
+  .warehouseCard {
+    overflow-x: auto;
+  }
+  .warehouseTable {
+    min-width: 560px;
+  }
+
+  .bottomRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .ordersCard,
+  .feedbackCard {
+    padding: 18px;
+  }
+
+  .chartCard,
+  .catCard {
+    padding: 18px;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .container {
+    padding: 12px 8px;
+    gap: 14px;
+  }
+
+  .pageTitle h1 {
+    font-size: 18px;
+  }
+
+  .statsGrid {
+    gap: 10px;
+  }
+
+  .statCard {
+    padding: 14px 14px 12px;
+    border-radius: 12px;
+  }
+  .statValue {
+    font-size: 21px;
+  }
+  .statLabel {
+    font-size: 10px;
+  }
+  .statIcon {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+  }
+
+  .chartCard,
+  .catCard,
+  .warehouseCard,
+  .ordersCard,
+  .feedbackCard {
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .chartTitle,
+  .sectionTitle {
+    font-size: 15px;
+  }
+
+  .orderAvatar {
+    width: 30px;
+    height: 30px;
+    font-size: 9px;
+  }
+  .orderName {
+    font-size: 12.5px;
+  }
+  .orderId {
+    font-size: 10.5px;
+  }
+  .orderAmount {
+    font-size: 13px;
+  }
+
+  .feedbackProduct {
+    font-size: 12.5px;
+  }
+  .feedbackReview {
+    font-size: 11.5px;
+  }
+
+  .chartTabs {
+    flex-wrap: wrap;
+  }
+}

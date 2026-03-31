@@ -43,6 +43,58 @@ const CreateReviewPage = () => {
     fetchProducts();
   }, []);
 
+  const validateForm = () => {
+    if (!selectedProductId) {
+      showToast("Please select a product", "error");
+      return false;
+    }
+
+    if (!form.reviewerName.trim()) {
+      showToast("Customer name is required", "error");
+      return false;
+    }
+
+    if (!form.reviewerEmail.trim()) {
+      showToast("Email is required", "error");
+      return false;
+    }
+
+    // Simple email regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.reviewerEmail)) {
+      showToast("Invalid email format", "error");
+      return false;
+    }
+
+    if (!form.reviewerPhone.trim()) {
+      showToast("Phone number is required", "error");
+      return false;
+    }
+
+    // Optional: Indian phone validation
+    if (!/^[6-9]\d{9}$/.test(form.reviewerPhone)) {
+      showToast("Invalid phone number", "error");
+      return false;
+    }
+
+    if (!form.title.trim()) {
+      showToast("Title is required", "error");
+      return false;
+    }
+
+    if (!form.body.trim()) {
+      showToast("Review content is required", "error");
+      return false;
+    }
+
+    if (form.rating < 1 || form.rating > 5) {
+      showToast("Please select a valid rating", "error");
+      return false;
+    }
+
+    return true;
+  };
+
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -62,13 +114,15 @@ const CreateReviewPage = () => {
 
   const handleSubmit = async () => {
     try {
-      if(!selectedProductId) {
-        showToast("Please select a product", "error");
-      }
+      const isValid = validateForm();
+      if (!isValid) return; 
+
       await createMockReview(selectedProductId, form);
+      showToast("Review created successfully", "success");
       router.push("/reviews");
     } catch (err) {
       console.error(err);
+      showToast("Something went wrong", "error");
     }
   };
 
@@ -148,7 +202,16 @@ const CreateReviewPage = () => {
           {/* Image Upload */}
           <div className={styles.full}>
             <label className={styles.label}>Upload Images</label>
-            <input type="file" multiple onChange={handleImageUpload} />
+
+            <label className={styles.uploadBtn}>
+              Choose Images
+              <input
+                type="file"
+                multiple
+                onChange={handleImageUpload}
+                className={styles.hiddenInput}
+              />
+            </label>
 
             <div className={styles.previewGrid}>
               {preview.map((img, i) => (
