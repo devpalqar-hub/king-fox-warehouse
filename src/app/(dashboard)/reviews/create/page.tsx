@@ -30,16 +30,18 @@ const CreateReviewPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await getProducts();
-        setProducts(data);
+        const res = await getProducts();
 
-        if (data.length > 0) {
-          setSelectedProductId(String(data[0].id));
+        setProducts(res.data);
+
+        if (res.data.length > 0) {
+          setSelectedProductId(String(res.data[0].id));
         }
       } catch (err) {
         console.error(err);
       }
     };
+
     fetchProducts();
   }, []);
 
@@ -115,7 +117,7 @@ const CreateReviewPage = () => {
   const handleSubmit = async () => {
     try {
       const isValid = validateForm();
-      if (!isValid) return; 
+      if (!isValid) return;
 
       await createMockReview(selectedProductId, form);
       showToast("Review created successfully", "success");
