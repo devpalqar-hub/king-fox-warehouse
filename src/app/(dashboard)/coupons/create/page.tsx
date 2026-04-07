@@ -144,7 +144,7 @@ const CreateCouponPage = () => {
               className={styles.input}
               name="maxDiscountAmount"
               type="number"
-              placeholder="Leave blank for no cap"
+              placeholder="Max Discount Amount"
               onChange={handleChange}
               min={0}
             />
@@ -156,7 +156,7 @@ const CreateCouponPage = () => {
               className={styles.input}
               name="usageLimit"
               type="number"
-              placeholder="Leave blank for unlimited"
+              placeholder="Usage Limit"
               onChange={handleChange}
               min={1}
             />

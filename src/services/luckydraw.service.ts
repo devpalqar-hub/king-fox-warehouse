@@ -76,3 +76,53 @@ export const createCampaign = async (payload: any) => {
     throw err;
   }
 };
+
+export const updateCampaign = async (id: number | string, payload: any) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(`${BASE_URL}/v1/lucky-draw/campaigns/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) throw new Error("Failed to update campaign");
+
+    return res.json();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+export const updateCampaignStatus = async (
+  id: number | string,
+  status: "ACTIVE" | "CLOSED",
+) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${BASE_URL}/v1/lucky-draw/campaigns/${id}/status`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      },
+    );
+
+    if (!res.ok) throw new Error("Failed to update campaign status");
+
+    return res.json();
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};

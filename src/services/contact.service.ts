@@ -2,22 +2,39 @@ import type {
   ContactEntry,
   CreateContactPayload,
   CreateContactResponse,
+  ContactsResponse,
 } from "@/types/contact";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
-export async function getContacts(): Promise<ContactEntry[]> {
-  const token = localStorage.getItem("token"); // or wherever you store it
+export async function getContacts(page: number = 1): Promise<ContactsResponse> {
+  const token = localStorage.getItem("token");
 
-  const res = await fetch(`${BASE_URL}/v1/contact-us`, {
-    cache: "no-store",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  if (!token) {
+    console.warn("No token found in localStorage");
+    throw new Error("No authentication token found");
+  }
 
-  if (!res.ok) throw new Error(`Failed to fetch contacts: ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(`${BASE_URL}/v1/contact-us?page=${page}`, {
+      cache: "no-store",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!res.ok) {
+      console.error(`Failed to fetch contacts: ${res.status}`);
+      throw new Error(`Failed to fetch contacts: ${res.status}`);
+    }
+
+    const response: ContactsResponse = await res.json();
+    console.log("Contact API response:", response);
+    return response;
+  } catch (err) {
+    console.error("Error fetching contacts:", err);
+    throw err;
+  }
 }
 
 export async function createContact(

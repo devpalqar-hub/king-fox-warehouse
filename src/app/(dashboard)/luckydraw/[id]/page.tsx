@@ -11,17 +11,28 @@ import {
   Users,
   Clock,
   Pencil,
+  PlayCircle,
 } from "lucide-react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { getCampaignById } from "@/services/luckydraw.service";
+import Link from "next/link";
+import {
+  getCampaignById,
+  updateCampaignStatus,
+} from "@/services/luckydraw.service";
+import { useToast } from "@/components/toast/ToastProvider";
+import { AlertTriangle, X } from "lucide-react";
+
+const html2pdf = require("html2pdf.js");
 
 const LuckyDrawViewPage = () => {
   const { id } = useParams();
   const router = useRouter();
+  const { showToast } = useToast();
   const [campaign, setCampaign] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [statusChanging, setStatusChanging] = useState(false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,6 +47,47 @@ const LuckyDrawViewPage = () => {
     };
     fetchData();
   }, [id]);
+
+  const handleStatusChange = async (newStatus: "ACTIVE" | "CLOSED") => {
+    if (!campaign) return;
+    setStatusChanging(true);
+    try {
+      await updateCampaignStatus(id as string, newStatus);
+      setCampaign({ ...campaign, status: newStatus });
+      showToast(
+        `Campaign ${newStatus === "ACTIVE" ? "activated" : "closed"} successfully`,
+        "success",
+      );
+      setShowCloseModal(false);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to update campaign status", "error");
+    } finally {
+      setStatusChanging(false);
+    }
+  };
+
+  const handleCloseCampaign = () => {
+    handleStatusChange("CLOSED");
+  };
+
+  const handleExportPDF = () => {
+    if (!campaign) return;
+
+    const element = document.getElementById("campaign-pdf-content");
+    if (!element) return;
+
+    const opt = {
+      margin: 10,
+      filename: `${campaign.name}-campaign-details.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
+    };
+
+    html2pdf().set(opt).from(element).save();
+    showToast("PDF downloaded successfully", "success");
+  };
 
   if (loading) {
     return (
@@ -84,6 +136,49 @@ const LuckyDrawViewPage = () => {
         <ArrowLeft size={16} />
         Back to Campaigns
       </button>
+
+      {/* PDF Content for export */}
+      <div
+        id="campaign-pdf-content"
+        style={{ display: "none" }}
+        className={styles.pdfContainer}
+      >
+        <div className={styles.pdfHeader}>
+          <h1>{campaign.name}</h1>
+          <p>{campaign.description}</p>
+        </div>
+        {campaign.image && (
+          <img
+            src={campaign.image}
+            alt={campaign.name}
+            style={{ maxWidth: "100%", marginBottom: "20px" }}
+          />
+        )}
+        <div className={styles.pdfDetails}>
+          <h3>Campaign Details</h3>
+          <p>
+            <strong>Status:</strong> {campaign.status}
+          </p>
+          <p>
+            <strong>Start Date:</strong> {startDate.toLocaleDateString()}
+          </p>
+          <p>
+            <strong>End Date:</strong> {endDate.toLocaleDateString()}
+          </p>
+          <p>
+            <strong>Total Vouchers:</strong> {campaign.totalVouchersLimit}
+          </p>
+          <p>
+            <strong>Issued Vouchers:</strong> {campaign.vouchersIssued}
+          </p>
+          <p>
+            <strong>Priority:</strong> {campaign.priority}
+          </p>
+          <p>
+            <strong>Filter Type:</strong> {campaign.filterType}
+          </p>
+        </div>
+      </div>
 
       {/* ── Hero Banner ────────────────────────────── */}
       <div className={styles.hero}>
@@ -278,9 +373,13 @@ const LuckyDrawViewPage = () => {
           <div className={styles.card}>
             <h3 className={styles.sidebarTitle}>Quick Actions</h3>
 
-            <button className={styles.btnExport}>
+            <button
+              className={styles.btnExport}
+              onClick={handleExportPDF}
+              title="Download campaign details as PDF"
+            >
               <Download size={15} />
-              Export Report
+              Export PDF
             </button>
 
             <Link href={`/luckydraw/${id}/edit`} className={styles.btnEdit}>
@@ -288,10 +387,27 @@ const LuckyDrawViewPage = () => {
               Edit Campaign
             </Link>
 
-            <button className={styles.btnEnd}>
-              <StopCircle size={15} />
-              End Campaign
-            </button>
+            {campaign.status === "DRAFT" && (
+              <button
+                className={styles.btnActivate}
+                onClick={() => handleStatusChange("ACTIVE")}
+                disabled={statusChanging}
+              >
+                <PlayCircle size={15} />
+                {statusChanging ? "Activating..." : "Activate Campaign"}
+              </button>
+            )}
+
+            {campaign.status === "ACTIVE" && (
+              <button
+                className={styles.btnEnd}
+                onClick={() => setShowCloseModal(true)}
+                disabled={statusChanging}
+              >
+                <StopCircle size={15} />
+                {statusChanging ? "Closing..." : "Close Campaign"}
+              </button>
+            )}
           </div>
 
           {/* Mini stats */}
@@ -342,6 +458,70 @@ const LuckyDrawViewPage = () => {
           </div>
         </aside>
       </div>
+
+      {/* Close Campaign Confirmation Modal */}
+      {showCloseModal && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowCloseModal(false);
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="close-modal-title"
+        >
+          <div className={styles.modal}>
+            {/* Close button */}
+            <button
+              className={styles.modalCloseBtn}
+              onClick={() => setShowCloseModal(false)}
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Icon */}
+            <div className={styles.modalIconWrap}>
+              <div className={styles.modalIconRing}>
+                <AlertTriangle size={32} className={styles.modalAlertIcon} />
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className={styles.modalContent}>
+              <h2 id="close-modal-title" className={styles.modalTitle}>
+                Close Campaign?
+              </h2>
+              <p className={styles.modalDesc}>
+                Are you sure you want to close the campaign{" "}
+                <strong className={styles.modalHighlight}>
+                  "{campaign.name}"
+                </strong>
+                ? Once closed, customers will no longer be able to redeem
+                vouchers. This action cannot be undone.
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className={styles.modalActions}>
+              <button
+                className={styles.modalCancelBtn}
+                onClick={() => setShowCloseModal(false)}
+                disabled={statusChanging}
+              >
+                Keep Campaign Open
+              </button>
+              <button
+                className={styles.modalConfirmBtn}
+                onClick={handleCloseCampaign}
+                disabled={statusChanging}
+              >
+                {statusChanging ? "Closing..." : "Close Campaign"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
