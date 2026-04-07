@@ -16,6 +16,7 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  phone: string;
   role: Role;
   branch: Branch | null;
   createdAt: string;

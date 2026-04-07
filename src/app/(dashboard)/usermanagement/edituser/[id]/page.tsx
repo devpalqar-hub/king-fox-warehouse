@@ -1,101 +1,112 @@
 "use client";
-import React from 'react';
-import { 
-  Home, User, Mail, Lock, Settings, 
-  MapPin, ChevronDown, Info, 
-  Router
-} from 'lucide-react';
-import styles from './edituser.module.css';
+import React from "react";
+import {
+  Home,
+  User,
+  Mail,
+  Lock,
+  Settings,
+  MapPin,
+  Phone,
+  ChevronDown,
+  Info,
+  Router,
+} from "lucide-react";
+import styles from "./edituser.module.css";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getUsers } from "@/services/user.service";
 import { getRoles } from "@/services/role.service";
 import { getBranches } from "@/services/branch.service";
 import { updateUser } from "@/services/user.service";
-import { useToast } from "@/components/toast/ToastProvider"; 
-import BackButton from '@/components/backButton/backButton';
+import { useToast } from "@/components/toast/ToastProvider";
+import BackButton from "@/components/backButton/backButton";
 
 export default function EditUser() {
-const params = useParams();
-const router = useRouter();
-const { showToast } = useToast();
-const userId = Number(params.id);
-const [roles, setRoles] = useState<any[]>([]);
-const [branches, setBranches] = useState<Branch[]>([]);
-type Branch = {
-  id: number;
-  name: string;
-};
-const [form, setForm] = useState({
-  name: "",
-  email: "",
-  password: "",
-  roleId: "",
-  branchId: "",
-});
+  const params = useParams();
+  const router = useRouter();
+  const { showToast } = useToast();
+  const userId = Number(params.id);
+  const [roles, setRoles] = useState<any[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  type Branch = {
+    id: number;
+    name: string;
+  };
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    phone: "",
+    roleId: "",
+    branchId: "",
+  });
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const users = await getUsers();
-      const user = users.find(u => u.id === userId);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const users = await getUsers();
+        const user = users.find((u) => u.id === userId);
 
-      if (user) {
-        setForm({
-          name: user.name,
-          email: user.email,
-          password: "",
-          roleId: String(user.role.id),
-          branchId: user.branch ? String(user.branch.id) : "",
-        });
+        if (user) {
+          setForm({
+            name: user.name,
+            email: user.email,
+            password: "",
+            phone: user.phone,
+            roleId: String(user.role.id),
+            branchId: user.branch ? String(user.branch.id) : "",
+          });
+        }
+
+        const roleData = await getRoles();
+        const branchData = await getBranches();
+
+        setRoles(roleData);
+        setBranches(branchData);
+      } catch (err) {
+        console.error(err);
       }
+    };
 
-      const roleData = await getRoles();
-      const branchData = await getBranches();
+    fetchData();
+  }, [userId]);
 
-      setRoles(roleData);
-      setBranches(branchData);
+  const handleSubmit = async () => {
+    try {
+      await updateUser(userId, {
+        name: form.name,
+        email: form.email,
+        password: form.password || undefined,
+        phone: form.phone,
+        roleId: Number(form.roleId),
+        branchId: form.branchId ? Number(form.branchId) : null,
+      });
 
+      showToast("User updated successfully!", "success");
+      router.push("/usermanagement");
     } catch (err) {
       console.error(err);
+      showToast("Update failed!", "error");
     }
   };
 
-  fetchData();
-}, [userId]);
-
-
-const handleSubmit = async () => {
-  try {
-    await updateUser(userId, {
-      name: form.name,
-      email: form.email,
-      password: form.password || undefined,
-      roleId: Number(form.roleId),
-      branchId: form.branchId ? Number(form.branchId) : null,
-    });
-
-    showToast("User updated successfully!", "success");
-    router.push("/usermanagement")
-  } catch (err) {
-    console.error(err);
-    showToast("Update failed!", "error");
-  }
-};
-
-const handleChange = (e: any) => {
-  setForm({ ...form, [e.target.name]: e.target.value });
-};
+  const handleChange = (e: any) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
   return (
     <div className={styles.container}>
       <BackButton />
       {/* Breadcrumbs */}
       <nav className={styles.breadcrumbs}>
-        <Home size={14} /> <span>Dashboard</span> / <span>Users</span> / <span className={styles.breadcrumbActive}>Edit User</span>
+        <Home size={14} /> <span>Dashboard</span> / <span>Users</span> /{" "}
+        <span className={styles.breadcrumbActive}>Edit User</span>
       </nav>
 
       <h1 className={styles.headerTitle}>Edit User</h1>
-      <p className={styles.headerSub}>Update profile details and system permissions for Priya Sharma</p>
+      <p className={styles.headerSub}>
+        Update profile details and system permissions for Priya Sharma
+      </p>
 
       <div className={styles.formCard}>
         <div className={styles.formGrid}>
@@ -139,6 +150,19 @@ const handleChange = (e: any) => {
           </div>
 
           <div className={styles.formGroup}>
+            <label className={styles.label}>Phone Number</label>
+            <div className={styles.inputWrapper}>
+              <Phone className={styles.inputIcon} size={18} />
+              <input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className={styles.input}
+              />
+            </div>
+          </div>
+
+          <div className={styles.formGroup}>
             <label className={styles.label}>System Role</label>
             <div className={styles.inputWrapper}>
               <Settings className={styles.inputIcon} size={18} />
@@ -149,13 +173,16 @@ const handleChange = (e: any) => {
                 className={styles.select}
               >
                 <option value="">Select role</option>
-                {roles.map(role => (
+                {roles.map((role) => (
                   <option key={role.id} value={role.id}>
                     {role.name}
                   </option>
                 ))}
               </select>
-              <ChevronDown style={{position: 'absolute', right: '12px'}} size={16} />
+              <ChevronDown
+                style={{ position: "absolute", right: "12px" }}
+                size={16}
+              />
             </div>
           </div>
 
@@ -164,19 +191,22 @@ const handleChange = (e: any) => {
             <div className={styles.inputWrapper}>
               <MapPin className={styles.inputIcon} size={18} />
               <select
-                    name="branchId"
-                    value={form.branchId}
-                    onChange={handleChange}
-                    className={styles.select}
-                  >
-                    <option value="">Select branch</option>
-                    {branches.map(branch => (
-                      <option key={branch.id} value={branch.id}>
-                        {branch.name}
-                      </option>
-                    ))}
-                  </select>
-              <ChevronDown style={{position: 'absolute', right: '12px'}} size={16} />
+                name="branchId"
+                value={form.branchId}
+                onChange={handleChange}
+                className={styles.select}
+              >
+                <option value="">Select branch</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                style={{ position: "absolute", right: "12px" }}
+                size={16}
+              />
             </div>
           </div>
         </div>

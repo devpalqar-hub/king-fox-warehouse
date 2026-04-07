@@ -68,6 +68,7 @@ export const createUser = async (payload: {
   name: string;
   email: string;
   password: string;
+  phone: string;
   roleId: number;
   branchId: number | null;
 }) => {
@@ -100,6 +101,7 @@ export const updateUser = async (
     name: string;
     email: string;
     password?: string;
+    phone: string;
     roleId: number;
     branchId: number | null;
   },

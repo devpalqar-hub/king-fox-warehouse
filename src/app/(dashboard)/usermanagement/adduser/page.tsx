@@ -10,6 +10,7 @@ import {
   Lock,
   Settings,
   MapPin,
+  Phone,
   ChevronDown,
 } from "lucide-react";
 import styles from "./adduser.module.css";
@@ -27,6 +28,7 @@ export default function AddUser() {
     name: "",
     email: "",
     password: "",
+    phone: "",
     roleId: "",
     branchId: "",
   });
@@ -45,7 +47,7 @@ export default function AddUser() {
         const data = await getBranches();
         console.log("branches response:", data);
 
-        setBranches(data); 
+        setBranches(data);
       } catch (error) {
         console.error("Branch fetch error:", error);
         setBranches([]);
@@ -67,12 +69,14 @@ export default function AddUser() {
     if (!form.name) return showToast("Name is required", "error");
     if (!form.email) return showToast("Email is required", "error");
     if (!form.password) return showToast("Password is required", "error");
+    if (!form.phone) return showToast("Phone is required", "error");
     if (!form.roleId) return showToast("Role is required", "error");
     try {
       await createUser({
         name: form.name,
         email: form.email,
         password: form.password,
+        phone: form.phone,
         roleId: Number(form.roleId),
         branchId: form.branchId ? Number(form.branchId) : null,
       });
@@ -147,6 +151,22 @@ export default function AddUser() {
                 value={form.password}
                 onChange={handleChange}
                 placeholder="Enter password"
+              />
+            </div>
+          </div>
+
+          {/* Phone */}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Phone Number</label>
+            <div className={styles.inputWrapper}>
+              <Phone className={styles.inputIcon} size={18} />
+              <input
+                className={styles.input}
+                type="tel"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                placeholder="Enter phone number"
               />
             </div>
           </div>
