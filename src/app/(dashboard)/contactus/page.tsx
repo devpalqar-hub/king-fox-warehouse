@@ -45,6 +45,9 @@ const ContactPage = () => {
   const [activeTab, setActiveTab] = useState<string>("all");
   const [contacts, setContacts] = useState<ContactEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
 
   /* Detail drawer */
   const [selected, setSelected] = useState<ContactEntry | null>(null);
@@ -60,18 +63,24 @@ const ContactPage = () => {
   const drawerRef = useRef<HTMLDivElement>(null);
 
   /* Fetch */
+  const fetchContacts = async (page: number = 1) => {
+    setLoading(true);
+    try {
+      const response = await getContacts(page);
+      setContacts(response.data || []);
+      setTotalPages(response.meta.totalPages);
+      setCurrentPage(response.meta.page);
+      setTotal(response.meta.total);
+    } catch (err) {
+      console.error(err);
+      setContacts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await getContacts();
-        setContacts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error(err);
-        setContacts([]);
-      } finally {
-        setLoading(false);
-      }
-    })();
+    fetchContacts(1);
   }, []);
 
   /* Close on backdrop click */
@@ -88,10 +97,11 @@ const ContactPage = () => {
     activeTab === "all" ? true : c.status === activeTab,
   );
 
-  /* Stats */
-  const total = contacts.length;
-  const newCount = contacts.filter((c) => c.status === "NEW").length;
-  const resolvedCount = contacts.filter((c) => c.status === "RESOLVED").length;
+  /* Stats - from current page data */
+  const pageNewCount = contacts.filter((c) => c.status === "NEW").length;
+  const pageResolvedCount = contacts.filter(
+    (c) => c.status === "RESOLVED",
+  ).length;
 
   /* Form helpers */
   const handleFormChange = (
@@ -112,9 +122,8 @@ const ContactPage = () => {
       const res = await createContact(form);
       setFormSuccess(res.message);
       setForm(emptyForm);
-      /* refresh list */
-      const data = await getContacts();
-      setContacts(Array.isArray(data) ? data : []);
+      /* refresh list - fetch first page */
+      await fetchContacts(1);
       setTimeout(() => {
         setShowModal(false);
         setFormSuccess(null);
@@ -153,11 +162,11 @@ const ContactPage = () => {
         </div>
         <div className={styles.statCard}>
           <p>New</p>
-          <h2>{newCount}</h2>
+          <h2>{pageNewCount}</h2>
         </div>
         <div className={styles.statCard}>
           <p>Resolved</p>
-          <h2>{resolvedCount}</h2>
+          <h2>{pageResolvedCount}</h2>
         </div>
       </section>
 
@@ -285,6 +294,29 @@ const ContactPage = () => {
           </tbody>
         </table>
       </div>
+
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <div className={styles.pagination}>
+          <button
+            disabled={currentPage === 1}
+            onClick={() => fetchContacts(currentPage - 1)}
+            className={styles.paginationBtn}
+          >
+            ← Previous
+          </button>
+          <span className={styles.pageInfo}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => fetchContacts(currentPage + 1)}
+            className={styles.paginationBtn}
+          >
+            Next →
+          </button>
+        </div>
+      )}
 
       {/* ── Detail Drawer ── */}
       {selected && (

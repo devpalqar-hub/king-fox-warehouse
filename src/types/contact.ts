@@ -8,6 +8,18 @@ export interface ContactEntry {
   createdAt: string;
 }
 
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ContactsResponse {
+  data: ContactEntry[];
+  meta: PaginationMeta;
+}
+
 export interface CreateContactPayload {
   name: string;
   email: string;
