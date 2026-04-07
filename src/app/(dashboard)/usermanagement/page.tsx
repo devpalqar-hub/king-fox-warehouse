@@ -1,23 +1,27 @@
 "use client";
-import React from "react";
 import {
-  ChevronDown,
   Filter,
   MapPin,
   UserPlus,
-  Edit3,
+  Pencil,
   Trash2,
 } from "lucide-react";
 import styles from "./usermanagement.module.css";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getUsers } from "@/services/user.service";
+import {
+  getUsersWithPagination,
+  deleteUser,
+} from "@/services/user.service";
 import { User } from "@/types/user.types";
 import { getRoles } from "@/services/role.service";
 import { getBranches } from "@/services/branch.service";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal/DeleteConfirmModal";
+import { useToast } from "@/components/toast/ToastProvider";
 
 export default function UserManagement() {
   const router = useRouter();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<any[]>([]);
@@ -25,20 +29,37 @@ export default function UserManagement() {
   const [branches, setBranches] = useState<any[]>([]);
   const [selectedBranch, setSelectedBranch] = useState("");
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [pagination, setPagination] = useState<any>(null);
+
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getUsers();
-      setUsers(data);
+      setLoading(true);
+      const res = await getUsersWithPagination({
+        page,
+        limit,
+        roleId: selectedRole ? Number(selectedRole) : undefined,
+        branchId: selectedBranch ? Number(selectedBranch) : undefined,
+      });
+      if (res) {
+        setUsers(res.data);
+        setPagination(res.meta);
+      }
       setLoading(false);
     };
-
     fetchData();
-  }, []);
+  }, [page, limit, selectedRole, selectedBranch]);
 
   useEffect(() => {
     const fetchRoles = async () => {
       const data = await getRoles();
-      console.log("ROLES API:", data); // 👈 ADD THIS
       setRoles(data);
     };
 
@@ -58,17 +79,35 @@ export default function UserManagement() {
     fetchBranches();
   }, []);
 
-  const filteredUsers = users.filter((user) => {
-    const roleMatch = selectedRole
-      ? user.role.id === Number(selectedRole)
-      : true;
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user);
+    setDeleteConfirmOpen(true);
+  };
 
-    const branchMatch = selectedBranch
-      ? user.branch?.id === Number(selectedBranch)
-      : true;
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+    try {
+      setIsDeleting(true);
+      await deleteUser(userToDelete.id);
+      setUsers((prev) => prev.filter((u) => u.id !== userToDelete.id));
+      showToast("User deleted successfully", "success");
+      setDeleteConfirmOpen(false);
+      setUserToDelete(null);
+      // Refresh the current page if last user was deleted
+      if (users.length === 1 && page > 1) {
+        setPage(page - 1);
+      }
+    } catch (error: any) {
+      showToast(error.message || "Failed to delete user", "error");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
-    return roleMatch && branchMatch;
-  });
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
+  };
 
   return (
     <div className={styles.container}>
@@ -87,7 +126,10 @@ export default function UserManagement() {
             <select
               className={styles.selectFilter}
               value={selectedRole}
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={(e) => {
+                setSelectedRole(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">All Roles</option>
 
@@ -104,7 +146,10 @@ export default function UserManagement() {
             <select
               className={styles.selectFilter}
               value={selectedBranch}
-              onChange={(e) => setSelectedBranch(e.target.value)}
+              onChange={(e) => {
+                setSelectedBranch(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">All Branches</option>
 
@@ -136,65 +181,112 @@ export default function UserManagement() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
-              <tr key={user.id}>
-                <td data-label="Name">
-                  <div className={styles.userInfo}>
-                    <div className={styles.avatar}>{user.name?.charAt(0)}</div>
-                    <span className={styles.userName}>{user.name}</span>
-                  </div>
-                </td>
-
-                <td data-label="Email" className={styles.userEmail}>
-                  {user.email}
-                </td>
-
-                <td data-label="Role">
-                  <span
-                    className={`${styles.badge} ${
-                      styles[user.role.name.toLowerCase()]
-                    }`}
-                  >
-                    {user.role.name}
-                  </span>
-                </td>
-
-                <td data-label="Branch" className={styles.branchText}>
-                  {user.branch ? user.branch.name : "No Branch"}
-                </td>
-
-                <td data-label="Actions">
-                  <div className={styles.actions}>
-                    <button
-                      className={styles.actionBtn}
-                      onClick={() =>
-                        router.push(`/usermanagement/edituser/${user.id}`)
-                      }
-                    >
-                      <Edit3 size={18} />
-                    </button>
-
-                    <button
-                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+            {loading ? (
+              <tr>
+                <td colSpan={5} className={styles.loadingCell}>
+                  Loading users...
                 </td>
               </tr>
-            ))}
+            ) : users.length === 0 ? (
+              <tr>
+                <td colSpan={5} className={styles.emptyCell}>
+                  No users found
+                </td>
+              </tr>
+            ) : (
+              users.map((user) => (
+                <tr key={user.id}>
+                  <td data-label="Name">
+                    <div className={styles.userInfo}>
+                      <div className={styles.avatar}>
+                        {user.name?.charAt(0)}
+                      </div>
+                      <span className={styles.userName}>{user.name}</span>
+                    </div>
+                  </td>
+
+                  <td data-label="Email" className={styles.userEmail}>
+                    {user.email}
+                  </td>
+
+                  <td data-label="Role">
+                    <span
+                      className={`${styles.badge} ${
+                        styles[user.role.name.toLowerCase()]
+                      }`}
+                    >
+                      {user.role.name}
+                    </span>
+                  </td>
+
+                  <td data-label="Branch" className={styles.branchText}>
+                    {user.branch ? user.branch.name : "No Branch"}
+                  </td>
+
+                  <td data-label="Actions">
+                    <div className={styles.actions}>
+                      <button
+                        className={styles.actionBtn}
+                        onClick={() =>
+                          router.push(`/usermanagement/edituser/${user.id}`)
+                        }
+                      >
+                        <Pencil size={18} />
+                      </button>
+
+                      {/* <button
+                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                        onClick={() => handleDeleteClick(user)}
+                        title="Delete user"
+                      >
+                        <Trash2 size={18} />
+                      </button> */}
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
 
         <footer className={styles.footer}>
-          <span className={styles.userEmail}>Showing 1 to 4 of 4 users</span>
+          <span className={styles.userEmail}>
+            Showing {users.length > 0 ? (page - 1) * limit + 1 : 0} to{" "}
+            {Math.min(page * limit, pagination?.total || 0)} of{" "}
+            {pagination?.total || 0} users
+          </span>
           <div className={styles.pagination}>
-            <button className={styles.pageNav}>Previous</button>
-            <button className={styles.pageActive}>1</button>
-            <button className={styles.pageNav}>Next</button>
+            <button
+              className={styles.pageNav}
+              onClick={() => setPage(Math.max(1, page - 1))}
+              disabled={page === 1}
+            >
+              Previous
+            </button>
+            <span className={styles.pageInfo}>
+              Page {page} of {pagination?.totalPages || 1}
+            </span>
+            <button
+              className={styles.pageNav}
+              onClick={() =>
+                setPage(Math.min(pagination?.totalPages || 1, page + 1))
+              }
+              disabled={page === (pagination?.totalPages || 1)}
+            >
+              Next
+            </button>
           </div>
         </footer>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteConfirmOpen}
+        productName={`${userToDelete?.name} (${userToDelete?.email})`}
+        isDeleting={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }

@@ -18,9 +18,9 @@ import {
   Upload,
   Layers,
   Plus,
-  PencilLine,
   X,
   Check,
+  Pencil,
 } from "lucide-react";
 import {
   uploadImagesToS3,
@@ -68,6 +68,7 @@ export default function EditProductPage() {
     images: [] as string[],
     metaInfo: [] as { title: string; text: string; imageUrl: string }[],
     tagIds: [] as number[],
+    isFreeShipping: false,
   });
 
   // ── Fetch categories ──
@@ -98,6 +99,7 @@ export default function EditProductPage() {
           imageUrl: m.imageUrl || "",
         })),
         tagIds: data?.tagIds || [],
+        isFreeShipping: data?.isFreeShipping ?? false,
       });
     });
   }, [productId]);
@@ -110,8 +112,9 @@ export default function EditProductPage() {
         setVariants(
           data.map((v: any) => ({
             ...v,
-            costPrice: v.costPrice ?? 0,
-            sellingPrice: v.sellingPrice ?? 0,
+            // Handle both camelCase and snake_case from backend
+            costPrice: v.costPrice ?? v.cost_price ?? 0,
+            sellingPrice: v.sellingPrice ?? v.selling_price ?? 0,
           })),
         ),
       )
@@ -184,6 +187,7 @@ export default function EditProductPage() {
         images: finalImages,
         metaInfo: form.metaInfo,
         tagIds: form.tagIds,
+        isFreeShipping: form.isFreeShipping,
       });
       await Promise.all(
         variants.map((v) =>
@@ -322,6 +326,22 @@ export default function EditProductPage() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className={styles.formGroup}>
+              <div className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={form.isFreeShipping}
+                  onChange={(e) =>
+                    setForm({ ...form, isFreeShipping: e.target.checked })
+                  }
+                />
+                <span>Free Shipping</span>
+              </div>
+              <p className={styles.checkboxDesc}>
+                Enable this option to offer free shipping for this product.
+              </p>
             </div>
           </section>
 
@@ -488,7 +508,7 @@ export default function EditProductPage() {
                           onClick={() => openVariantModal(v)}
                           title="Edit variant"
                         >
-                          <PencilLine size={15} />
+                          <Pencil size={15} />
                         </button>
                         <button
                           className={styles.deleteIconBtn}
@@ -544,7 +564,7 @@ export default function EditProductPage() {
                             className={styles.editIconBtn}
                             onClick={() => openVariantModal(v)}
                           >
-                            <PencilLine size={14} />
+                            <Pencil size={14} />
                           </button>
                           <button
                             className={styles.deleteIconBtn}

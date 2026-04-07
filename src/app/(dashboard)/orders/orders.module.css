@@ -259,6 +259,22 @@
   background: #ef4444;
 }
 
+.confirmed {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.confirmed .dot {
+  background: #6366f1;
+}
+
+.packed {
+  background: #fce7f3;
+  color: #be185d;
+}
+.packed .dot {
+  background: #ec4899;
+}
+
 /* Pagination */
 .pagination {
   padding: 1.25rem;

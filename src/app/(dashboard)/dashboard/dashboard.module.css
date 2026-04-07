@@ -726,6 +726,24 @@
   border: 1px solid #fecaca;
 }
 
+.orderStatus_pending {
+  color: #d97706;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.orderStatus_confirmed {
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+}
+
+.orderStatus_packed {
+  color: #be185d;
+  background: #fce7f3;
+  border: 1px solid #fbcfe8;
+}
+
 /* ── Latest Feedback ────────────────────────────────────── */
 .feedbackCard {
   background: #fff;

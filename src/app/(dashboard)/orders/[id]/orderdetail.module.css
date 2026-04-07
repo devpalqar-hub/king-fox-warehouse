@@ -50,6 +50,37 @@
   font-weight: 700;
 }
 
+/* Status-specific badge styling */
+.pending {
+  background: #fffbeb !important;
+  color: #d97706 !important;
+}
+
+.confirmed {
+  background: #eef2ff !important;
+  color: #4f46e5 !important;
+}
+
+.packed {
+  background: #fce7f3 !important;
+  color: #be185d !important;
+}
+
+.shipped {
+  background: #eff6ff !important;
+  color: #2563eb !important;
+}
+
+.delivered {
+  background: #f0fdf4 !important;
+  color: #16a34a !important;
+}
+
+.cancelled {
+  background: #fef2f2 !important;
+  color: #dc2626 !important;
+}
+
 .timestamp {
   display: flex;
   align-items: center;

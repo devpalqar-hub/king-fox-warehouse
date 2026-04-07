@@ -117,7 +117,11 @@ export default function OrderDetailPage() {
           <div className={styles.headerLeft}>
             <div className={styles.titleRow}>
               <h1>#{order.orderNumber}</h1>
-              <span className={styles.badge}>{order.status}</span>
+              <span
+                className={`${styles.badge} ${styles[order.status.toLowerCase()]}`}
+              >
+                {order.status}
+              </span>
             </div>
             <p className={styles.timestamp}>
               <Clock size={14} />

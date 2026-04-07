@@ -147,9 +147,7 @@ export default function OrdersPage() {
           <option value="DELIVERED">Delivered</option>
           <option value="CANCELLED">Cancelled</option>
         </select>
-        <button className={styles.iconBtn}>
-          <Filter size={18} />
-        </button>
+
         <button
           className={styles.resetBtn}
           onClick={() => {

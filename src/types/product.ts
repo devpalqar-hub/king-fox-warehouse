@@ -1,5 +1,4 @@
 export interface Brand {
-  
   id: number;
   name: string;
 }
@@ -34,5 +33,5 @@ export interface Product {
   brand: Brand;
   category: Category;
   variants: Variant[];
+  isFreeShipping?: boolean;
 }
-
