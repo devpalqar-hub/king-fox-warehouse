@@ -2,32 +2,12 @@
 
 import styles from "./dashboard.module.css";
 import { Star } from "lucide-react";
+import type { Feedback } from "@/types/dashboard";
 
-// Mock data — replace with API
-const MOCK_FEEDBACK = [
-  {
-    id: 1,
-    product: "Premium Cotton T-Shirt",
-    rating: 5,
-    review:
-      "The fit is perfect and the quality of the fabric exceeded expectations!",
-    time: "2 mins ago",
-  },
-  {
-    id: 2,
-    product: "Slim Fit Denim",
-    rating: 4,
-    review: "Good quality, but shipping took a day longer than promised.",
-    time: "1 hour ago",
-  },
-  {
-    id: 3,
-    product: "Silk Ethnic Saree",
-    rating: 5,
-    review: "Absolutely stunning craftsmanship. Will definitely order again!",
-    time: "4 hours ago",
-  },
-];
+interface LatestFeedbackProps {
+  data: Feedback[];
+  loading?: boolean;
+}
 
 const Stars = ({ count }: { count: number }) => (
   <div className={styles.stars}>
@@ -42,25 +22,35 @@ const Stars = ({ count }: { count: number }) => (
   </div>
 );
 
-const LatestFeedback = () => (
+const LatestFeedback = ({ data, loading = false }: LatestFeedbackProps) => (
   <div className={styles.feedbackCard}>
     <div className={styles.feedbackHeader}>
       <h2 className={styles.sectionTitle}>Latest Feedback</h2>
       <span className={styles.feedbackBadge}>Real-time NPS</span>
     </div>
 
-    <div className={styles.feedbackList}>
-      {MOCK_FEEDBACK.map((fb) => (
-        <div key={fb.id} className={styles.feedbackItem}>
-          <div className={styles.feedbackTop}>
-            <Stars count={fb.rating} />
-            <span className={styles.feedbackTime}>{fb.time}</span>
+    {loading ? (
+      <div className={styles.feedbackList}>
+        <p className={styles.loadingText}>Loading feedback...</p>
+      </div>
+    ) : data && data.length > 0 ? (
+      <div className={styles.feedbackList}>
+        {data.map((fb) => (
+          <div key={fb.id} className={styles.feedbackItem}>
+            <div className={styles.feedbackTop}>
+              <Stars count={fb.stars} />
+              <span className={styles.feedbackTime}>{fb.timeAgo}</span>
+            </div>
+            <p className={styles.feedbackProduct}>{fb.productName}</p>
+            <p className={styles.feedbackReview}>"{fb.feedback}"</p>
           </div>
-          <p className={styles.feedbackProduct}>{fb.product}</p>
-          <p className={styles.feedbackReview}>"{fb.review}"</p>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    ) : (
+      <div className={styles.feedbackList}>
+        <p className={styles.loadingText}>No feedback found</p>
+      </div>
+    )}
   </div>
 );
 

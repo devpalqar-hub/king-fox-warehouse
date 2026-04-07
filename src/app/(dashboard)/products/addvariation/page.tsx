@@ -1,12 +1,5 @@
 "use client";
-import {
-  Package,
-  UploadCloud,
-  Trash2,
-  PencilLine,
-  X,
-  Check,
-} from "lucide-react";
+import { Package, UploadCloud, Trash2, X, Check, Pencil } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import styles from "./addvariation.module.css";
 import { useSearchParams } from "next/navigation";
@@ -19,6 +12,7 @@ import {
 import { uploadImagesToS3 } from "@/services/upload.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import BackButton from "@/components/backButton/backButton";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal/DeleteConfirmModal";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -54,6 +48,11 @@ export default function AddVariationPage() {
   const [editPreview, setEditPreview] = useState<string>("");
   const [editLoading, setEditLoading] = useState(false);
 
+  // Delete confirmation state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [variantToDelete, setVariantToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const [variation, setVariation] = useState({
     size: [] as string[],
     color: "",
@@ -63,7 +62,54 @@ export default function AddVariationPage() {
     image: "",
   });
 
-  const sizeOptions = ["XS", "S", "M", "L", "XL", "XXL"];
+  const sizeOptions = [
+    "XS",
+    "S",
+    "M",
+    "L",
+    "XL",
+    "XXL",
+    "3XL",
+    "4XL",
+    "5XL",
+    "6XL",
+    "7XL",
+  ];
+  const numericalSizes = [
+    "28",
+    "29",
+    "30",
+    "31",
+    "32",
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39",
+    "40",
+    "42",
+    "44",
+    "46",
+  ];
+  const colorOptions = [
+    "Red",
+    "Blue",
+    "Green",
+    "Yellow",
+    "Black",
+    "White",
+    "Gray",
+    "Purple",
+    "Orange",
+    "Pink",
+    "Brown",
+    "Navy",
+    "Cyan",
+    "Lime",
+    "Magenta",
+  ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -92,8 +138,9 @@ export default function AddVariationPage() {
         setVariants(
           data.map((v: any) => ({
             ...v,
-            costPrice: Number(v.costPrice || 0),
-            sellingPrice: Number(v.sellingPrice || 0),
+            // Handle both camelCase and snake_case from backend
+            costPrice: Number(v.costPrice ?? v.cost_price ?? 0),
+            sellingPrice: Number(v.sellingPrice ?? v.selling_price ?? 0),
           })),
         ),
       )
@@ -127,6 +174,10 @@ export default function AddVariationPage() {
           image: imageUrl || "https://via.placeholder.com/150",
         };
         const newVariant = await createVariant(Number(productId), payload);
+        // Ensure temporary ID if API doesn't return one
+        if (!newVariant.id) {
+          newVariant._tempId = `temp-${Date.now()}-${Math.random()}`;
+        }
         createdVariants.push(newVariant);
       }
       setVariants((prev) => [...prev, ...createdVariants]);
@@ -148,15 +199,30 @@ export default function AddVariationPage() {
     }
   };
 
-  const handleDelete = async (variantId: number) => {
-    if (!confirm("Delete this variant?")) return;
+  const handleDeleteClick = (variant: any) => {
+    setVariantToDelete(variant);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!variantToDelete) return;
     try {
-      await deleteVariant(variantId);
-      setVariants((prev) => prev.filter((v) => v.id !== variantId));
+      setIsDeleting(true);
+      await deleteVariant(variantToDelete.id);
+      setVariants((prev) => prev.filter((v) => v.id !== variantToDelete.id));
       showToast("Variant deleted", "success");
+      setDeleteConfirmOpen(false);
+      setVariantToDelete(null);
     } catch (error: any) {
       showToast(error.message || "Failed to delete variant", "error");
+    } finally {
+      setIsDeleting(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setVariantToDelete(null);
   };
 
   const openEditModal = (variant: any) => {
@@ -303,21 +369,48 @@ export default function AddVariationPage() {
                   </div>
                   {isOpen && (
                     <div className={styles.dropdown}>
-                      {sizeOptions.map((size) => (
-                        <label key={size} className={styles.option}>
-                          <input
-                            type="checkbox"
-                            checked={variation.size.includes(size)}
-                            onChange={() => {
-                              const updated = variation.size.includes(size)
-                                ? variation.size.filter((s) => s !== size)
-                                : [...variation.size, size];
-                              setVariation({ ...variation, size: updated });
-                            }}
-                          />
-                          {size}
-                        </label>
-                      ))}
+                      {/* Standard Sizes Section */}
+                      <div className={styles.sizeCategory}>
+                        <div className={styles.categoryTitle}>
+                          Standard Sizes
+                        </div>
+                        {sizeOptions.map((size) => (
+                          <label key={size} className={styles.option}>
+                            <input
+                              type="checkbox"
+                              checked={variation.size.includes(size)}
+                              onChange={() => {
+                                const updated = variation.size.includes(size)
+                                  ? variation.size.filter((s) => s !== size)
+                                  : [...variation.size, size];
+                                setVariation({ ...variation, size: updated });
+                              }}
+                            />
+                            {size}
+                          </label>
+                        ))}
+                      </div>
+                      {/* Numerical Sizes Section */}
+                      <div className={styles.sizeCategory}>
+                        <div className={styles.categoryTitle}>
+                          Numerical Sizes
+                        </div>
+                        {numericalSizes.map((size) => (
+                          <label key={size} className={styles.option}>
+                            <input
+                              type="checkbox"
+                              checked={variation.size.includes(size)}
+                              onChange={() => {
+                                const updated = variation.size.includes(size)
+                                  ? variation.size.filter((s) => s !== size)
+                                  : [...variation.size, size];
+                                setVariation({ ...variation, size: updated });
+                              }}
+                            />
+                            {size}
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -326,15 +419,37 @@ export default function AddVariationPage() {
               {/* Color */}
               <div className={styles.inputGroup}>
                 <label className={styles.fieldLabel}>Color</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Red"
-                  className={styles.inputField}
-                  value={variation.color}
-                  onChange={(e) =>
-                    setVariation({ ...variation, color: e.target.value })
-                  }
-                />
+                <div className={styles.colorInputContainer}>
+                  <select
+                    className={styles.colorDropdown}
+                    value={variation.color}
+                    onChange={(e) =>
+                      setVariation({ ...variation, color: e.target.value })
+                    }
+                  >
+                    <option value="">Select a color</option>
+                    {colorOptions.map((color) => (
+                      <option key={color} value={color}>
+                        {color}
+                      </option>
+                    ))}
+                    <option value="" disabled>
+                      ─────────────
+                    </option>
+                    <option value="" disabled>
+                      Custom:
+                    </option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="or type custom color"
+                    className={styles.inputField}
+                    value={variation.color}
+                    onChange={(e) =>
+                      setVariation({ ...variation, color: e.target.value })
+                    }
+                  />
+                </div>
               </div>
             </div>
 
@@ -424,7 +539,13 @@ export default function AddVariationPage() {
               </thead>
               <tbody>
                 {variants.map((variant) => (
-                  <tr key={variant.id ?? `${variant.sku}-${variant.size}`}>
+                  <tr
+                    key={
+                      variant.id ??
+                      variant._tempId ??
+                      `${variant.sku}-${variant.size}`
+                    }
+                  >
                     <td>
                       <div className={styles.tableImgWrapper}>
                         <img
@@ -466,11 +587,11 @@ export default function AddVariationPage() {
                           onClick={() => openEditModal(variant)}
                           title="Edit variant"
                         >
-                          <PencilLine size={16} />
+                          <Pencil size={16} />
                         </button>
                         <button
                           className={styles.deleteBtn}
-                          onClick={() => handleDelete(variant.id)}
+                          onClick={() => handleDeleteClick(variant)}
                           title="Delete variant"
                         >
                           <Trash2 size={16} />
@@ -485,7 +606,14 @@ export default function AddVariationPage() {
             {/* Mobile Cards */}
             <div className={styles.mobileVariantList}>
               {variants.map((variant) => (
-                <div key={variant.id} className={styles.mobileVariantCard}>
+                <div
+                  key={
+                    variant.id ??
+                    variant._tempId ??
+                    `${variant.sku}-${variant.size}`
+                  }
+                  className={styles.mobileVariantCard}
+                >
                   <div className={styles.mobileVariantTop}>
                     <div className={styles.mobileImgWrapper}>
                       <img
@@ -533,11 +661,11 @@ export default function AddVariationPage() {
                         className={styles.editBtn}
                         onClick={() => openEditModal(variant)}
                       >
-                        <PencilLine size={15} />
+                        <Pencil size={15} />
                       </button>
                       <button
                         className={styles.deleteBtn}
-                        onClick={() => handleDelete(variant.id)}
+                        onClick={() => handleDeleteClick(variant)}
                       >
                         <Trash2 size={15} />
                       </button>
@@ -609,7 +737,7 @@ export default function AddVariationPage() {
               <div className={styles.modalRow}>
                 <div className={styles.modalField}>
                   <label className={styles.fieldLabel}>Size</label>
-                  <input
+                  <select
                     className={styles.inputField}
                     value={editingVariant.size}
                     onChange={(e) =>
@@ -618,20 +746,62 @@ export default function AddVariationPage() {
                         size: e.target.value,
                       })
                     }
-                  />
+                  >
+                    <option value="">Select a size</option>
+                    <optgroup label="Standard Sizes">
+                      {sizeOptions.map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="Numerical Sizes">
+                      {numericalSizes.map((size) => (
+                        <option key={size} value={size}>
+                          {size}
+                        </option>
+                      ))}
+                    </optgroup>
+                  </select>
                 </div>
                 <div className={styles.modalField}>
                   <label className={styles.fieldLabel}>Color</label>
-                  <input
-                    className={styles.inputField}
-                    value={editingVariant.color}
-                    onChange={(e) =>
-                      setEditingVariant({
-                        ...editingVariant,
-                        color: e.target.value,
-                      })
-                    }
-                  />
+                  <div className={styles.colorInputContainer}>
+                    <select
+                      className={styles.colorDropdown}
+                      value={editingVariant.color}
+                      onChange={(e) =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          color: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="">Select a color</option>
+                      {colorOptions.map((color) => (
+                        <option key={color} value={color}>
+                          {color}
+                        </option>
+                      ))}
+                      <option value="" disabled>
+                        ─────────────
+                      </option>
+                      <option value="" disabled>
+                        Custom:
+                      </option>
+                    </select>
+                    <input
+                      className={styles.inputField}
+                      placeholder="or type custom color"
+                      value={editingVariant.color}
+                      onChange={(e) =>
+                        setEditingVariant({
+                          ...editingVariant,
+                          color: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
               <div className={styles.modalRow}>
@@ -707,6 +877,15 @@ export default function AddVariationPage() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={deleteConfirmOpen}
+        productName={`${variantToDelete?.sku} - ${variantToDelete?.size} - ${variantToDelete?.color}`}
+        isDeleting={isDeleting}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </div>
   );
 }

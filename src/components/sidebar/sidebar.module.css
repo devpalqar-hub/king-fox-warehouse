@@ -4,7 +4,8 @@
 
 .sidebar {
   width: 260px;
-  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
   background: #ffffff;
   border-right: 1px solid #eef2f6;
   display: flex;
@@ -22,6 +23,7 @@
   transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: none;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Prevent scrollbar on ios */

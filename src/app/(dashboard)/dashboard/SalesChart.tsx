@@ -2,43 +2,26 @@
 
 import styles from "./dashboard.module.css";
 import { useState } from "react";
+import type { SalesComparison } from "@/types/dashboard";
 
-// Mock data — replace with API later
-const MOCK_DATA: Record<
-  string,
-  { label: string; online: number; offline: number }[]
-> = {
-  Daily: [
-    { label: "Mon", online: 42000, offline: 28000 },
-    { label: "Tue", online: 38000, offline: 32000 },
-    { label: "Wed", online: 55000, offline: 25000 },
-    { label: "Thu", online: 47000, offline: 30000 },
-    { label: "Fri", online: 62000, offline: 22000 },
-    { label: "Sat", online: 71000, offline: 35000 },
-    { label: "Sun", online: 58000, offline: 27000 },
-  ],
-  Monthly: [
-    { label: "Jan", online: 320000, offline: 210000 },
-    { label: "Feb", online: 280000, offline: 240000 },
-    { label: "Mar", online: 410000, offline: 190000 },
-    { label: "Apr", online: 370000, offline: 220000 },
-    { label: "May", online: 450000, offline: 180000 },
-    { label: "Jun", online: 520000, offline: 160000 },
-  ],
-  Yearly: [
-    { label: "2020", online: 2100000, offline: 1800000 },
-    { label: "2021", online: 2800000, offline: 1600000 },
-    { label: "2022", online: 3400000, offline: 1400000 },
-    { label: "2023", online: 3900000, offline: 1200000 },
-    { label: "2024", online: 4284500, offline: 1100000 },
-  ],
-};
+interface SalesChartProps {
+  data: SalesComparison | null;
+  loading?: boolean;
+}
 
-const TABS = ["Daily", "Monthly", "Yearly"] as const;
+const SalesChart = ({ data, loading = false }: SalesChartProps) => {
+  const [activeTab, setActiveTab] = useState<"Daily" | "Monthly" | "Yearly">(
+    "Daily",
+  );
 
-const SalesChart = () => {
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("Daily");
-  const data = MOCK_DATA[activeTab];
+  // ─── Transform API data into chart format ──────────────────────────────────
+  const chartData = data
+    ? data.labels.map((label, i) => ({
+        label,
+        online: data.onlineSales[i] || 0,
+        offline: data.physicalSales[i] || 0,
+      }))
+    : [];
 
   const W = 580;
   const H = 200;
@@ -46,15 +29,15 @@ const SalesChart = () => {
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
 
-  const allVals = data.flatMap((d) => [d.online, d.offline]);
-  const maxVal = Math.max(...allVals);
+  const allVals = chartData.flatMap((d) => [d.online, d.offline]);
+  const maxVal = Math.max(...allVals, 1);
   const minVal = 0;
   const range = maxVal - minVal || 1;
 
-  const xStep = chartW / (data.length - 1);
+  const xStep = chartData.length > 1 ? chartW / (chartData.length - 1) : 0;
 
   const pts = (key: "online" | "offline") =>
-    data
+    chartData
       .map((d, i) => {
         const x = PAD.left + i * xStep;
         const y = PAD.top + chartH - ((d[key] - minVal) / range) * chartH;
@@ -63,7 +46,7 @@ const SalesChart = () => {
       .join(" ");
 
   const areaPath = (key: "online" | "offline") => {
-    const points = data.map((d, i) => ({
+    const points = chartData.map((d, i) => ({
       x: PAD.left + i * xStep,
       y: PAD.top + chartH - ((d[key] - minVal) / range) * chartH,
     }));
@@ -95,122 +78,137 @@ const SalesChart = () => {
           <p className={styles.chartSub}>Online Store vs Physical Outlets</p>
         </div>
         <div className={styles.chartTabs}>
-          {TABS.map((t) => (
+          {["Daily", "Monthly", "Yearly"].map((tab) => (
             <button
-              key={t}
-              className={`${styles.chartTab} ${activeTab === t ? styles.chartTabActive : ""}`}
-              onClick={() => setActiveTab(t)}
+              key={tab}
+              className={`${styles.chartTab} ${activeTab === tab ? styles.active : ""}`}
+              onClick={() =>
+                setActiveTab(tab as "Daily" | "Monthly" | "Yearly")
+              }
             >
-              {t}
+              {tab}
             </button>
           ))}
         </div>
       </div>
 
-      <div className={styles.chartSvgWrap}>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          preserveAspectRatio="none"
-          className={styles.chartSvg}
-        >
-          <defs>
-            <linearGradient id="gradOnline" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.22" />
-              <stop offset="100%" stopColor="#6366f1" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="gradOffline" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.14" />
-              <stop offset="100%" stopColor="#94a3b8" stopOpacity="0" />
-            </linearGradient>
-          </defs>
+      {loading || !data || chartData.length === 0 ? (
+        <div style={{ textAlign: "center", padding: "40px 0" }}>
+          <p className={styles.loadingText}>
+            {loading ? "Loading chart..." : "No data available"}
+          </p>
+        </div>
+      ) : (
+        <>
+          <svg viewBox={`0 0 ${W} ${H}`} className={styles.chartSvg}>
+            {/* ── Y-axis ticks and labels ── */}
+            {yTicks.map((tick) => (
+              <g key={`tick-${tick.val}`}>
+                <line
+                  x1={PAD.left - 4}
+                  y1={tick.y}
+                  x2={PAD.left}
+                  y2={tick.y}
+                  stroke="#cbd5e1"
+                  strokeWidth="1"
+                />
+                <text
+                  x={PAD.left - 8}
+                  y={tick.y + 3}
+                  textAnchor="end"
+                  fontSize="11"
+                  fill="#64748b"
+                  fontFamily="inherit"
+                >
+                  {fmt(tick.val)}
+                </text>
+              </g>
+            ))}
 
-          {/* Y grid */}
-          {yTicks.map((tk) => (
-            <g key={tk.y}>
+            {/* ── Grid lines ── */}
+            {yTicks.map((tick) => (
               <line
+                key={`grid-${tick.val}`}
                 x1={PAD.left}
-                y1={tk.y}
+                y1={tick.y}
                 x2={W - PAD.right}
-                y2={tk.y}
+                y2={tick.y}
                 stroke="#f1f5f9"
                 strokeWidth="1"
               />
+            ))}
+
+            {/* ── Axis lines ── */}
+            <line
+              x1={PAD.left}
+              y1={PAD.top}
+              x2={PAD.left}
+              y2={PAD.top + chartH}
+              stroke="#cbd5e1"
+              strokeWidth="2"
+            />
+            <line
+              x1={PAD.left}
+              y1={PAD.top + chartH}
+              x2={W - PAD.right}
+              y2={PAD.top + chartH}
+              stroke="#cbd5e1"
+              strokeWidth="2"
+            />
+
+            {/* ── Areas ── */}
+            <path d={areaPath("online")} fill="#6366f1" opacity="0.15" />
+            <path d={areaPath("offline")} fill="#f59e0b" opacity="0.15" />
+
+            {/* ── Lines ── */}
+            <polyline
+              points={pts("online")}
+              fill="none"
+              stroke="#6366f1"
+              strokeWidth="2"
+            />
+            <polyline
+              points={pts("offline")}
+              fill="none"
+              stroke="#f59e0b"
+              strokeWidth="2"
+            />
+
+            {/* ── X-axis labels ── */}
+            {chartData.map((point, i) => (
               <text
-                x={PAD.left - 6}
-                y={tk.y + 4}
-                textAnchor="end"
-                fontSize="9"
-                fill="#94a3b8"
+                key={`label-${i}`}
+                x={PAD.left + i * xStep}
+                y={PAD.top + chartH + 18}
+                textAnchor="middle"
+                fontSize="11"
+                fill="#64748b"
                 fontFamily="inherit"
               >
-                {fmt(tk.val)}
+                {point.label}
               </text>
-            </g>
-          ))}
+            ))}
+          </svg>
 
-          {/* X labels */}
-          {data.map((d, i) => (
-            <text
-              key={d.label}
-              x={PAD.left + i * xStep}
-              y={H - 6}
-              textAnchor="middle"
-              fontSize="9"
-              fill="#94a3b8"
-              fontFamily="inherit"
-            >
-              {d.label}
-            </text>
-          ))}
-
-          {/* Areas */}
-          <path d={areaPath("offline")} fill="url(#gradOffline)" />
-          <path d={areaPath("online")} fill="url(#gradOnline)" />
-
-          {/* Lines */}
-          <polyline
-            points={pts("offline")}
-            fill="none"
-            stroke="#cbd5e1"
-            strokeWidth="2"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-          <polyline
-            points={pts("online")}
-            fill="none"
-            stroke="#6366f1"
-            strokeWidth="2.5"
-            strokeLinejoin="round"
-            strokeLinecap="round"
-          />
-
-          {/* Dots for online */}
-          {data.map((d, i) => {
-            const x = PAD.left + i * xStep;
-            const y = PAD.top + chartH - ((d.online - minVal) / range) * chartH;
-            return (
-              <circle
-                key={i}
-                cx={x}
-                cy={y}
-                r="3.5"
-                fill="#6366f1"
-                stroke="#fff"
-                strokeWidth="1.5"
+          {/* ── Legend ── */}
+          <div className={styles.chartLegend}>
+            <div className={styles.legendItem}>
+              <span
+                className={styles.legendDot}
+                style={{ background: "#6366f1" }}
               />
-            );
-          })}
-        </svg>
-      </div>
-
-      {/* Legend */}
-      <div className={styles.chartLegend}>
-        <span className={styles.legendDot} style={{ background: "#6366f1" }} />
-        <span className={styles.legendLabel}>Online Sales</span>
-        <span className={styles.legendDot} style={{ background: "#cbd5e1" }} />
-        <span className={styles.legendLabel}>Offline Outlets</span>
-      </div>
+              <span>Online Sales</span>
+            </div>
+            <div className={styles.legendItem}>
+              <span
+                className={styles.legendDot}
+                style={{ background: "#f59e0b" }}
+              />
+              <span>Physical Sales</span>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
