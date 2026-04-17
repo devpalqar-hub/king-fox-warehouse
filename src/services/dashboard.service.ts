@@ -63,7 +63,12 @@ export const getCategoryPerformance = async (): Promise<
       throw new Error(`API error: ${res.status}`);
     }
 
-    return await res.json();
+    const raw = await res.json();
+
+    return raw.map((item: any) => ({
+      label: item.name,
+      value: Number(item.share) || 0,
+    }));
   } catch (error) {
     console.error("Error fetching category performance:", error);
     return [];

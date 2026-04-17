@@ -249,17 +249,20 @@ const ReviewsPage = () => {
 
         {/* Pagination */}
         <div className={styles.pagination}>
-          <span className={styles.pageInfo}>Page {page}</span>
+          <span className={styles.pageInfo}>
+            {reviews.length === 0 ? "No reviews" : `Page ${page}`}
+          </span>
           <div className={styles.paginationBtns}>
             <button
               className={styles.btnPage}
-              disabled={page === 1}
+              disabled={page === 1 || reviews.length === 0}
               onClick={() => setPage((p) => p - 1)}
             >
               Prev
             </button>
             <button
               className={styles.btnPage}
+              disabled={reviews.length === 0}
               onClick={() => setPage((p) => p + 1)}
             >
               Next

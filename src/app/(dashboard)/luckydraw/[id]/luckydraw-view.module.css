@@ -497,6 +497,13 @@
   box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38);
 }
 
+.btnExport:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+}
+
 .btnEdit {
   display: flex;
   align-items: center;

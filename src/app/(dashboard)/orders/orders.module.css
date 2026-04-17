@@ -36,6 +36,11 @@
   cursor: pointer;
 }
 
+.createBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* Stats Cards */
 .statsGrid {
   display: grid;

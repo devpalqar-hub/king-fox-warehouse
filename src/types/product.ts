@@ -24,7 +24,8 @@ export interface Variant {
 export interface Product {
   id: number;
   name: string;
-  status: String;
+  status: string;
+  slug: string;
   description: string;
   brandId: number;
   categoryId: number;
@@ -34,4 +35,5 @@ export interface Product {
   category: Category;
   variants: Variant[];
   isFreeShipping?: boolean;
+  isOnlineAvailable?: boolean;
 }

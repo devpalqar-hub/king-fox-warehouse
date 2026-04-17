@@ -1,14 +1,182 @@
 "use client";
 
 import styles from "./luckydraw-edit.module.css";
-import { ArrowLeft, Save, ChevronDown, AlertCircle } from "lucide-react";
+import { Save, ChevronDown, AlertCircle, Search } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { getCampaignById, updateCampaign } from "@/services/luckydraw.service";
 import { getBranches } from "@/services/branch.service";
 import { getCategories } from "@/services/category.service";
-import { getTags } from "@/services/tag.service";
+import { getTags, type Tag } from "@/services/tag.service";
+import { getProducts } from "@/services/product.service";
 import { useToast } from "@/components/toast/ToastProvider";
+import BackButton from "@/components/backButton/backButton";
+import type { Product } from "@/types/product";
+import type { Branch } from "@/types/branch.types";
+import type { Category } from "@/types/category";
+
+type CampaignForm = {
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  totalVouchersLimit: string;
+  priority: string;
+  filterType: "CATEGORY" | "TAG" | "PRODUCT";
+  branchIds: number[];
+  categoryIds: number[];
+  tagIds: number[];
+  productIds: number[];
+};
+
+type CampaignReference = {
+  id: number | string;
+  name: string;
+};
+
+type CampaignDetails = {
+  name?: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  totalVouchersLimit?: number | string;
+  priority?: number | string;
+  filterType?: string | null;
+  branchIds?: Array<number | string>;
+  branches?: CampaignReference[];
+  categoryIds?: Array<number | string>;
+  categories?: CampaignReference[];
+  tagIds?: Array<number | string>;
+  tags?: CampaignReference[];
+  productIds?: Array<number | string>;
+  products?: unknown[];
+};
+
+type EditableCampaignField = Exclude<
+  keyof CampaignForm,
+  "branchIds" | "categoryIds" | "tagIds" | "productIds"
+>;
+
+const normalizeFilterType = (value: unknown): CampaignForm["filterType"] => {
+  const normalizedValue = String(value ?? "").trim().toUpperCase();
+
+  if (normalizedValue === "TAG" || normalizedValue === "TAGS") {
+    return "TAG";
+  }
+
+  if (normalizedValue === "PRODUCT" || normalizedValue === "PRODUCTS") {
+    return "PRODUCT";
+  }
+
+  return "CATEGORY";
+};
+
+const toFiniteId = (value: unknown): number | null => {
+  if (value == null) return null;
+
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+
+    return toFiniteId(
+      record.id ??
+        record.productId ??
+        record.categoryId ??
+        record.tagId ??
+        record.branchId ??
+        record.product,
+    );
+  }
+
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+};
+
+const normalizeIdList = (values: unknown): number[] => {
+  if (!Array.isArray(values)) return [];
+
+  return Array.from(
+    new Set(
+      values
+        .map((value) => toFiniteId(value))
+        .filter((value): value is number => value !== null),
+    ),
+  );
+};
+
+const createFallbackProduct = (id: number, name?: string): Product => ({
+  id,
+  name: name?.trim() || `Product #${id}`,
+  status: "",
+  slug: "",
+  description: "",
+  brandId: 0,
+  categoryId: 0,
+  images: [],
+  createdAt: "",
+  brand: {
+    id: 0,
+    name: "",
+  },
+  category: {
+    id: 0,
+    name: "",
+  },
+  variants: [],
+});
+
+const toProductOption = (value: unknown): Product | null => {
+  if (!value || typeof value !== "object") {
+    const id = toFiniteId(value);
+    return id ? createFallbackProduct(id) : null;
+  }
+
+  const record = value as Record<string, unknown>;
+  const productRecord =
+    record.product && typeof record.product === "object"
+      ? (record.product as Record<string, unknown>)
+      : record;
+  const id = toFiniteId(productRecord.id ?? record.productId ?? record.id);
+
+  if (!id) return null;
+
+  const name =
+    typeof productRecord.name === "string"
+      ? productRecord.name
+      : typeof record.name === "string"
+        ? record.name
+        : undefined;
+
+  return createFallbackProduct(id, name);
+};
+
+const mergeProducts = (
+  selectedIds: number[],
+  campaignProducts: unknown,
+  fetchedProducts: Product[],
+) => {
+  const productMap = new Map<number, Product>();
+
+  selectedIds.forEach((id) => {
+    productMap.set(id, createFallbackProduct(id));
+  });
+
+  if (Array.isArray(campaignProducts)) {
+    campaignProducts.forEach((product) => {
+      const normalizedProduct = toProductOption(product);
+
+      if (normalizedProduct) {
+        productMap.set(normalizedProduct.id, normalizedProduct);
+      }
+    });
+  }
+
+  fetchedProducts.forEach((product) => {
+    productMap.set(Number(product.id), product);
+  });
+
+  return Array.from(productMap.values());
+};
 
 const LuckyDrawEditPage = () => {
   const { id } = useParams();
@@ -16,13 +184,16 @@ const LuckyDrawEditPage = () => {
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [branches, setBranches] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CampaignForm>({
     name: "",
     description: "",
     startDate: "",
@@ -33,12 +204,31 @@ const LuckyDrawEditPage = () => {
     branchIds: [] as number[],
     categoryIds: [] as number[],
     tagIds: [] as number[],
+    productIds: [] as number[],
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await getCampaignById(id as string);
+        const res = (await getCampaignById(id as string)) as CampaignDetails;
+        const normalizedFilterType = normalizeFilterType(res.filterType);
+        const selectedBranchIds =
+          normalizeIdList(res.branchIds).length > 0
+            ? normalizeIdList(res.branchIds)
+            : normalizeIdList(res.branches);
+        const selectedCategoryIds =
+          normalizeIdList(res.categoryIds).length > 0
+            ? normalizeIdList(res.categoryIds)
+            : normalizeIdList(res.categories);
+        const selectedTagIds =
+          normalizeIdList(res.tagIds).length > 0
+            ? normalizeIdList(res.tagIds)
+            : normalizeIdList(res.tags);
+        const selectedProductIds =
+          normalizeIdList(res.productIds).length > 0
+            ? normalizeIdList(res.productIds)
+            : normalizeIdList(res.products);
+
         setForm({
           name: res.name ?? "",
           description: res.description ?? "",
@@ -46,13 +236,15 @@ const LuckyDrawEditPage = () => {
           endDate: res.endDate ? res.endDate.split("T")[0] : "",
           totalVouchersLimit: String(res.totalVouchersLimit ?? ""),
           priority: String(res.priority ?? "1"),
-          filterType: res.filterType ?? "CATEGORY",
-          branchIds: res.branchIds ?? [],
-          categoryIds: res.categoryIds ?? [],
-          tagIds: res.tagIds ?? [],
+          filterType: normalizedFilterType,
+          branchIds: selectedBranchIds,
+          categoryIds: selectedCategoryIds,
+          tagIds: selectedTagIds,
+          productIds: selectedProductIds,
         });
 
         const branchesData = await getBranches();
+
         setBranches(branchesData);
 
         const categoriesData = await getCategories();
@@ -60,6 +252,13 @@ const LuckyDrawEditPage = () => {
 
         const tagsData = await getTags();
         setTags(tagsData);
+
+        const productsData = await getProducts({ page: 1, limit: 1000 });
+        const fetchedProducts = Array.isArray(productsData.data)
+          ? productsData.data
+          : [];
+
+        setProducts(mergeProducts(selectedProductIds, res.products, fetchedProducts));
       } catch (err) {
         console.error(err);
         showToast("Failed to load campaign", "error");
@@ -76,15 +275,20 @@ const LuckyDrawEditPage = () => {
     >,
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const fieldName = name as EditableCampaignField;
+    setForm((prev) => ({ ...prev, [fieldName]: value }));
 
     // Reset selection when changing filter type
     if (name === "filterType") {
+      setShowFilterDropdown(false);
+      setShowProductDropdown(false);
+      setProductSearch("");
       setForm((prev) => ({
         ...prev,
-        filterType: value,
+        filterType: value as CampaignForm["filterType"],
         categoryIds: [],
         tagIds: [],
+        productIds: [],
       }));
     }
   };
@@ -116,6 +320,25 @@ const LuckyDrawEditPage = () => {
     }));
   };
 
+  const toggleProduct = (productId: number) => {
+    setForm((prev) => ({
+      ...prev,
+      productIds: prev.productIds.includes(productId)
+        ? prev.productIds.filter((id) => id !== productId)
+        : [...prev.productIds, productId],
+    }));
+  };
+
+  const handleProductDropdownToggle = () => {
+    setShowProductDropdown((prev) => {
+      if (prev) {
+        setProductSearch("");
+      }
+
+      return !prev;
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -143,6 +366,11 @@ const LuckyDrawEditPage = () => {
       return;
     }
 
+    if (form.filterType === "PRODUCT" && form.productIds.length === 0) {
+      showToast("Please select at least one product", "error");
+      return;
+    }
+
     setSaving(true);
     try {
       await updateCampaign(id as string, {
@@ -154,8 +382,9 @@ const LuckyDrawEditPage = () => {
         priority: Number(form.priority),
         filterType: form.filterType,
         branchIds: form.branchIds,
-        categoryIds: form.categoryIds,
-        tagIds: form.tagIds,
+        categoryIds: form.filterType === "CATEGORY" ? form.categoryIds : [],
+        tagIds: form.filterType === "TAG" ? form.tagIds : [],
+        productIds: form.filterType === "PRODUCT" ? form.productIds : [],
       });
       showToast("Campaign updated successfully", "success");
       router.push(`/luckydraw/${id}`);
@@ -177,20 +406,27 @@ const LuckyDrawEditPage = () => {
   }
 
   const selectedBranches = branches.filter((b) =>
-    form.branchIds.includes(b.id),
+    form.branchIds.includes(Number(b.id)),
   );
   const selectedFilterItems =
     form.filterType === "CATEGORY"
-      ? categories.filter((c) => form.categoryIds.includes(c.id))
-      : tags.filter((t) => form.tagIds.includes(t.id));
+      ? categories.filter((c) => form.categoryIds.includes(Number(c.id)))
+      : form.filterType === "TAG"
+        ? tags.filter((t) => form.tagIds.includes(Number(t.id)))
+        : products.filter((product) =>
+            form.productIds.includes(Number(product.id)),
+          );
+  const selectedProducts = products.filter((product) =>
+    form.productIds.includes(Number(product.id)),
+  );
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(productSearch.toLowerCase().trim()),
+  );
 
   return (
     <div className={styles.container}>
       {/* Back nav */}
-      <button className={styles.backBtn} onClick={() => router.back()}>
-        <ArrowLeft size={16} />
-        Back
-      </button>
+      <BackButton />
 
       {/* Page header */}
       <div className={styles.pageHeader}>
@@ -334,8 +570,8 @@ const LuckyDrawEditPage = () => {
                         <label key={branch.id} className={styles.checkboxItem}>
                           <input
                             type="checkbox"
-                            checked={form.branchIds.includes(branch.id)}
-                            onChange={() => toggleBranch(branch.id)}
+                            checked={form.branchIds.includes(Number(branch.id))}
+                            onChange={() => toggleBranch(Number(branch.id))}
                             className={styles.checkbox}
                           />
                           <span className={styles.checkboxLabel}>
@@ -373,6 +609,7 @@ const LuckyDrawEditPage = () => {
                 >
                   <option value="CATEGORY">By Category</option>
                   <option value="TAG">By Tag</option>
+                  <option value="PRODUCT">By Product</option>
                 </select>
               </div>
 
@@ -410,8 +647,12 @@ const LuckyDrawEditPage = () => {
                           >
                             <input
                               type="checkbox"
-                              checked={form.categoryIds.includes(category.id)}
-                              onChange={() => toggleCategory(category.id)}
+                              checked={form.categoryIds.includes(
+                                Number(category.id),
+                              )}
+                              onChange={() =>
+                                toggleCategory(Number(category.id))
+                              }
                               className={styles.checkbox}
                             />
                             <span className={styles.checkboxLabel}>
@@ -466,8 +707,8 @@ const LuckyDrawEditPage = () => {
                           <label key={tag.id} className={styles.checkboxItem}>
                             <input
                               type="checkbox"
-                              checked={form.tagIds.includes(tag.id)}
-                              onChange={() => toggleTag(tag.id)}
+                              checked={form.tagIds.includes(Number(tag.id))}
+                              onChange={() => toggleTag(Number(tag.id))}
                               className={styles.checkbox}
                             />
                             <span className={styles.checkboxLabel}>
@@ -484,6 +725,80 @@ const LuckyDrawEditPage = () => {
                       {selectedFilterItems.map((item) => (
                         <span key={item.id} className={styles.tag}>
                           {item.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {form.filterType === "PRODUCT" && (
+                <div className={styles.dropdownWrapper}>
+                  <label className={styles.label}>Select Products *</label>
+                  <button
+                    type="button"
+                    onClick={handleProductDropdownToggle}
+                    className={styles.dropdownTrigger}
+                  >
+                    <span className={styles.dropdownText}>
+                      {form.productIds.length === 0
+                        ? "Select products..."
+                        : `${form.productIds.length} selected`}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={showProductDropdown ? styles.chevronOpen : ""}
+                    />
+                  </button>
+
+                  {showProductDropdown && (
+                    <div className={styles.dropdownMenu}>
+                      <div className={styles.dropdownSearch}>
+                        <Search
+                          size={16}
+                          className={styles.dropdownSearchIcon}
+                        />
+                        <input
+                          type="text"
+                          value={productSearch}
+                          onChange={(e) => setProductSearch(e.target.value)}
+                          placeholder="Search products..."
+                          className={styles.dropdownSearchInput}
+                        />
+                      </div>
+
+                      {products.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          No products available
+                        </div>
+                      ) : filteredProducts.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          No products found for <strong>{productSearch}</strong>
+                          .
+                        </div>
+                      ) : (
+                        filteredProducts.map((product) => (
+                          <label key={product.id} className={styles.checkboxItem}>
+                            <input
+                              type="checkbox"
+                              checked={form.productIds.includes(Number(product.id))}
+                              onChange={() => toggleProduct(Number(product.id))}
+                              className={styles.checkbox}
+                            />
+                            <span className={styles.checkboxLabel}>
+                              {product.name}
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {selectedProducts.length > 0 && (
+                    <div className={styles.selectedTags}>
+                      {selectedProducts.map((product) => (
+                        <span key={product.id} className={styles.tag}>
+                          {product.name}
                         </span>
                       ))}
                     </div>
@@ -508,7 +823,11 @@ const LuckyDrawEditPage = () => {
               <div className={styles.summaryItem}>
                 <span className={styles.summaryLabel}>Filter Type:</span>
                 <span className={styles.summaryValue}>
-                  {form.filterType === "CATEGORY" ? "Categories" : "Tags"}
+                  {form.filterType === "CATEGORY"
+                    ? "Categories"
+                    : form.filterType === "TAG"
+                      ? "Tags"
+                      : "Products"}
                 </span>
               </div>
               <div className={styles.summaryItem}>

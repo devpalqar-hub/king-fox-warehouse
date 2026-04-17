@@ -7,22 +7,54 @@ import { createCampaign } from "@/services/luckydraw.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import { getBranches } from "@/services/branch.service";
 import { getCategories } from "@/services/category.service";
-import { getTags } from "@/services/tag.service";
+import { getTags, type Tag } from "@/services/tag.service";
+import { getProducts } from "@/services/product.service";
 import BackButton from "@/components/backButton/backButton";
-import { ChevronDown, AlertCircle } from "lucide-react";
+import { ChevronDown, AlertCircle, Search } from "lucide-react";
+import type { Product } from "@/types/product";
+import type { Branch } from "@/types/branch.types";
+import type { Category } from "@/types/category";
+
+type CampaignForm = {
+  name: string;
+  description: string;
+  image: string;
+  totalVouchersLimit: string;
+  startDate: string;
+  endDate: string;
+  priority: string;
+  filterType: "CATEGORY" | "TAG" | "PRODUCT";
+  branchIds: number[];
+  categoryIds: number[];
+  tagIds: number[];
+  productIds: number[];
+};
+
+type EditableCampaignField = Exclude<
+  keyof CampaignForm,
+  "branchIds" | "categoryIds" | "tagIds" | "productIds"
+>;
+
+const DEFAULT_BANNER_IMAGE = "https://picsum.photos/800/250";
 
 const CreateCampaignPage = () => {
   const router = useRouter();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const [branches, setBranches] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [tags, setTags] = useState<any[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [showBranchDropdown, setShowBranchDropdown] = useState(false);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [productSearch, setProductSearch] = useState("");
+  const branchRef = useRef<HTMLDivElement | null>(null);
+  const filterRef = useRef<HTMLDivElement | null>(null);
+  const productRef = useRef<HTMLDivElement | null>(null);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<CampaignForm>({
     name: "",
     description: "",
     image: "",
@@ -34,7 +66,32 @@ const CreateCampaignPage = () => {
     branchIds: [] as number[],
     categoryIds: [] as number[],
     tagIds: [] as number[],
+    productIds: [] as number[],
   });
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (branchRef.current && !branchRef.current.contains(target)) {
+        setShowBranchDropdown(false);
+      }
+
+      if (filterRef.current && !filterRef.current.contains(target)) {
+        setShowFilterDropdown(false);
+      }
+
+      if (productRef.current && !productRef.current.contains(target)) {
+        setShowProductDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,6 +104,9 @@ const CreateCampaignPage = () => {
 
         const tagsData = await getTags();
         setTags(tagsData);
+
+        const productsData = await getProducts({ page: 1, limit: 1000 });
+        setProducts(Array.isArray(productsData.data) ? productsData.data : []);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -54,17 +114,26 @@ const CreateCampaignPage = () => {
     fetchData();
   }, []);
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
+    const fieldName = name as EditableCampaignField;
+    setForm((prev) => ({ ...prev, [fieldName]: value }));
 
     // Reset selection when changing filter type
     if (name === "filterType") {
+      setShowFilterDropdown(false);
+      setShowProductDropdown(false);
+      setProductSearch("");
       setForm((prev) => ({
         ...prev,
-        filterType: value,
+        filterType: value as CampaignForm["filterType"],
         categoryIds: [],
         tagIds: [],
+        productIds: [],
       }));
     }
   };
@@ -96,12 +165,31 @@ const CreateCampaignPage = () => {
     }));
   };
 
+  const toggleProduct = (id: number) => {
+    setForm((prev) => ({
+      ...prev,
+      productIds: prev.productIds.includes(id)
+        ? prev.productIds.filter((productId) => productId !== id)
+        : [...prev.productIds, id],
+    }));
+  };
+
   const handleBannerClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: any) => {
-    const file = e.target.files[0];
+  const handleProductDropdownToggle = () => {
+    setShowProductDropdown((prev) => {
+      if (prev) {
+        setProductSearch("");
+      }
+
+      return !prev;
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
 
     if (file) {
       const previewUrl = URL.createObjectURL(file);
@@ -146,9 +234,17 @@ const CreateCampaignPage = () => {
       return;
     }
 
+    if (form.filterType === "PRODUCT" && form.productIds.length === 0) {
+      showToast("Please select at least one product", "error");
+      return;
+    }
+
     try {
       await createCampaign({
         ...form,
+        categoryIds: form.filterType === "CATEGORY" ? form.categoryIds : [],
+        tagIds: form.filterType === "TAG" ? form.tagIds : [],
+        productIds: form.filterType === "PRODUCT" ? form.productIds : [],
         totalVouchersLimit: Number(form.totalVouchersLimit),
         priority: Number(form.priority),
       });
@@ -167,7 +263,17 @@ const CreateCampaignPage = () => {
   const selectedFilterItems =
     form.filterType === "CATEGORY"
       ? categories.filter((c) => form.categoryIds.includes(c.id))
-      : tags.filter((t) => form.tagIds.includes(t.id));
+      : form.filterType === "TAG"
+        ? tags.filter((t) => form.tagIds.includes(t.id))
+        : products.filter((product) =>
+            form.productIds.includes(Number(product.id)),
+          );
+  const selectedProducts = products.filter((product) =>
+    form.productIds.includes(Number(product.id)),
+  );
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(productSearch.toLowerCase().trim()),
+  );
 
   return (
     <div className={styles.container}>
@@ -198,10 +304,7 @@ const CreateCampaignPage = () => {
             <section className={styles.section}>
               <div className={styles.bannerContainer}>
                 <img
-                  src={
-                    form.image ||
-                    "https://picsum.photos/800/250?random=" + Math.random()
-                  }
+                  src={form.image || DEFAULT_BANNER_IMAGE}
                   alt="Campaign banner"
                   className={styles.bannerImage}
                 />
@@ -323,7 +426,7 @@ const CreateCampaignPage = () => {
             <section className={styles.section}>
               <h2 className={styles.sectionTitle}>Select Branches *</h2>
 
-              <div className={styles.dropdownWrapper}>
+              <div className={styles.dropdownWrapper} ref={branchRef}>
                 <button
                   type="button"
                   onClick={() => setShowBranchDropdown(!showBranchDropdown)}
@@ -390,12 +493,13 @@ const CreateCampaignPage = () => {
                 >
                   <option value="CATEGORY">By Category</option>
                   <option value="TAG">By Tag</option>
+                  <option value="PRODUCT">By Product</option>
                 </select>
               </div>
 
               {/* Conditional Categories */}
               {form.filterType === "CATEGORY" && (
-                <div className={styles.dropdownWrapper}>
+                <div className={styles.dropdownWrapper} ref={filterRef}>
                   <label className={styles.label}>Select Categories *</label>
                   <button
                     type="button"
@@ -454,7 +558,7 @@ const CreateCampaignPage = () => {
 
               {/* Conditional Tags */}
               {form.filterType === "TAG" && (
-                <div className={styles.dropdownWrapper}>
+                <div className={styles.dropdownWrapper} ref={filterRef}>
                   <label className={styles.label}>Select Tags *</label>
                   <button
                     type="button"
@@ -507,6 +611,85 @@ const CreateCampaignPage = () => {
                   )}
                 </div>
               )}
+
+              {form.filterType === "PRODUCT" && (
+                <div className={styles.dropdownWrapper} ref={productRef}>
+                  <label className={styles.label}>Select Products *</label>
+                  <button
+                    type="button"
+                    onClick={handleProductDropdownToggle}
+                    className={styles.dropdownTrigger}
+                  >
+                    <span className={styles.dropdownText}>
+                      {form.productIds.length === 0
+                        ? "Select products..."
+                        : `${form.productIds.length} selected`}
+                    </span>
+                    <ChevronDown
+                      size={18}
+                      className={showProductDropdown ? styles.chevronOpen : ""}
+                    />
+                  </button>
+
+                  {showProductDropdown && (
+                    <div className={styles.dropdownMenu}>
+                      <div className={styles.dropdownSearch}>
+                        <Search
+                          size={16}
+                          className={styles.dropdownSearchIcon}
+                        />
+                        <input
+                          type="text"
+                          value={productSearch}
+                          onChange={(e) => setProductSearch(e.target.value)}
+                          placeholder="Search products..."
+                          className={styles.dropdownSearchInput}
+                        />
+                      </div>
+
+                      {products.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          No products available
+                        </div>
+                      ) : filteredProducts.length === 0 ? (
+                        <div className={styles.emptyState}>
+                          No products found for <strong>{productSearch}</strong>
+                          .
+                        </div>
+                      ) : (
+                        filteredProducts.map((product) => (
+                          <label
+                            key={product.id}
+                            className={styles.checkboxItem}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={form.productIds.includes(
+                                Number(product.id),
+                              )}
+                              onChange={() => toggleProduct(Number(product.id))}
+                              className={styles.checkbox}
+                            />
+                            <span className={styles.checkboxLabel}>
+                              {product.name}
+                            </span>
+                          </label>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {selectedProducts.length > 0 && (
+                    <div className={styles.selectedTags}>
+                      {selectedProducts.map((product) => (
+                        <span key={product.id} className={styles.tag}>
+                          {product.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
           </div>
 
@@ -525,7 +708,11 @@ const CreateCampaignPage = () => {
                 </p>
                 <p>
                   <strong>Filter:</strong>{" "}
-                  {form.filterType === "CATEGORY" ? "Categories" : "Tags"}
+                  {form.filterType === "CATEGORY"
+                    ? "Categories"
+                    : form.filterType === "TAG"
+                      ? "Tags"
+                      : "Products"}
                 </p>
                 <p>
                   <strong>Selected:</strong> {selectedFilterItems.length || 0}

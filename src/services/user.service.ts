@@ -85,7 +85,10 @@ export const createUser = async (payload: {
     });
 
     if (!res.ok) {
-      throw new Error("Failed to create user");
+      const errorData = await res.json();
+      const error = new Error(errorData.message || "Failed to create user");
+      (error as any).statusCode = res.status;
+      throw error;
     }
 
     return res.json();
@@ -101,7 +104,7 @@ export const updateUser = async (
     name: string;
     email: string;
     password?: string;
-    phone: string;
+    phone?: string;
     roleId: number;
     branchId: number | null;
   },

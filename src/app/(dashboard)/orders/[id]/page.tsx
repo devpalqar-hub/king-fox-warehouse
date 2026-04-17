@@ -66,6 +66,11 @@ export default function OrderDetailPage() {
 
   const shipment = order.shipments?.[0];
 
+  // ── COD display logic ────────────────────────────────────────────────────
+  const isCOD = order.paymentMethod === "COD";
+  const displayStatus =
+    isCOD && order.status === "SHIPPED" ? "READY TO PICKUP" : order.status;
+
   // ── Status helpers ───────────────────────────────────────────────────────
   const nextStep = steps[currentIndex + 1] ?? null;
   const canAdvance = currentIndex >= 0 && currentIndex < steps.length - 1;
@@ -120,7 +125,7 @@ export default function OrderDetailPage() {
               <span
                 className={`${styles.badge} ${styles[order.status.toLowerCase()]}`}
               >
-                {order.status}
+                {displayStatus}
               </span>
             </div>
             <p className={styles.timestamp}>
@@ -148,7 +153,10 @@ export default function OrderDetailPage() {
                     "Updating…"
                   ) : (
                     <>
-                      Move to {nextStep}
+                      Move to{" "}
+                      {isCOD && nextStep === "SHIPPED"
+                        ? "READY TO PICKUP"
+                        : nextStep}
                       <ChevronRight size={15} />
                     </>
                   )}
@@ -156,7 +164,8 @@ export default function OrderDetailPage() {
               )}
               {!canAdvance && order.status === "SHIPPED" && (
                 <span className={styles.finalBadge}>
-                  <CheckCircle size={13} /> Order Shipped
+                  <CheckCircle size={13} />{" "}
+                  {isCOD ? "Ready to Pickup" : "Order Shipped"}
                 </span>
               )}
             </div>
@@ -194,13 +203,19 @@ export default function OrderDetailPage() {
                       className={styles.iconCircle}
                       onClick={() => isNext && handleStatusClick(step)}
                       disabled={!isNext || statusLoading}
-                      title={isNext ? `Advance to ${step}` : undefined}
+                      title={
+                        isNext
+                          ? `Advance to ${isCOD && step === "SHIPPED" ? "READY TO PICKUP" : step}`
+                          : undefined
+                      }
                     >
                       {stepIcon(step, isCompleted)}
                     </button>
 
                     <div className={styles.stepInfo}>
-                      <strong>{step}</strong>
+                      <strong>
+                        {isCOD && step === "SHIPPED" ? "READY TO PICKUP" : step}
+                      </strong>
                       <span>
                         {isCompleted || isActive
                           ? new Date(order.updatedAt).toLocaleString()
@@ -217,8 +232,13 @@ export default function OrderDetailPage() {
             {/* Inline hint */}
             {canAdvance && (
               <p className={styles.statusHint}>
-                Click the <strong>{nextStep}</strong> circle or the button above
-                to advance the order.
+                Click the{" "}
+                <strong>
+                  {isCOD && nextStep === "SHIPPED"
+                    ? "READY TO PICKUP"
+                    : nextStep}
+                </strong>{" "}
+                circle or the button above to advance the order.
               </p>
             )}
           </section>
@@ -499,8 +519,13 @@ export default function OrderDetailPage() {
             <h3 className={styles.statusModalTitle}>Confirm Status Change</h3>
             <p className={styles.statusModalDesc}>
               You're about to change this order's status from{" "}
-              <span className={styles.statusFrom}>{order.status}</span> to{" "}
-              <span className={styles.statusTo}>{pendingStatus}</span>.
+              <span className={styles.statusFrom}>{displayStatus}</span> to{" "}
+              <span className={styles.statusTo}>
+                {isCOD && pendingStatus === "SHIPPED"
+                  ? "READY TO PICKUP"
+                  : pendingStatus}
+              </span>
+              .
             </p>
             <p className={styles.statusModalWarning}>
               This action will update the order for the customer. Please

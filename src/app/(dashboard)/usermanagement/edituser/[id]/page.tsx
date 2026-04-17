@@ -78,7 +78,6 @@ export default function EditUser() {
         name: form.name,
         email: form.email,
         password: form.password || undefined,
-        phone: form.phone,
         roleId: Number(form.roleId),
         branchId: form.branchId ? Number(form.branchId) : null,
       });
@@ -156,8 +155,8 @@ export default function EditUser() {
               <input
                 name="phone"
                 value={form.phone}
-                onChange={handleChange}
-                className={styles.input}
+                readOnly
+                className={`${styles.input} ${styles.readonly}`}
               />
             </div>
           </div>

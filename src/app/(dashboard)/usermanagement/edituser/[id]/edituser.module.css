@@ -100,6 +100,18 @@
   background-color: #fff;
 }
 
+.readonly {
+  background-color: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+  border-color: #cbd5e1;
+}
+
+.readonly:focus {
+  border-color: #cbd5e1;
+  background-color: #f1f5f9;
+}
+
 /* Buttons */
 .buttonGroup {
   display: flex;

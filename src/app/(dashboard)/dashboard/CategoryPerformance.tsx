@@ -39,7 +39,7 @@ const CategoryPerformance = ({
     return seg;
   });
 
-  const top = categoriesWithColors[0];
+  const top = categoriesWithColors[0] || { value: 0 };
 
   return (
     <div className={styles.catCard}>
@@ -66,9 +66,9 @@ const CategoryPerformance = ({
                 stroke="#f1f5f9"
                 strokeWidth={STROKE}
               />
-              {segments.map((seg) => (
+              {segments.map((seg, index) => (
                 <circle
-                  key={seg.label}
+                  key={`${seg.label}-${index}`}
                   cx={CX}
                   cy={CY}
                   r={RADIUS}
@@ -91,7 +91,7 @@ const CategoryPerformance = ({
                 fill="#0f172a"
                 fontFamily="inherit"
               >
-                {top.value}%
+                {top.value.toFixed(2)}%
               </text>
               <text
                 x={CX}
@@ -108,17 +108,38 @@ const CategoryPerformance = ({
             </svg>
           </div>
 
-          {/* Legend */}
+          {/* Legend with Backend Data */}
           <div className={styles.catLegend}>
-            {categoriesWithColors.map((cat) => (
-              <div key={cat.label} className={styles.catLegendRow}>
+            <div style={{ marginBottom: "12px", padding: "0 12px" }}>
+              <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 8px 0", fontWeight: "600" }}>
+                CATEGORY BREAKDOWN
+              </p>
+            </div>
+            {categoriesWithColors.map((cat, index) => (
+              <div
+                key={`${cat.label}-${index}`}
+                className={styles.catLegendRow}
+                style={{
+                  padding: "8px 12px",
+                  borderRadius: "6px",
+                  transition: "background-color 0.2s",
+                  cursor: "pointer",
+                }}
+              >
                 <span
                   className={styles.catDot}
                   style={{ background: cat.color }}
                 />
                 <div className={styles.catLegendInfo}>
                   <div className={styles.catLabel}>{cat.label}</div>
-                  <div className={styles.catValue}>{cat.value}%</div>
+                  <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
+                    <span style={{ fontSize: "12px", color: "#0f172a", fontWeight: "600" }}>
+                      {cat.value.toFixed(2)}%
+                    </span>
+                    <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+                      of total GMV
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}

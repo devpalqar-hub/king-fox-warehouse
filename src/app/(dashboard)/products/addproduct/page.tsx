@@ -34,6 +34,7 @@ export default function AddProductPage() {
     { title: "", text: "", imageUrl: "" },
   ]);
   const [isFreeShipping, setIsFreeShipping] = useState(false);
+  const [isOnlineAvailable, setIsOnlineAvailable] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -86,6 +87,7 @@ export default function AddProductPage() {
         metaInfo: cleanedMeta,
         tagIds: selectedTags.map((tag) => Number(tag.id)),
         isFreeShipping,
+        isOnlineAvailable,
       };
 
       const product = await createProduct(payload);
@@ -285,6 +287,21 @@ export default function AddProductPage() {
             </div>
             <p className={styles.checkboxDesc}>
               Enable this option to offer free shipping for this product.
+            </p>
+          </div>
+
+          <div className={styles.formGroup}>
+            <div className={styles.checkboxRow}>
+              <input
+                type="checkbox"
+                checked={isOnlineAvailable}
+                onChange={(e) => setIsOnlineAvailable(e.target.checked)}
+              />
+              <span>Online Available</span>
+            </div>
+            <p className={styles.checkboxDesc}>
+              Enable this option to make the product available for online
+              purchase.
             </p>
           </div>
         </section>
