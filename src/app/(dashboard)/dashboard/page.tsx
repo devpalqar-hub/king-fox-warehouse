@@ -32,11 +32,11 @@ import type {
 const RatioBar = ({ online }: { online: number }) => (
   <div className={styles.ratioWrap}>
     <div className={styles.ratioBar}>
-      <div className={styles.ratioFillOnline} style={{ width: `${online}%` }} />
+      <div className={styles.ratioFillOnline} style={{ width: `${online.toFixed(2)}%` }} />
     </div>
     <div className={styles.ratioLabels}>
-      <span>{online}% Online</span>
-      <span>{100 - online}% Physical</span>
+      <span>{online.toFixed(2)}% Online</span>
+      <span>{(100 - online).toFixed(2)}% Physical</span>
     </div>
   </div>
 );
@@ -145,7 +145,7 @@ const DashboardPage = () => {
           value={
             loading || !overview
               ? "Loading..."
-              : `${overview.digitalVsPhysical.online}% Online`
+              : `${overview.digitalVsPhysical.online.toFixed(1)}% Online`
           }
           accent="blue"
           badge={overview?.digitalVsPhysical.label || "Ratio"}

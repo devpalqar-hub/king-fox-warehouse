@@ -1,92 +1,42 @@
 "use client";
 
 import styles from "./stocklog.module.css";
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   ArrowDownToLine,
   ArrowLeftRight,
   ClipboardList,
+  Download,
   Search,
+  TrendingDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import { useToast } from "@/components/toast/ToastProvider";
+import {
+  getCurrentYearExportRange,
+  requestExport,
+} from "@/services/export.service";
+import {
+  fetchStockLogs,
+  type StockLogEntry,
+  type StockLogSummary,
+  type StockLogFilterType,
+} from "@/services/stocklog.service";
 
-// ── Mock data (replace with API later) ──────────────────────────────────────
-const MOCK_LOGS = [
-  {
-    id: 1,
-    user: "Arjun Menon",
-    userRole: "Warehouse Manager",
-    avatar: "AM",
-    type: "new_stock",
-    amount: 120,
-    product: "Classic White Tee – L",
-    branch: "Main Warehouse",
-    toBranch: null,
-    date: "2025-03-25T09:14:00Z",
-  },
-  {
-    id: 2,
-    user: "Priya Nair",
-    userRole: "Branch Supervisor",
-    avatar: "PN",
-    type: "transfer",
-    amount: 40,
-    product: "Slim Fit Denim – 32",
-    branch: "Main Warehouse",
-    toBranch: "Kochi Branch",
-    date: "2025-03-24T14:32:00Z",
-  },
-  {
-    id: 3,
-    user: "Rohit Das",
-    userRole: "Stock Associate",
-    avatar: "RD",
-    type: "new_stock",
-    amount: 75,
-    product: "Sports Polo – XL",
-    branch: "Kochi Branch",
-    toBranch: null,
-    date: "2025-03-24T11:05:00Z",
-  },
-  {
-    id: 4,
-    user: "Meera Pillai",
-    userRole: "Branch Supervisor",
-    avatar: "MP",
-    type: "transfer",
-    amount: 25,
-    product: "Oversized Hoodie – M",
-    branch: "Kochi Branch",
-    toBranch: "Thrissur Branch",
-    date: "2025-03-23T16:48:00Z",
-  },
-  {
-    id: 5,
-    user: "Arjun Menon",
-    userRole: "Warehouse Manager",
-    avatar: "AM",
-    type: "new_stock",
-    amount: 200,
-    product: "Cargo Pants – 34",
-    branch: "Main Warehouse",
-    toBranch: null,
-    date: "2025-03-22T08:30:00Z",
-  },
-  {
-    id: 6,
-    user: "Sanya Iyer",
-    userRole: "Stock Associate",
-    avatar: "SI",
-    type: "transfer",
-    amount: 60,
-    product: "Classic White Tee – M",
-    branch: "Main Warehouse",
-    toBranch: "Kozhikode Branch",
-    date: "2025-03-21T13:20:00Z",
-  },
+// ── Constants ────────────────────────────────────────────────────────────────
+const PAGE_LIMIT = 20;
+const SEARCH_DEBOUNCE_MS = 400;
+
+const FILTERS: { label: string; value: StockLogFilterType | "ALL" }[] = [
+  { label: "All", value: "ALL" },
+  { label: "New Stock", value: "NEW_STOCK" },
+  { label: "Transfer", value: "TRANSFER" },
 ];
 
-const formatDate = (iso: string) => {
-  const d = new Date(iso);
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
   return d.toLocaleDateString("en-IN", {
     day: "2-digit",
     month: "short",
@@ -94,8 +44,11 @@ const formatDate = (iso: string) => {
   });
 };
 
-const formatTime = (iso: string) => {
-  const d = new Date(iso);
+const formatTime = (timeStr: string) => {
+  // timeStr is "HH:mm"
+  const [h, m] = timeStr.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m);
   return d.toLocaleTimeString("en-IN", {
     hour: "2-digit",
     minute: "2-digit",
@@ -103,26 +56,154 @@ const formatTime = (iso: string) => {
   });
 };
 
-const FILTERS = ["All", "New Stock", "Transfer"];
+const getTypeBadge = (type: string) => {
+  switch (type) {
+    case "New Stock":
+      return {
+        className: styles.badgeGreen,
+        icon: <ArrowDownToLine size={11} />,
+        label: "New Stock",
+      };
+    case "Transfer":
+      return {
+        className: styles.badgeOrange,
+        icon: <ArrowLeftRight size={11} />,
+        label: "Transfer",
+      };
+    case "Stock Reduction":
+      return {
+        className: styles.badgeRed,
+        icon: <TrendingDown size={11} />,
+        label: "Reduction",
+      };
+    default:
+      return { className: styles.badgeGray, icon: null, label: type };
+  }
+};
 
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+// ── Component ────────────────────────────────────────────────────────────────
 const StockLogPage = () => {
-  const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
+  const { showToast } = useToast();
 
-  const filtered = MOCK_LOGS.filter((log) => {
-    const matchesSearch =
-      log.user.toLowerCase().includes(search.toLowerCase()) ||
-      log.product.toLowerCase().includes(search.toLowerCase()) ||
-      log.branch.toLowerCase().includes(search.toLowerCase());
-
-    const matchesFilter =
-      activeFilter === "All" ||
-      (activeFilter === "New Stock" && log.type === "new_stock") ||
-      (activeFilter === "Transfer" && log.type === "transfer");
-
-    return matchesSearch && matchesFilter;
+  // ── State ──
+  const [logs, setLogs] = useState<StockLogEntry[]>([]);
+  const [summary, setSummary] = useState<StockLogSummary>({
+    totalEntries: 0,
+    newStockAdded: 0,
+    transfersMade: 0,
+  });
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: PAGE_LIMIT,
+    total: 0,
+    totalPages: 1,
   });
 
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<StockLogFilterType | "ALL">(
+    "ALL",
+  );
+  const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // ── Debounce search ──
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPagination((p) => ({ ...p, page: 1 })); // reset to page 1 on new search
+    }, SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [search]);
+
+  // ── Fetch logs ──
+  const loadLogs = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetchStockLogs({
+
+        page: pagination.page,
+        limit: PAGE_LIMIT,
+        search: debouncedSearch,
+        filterType: activeFilter as StockLogFilterType,
+      });
+      console.log("API RESPONSE:", res);
+      setLogs(res.data);
+      setSummary(res.summary);
+      setPagination(res.pagination);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "Failed to load stock logs.";
+      setError(msg);
+      showToast(msg, "error");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination.page, debouncedSearch, activeFilter, showToast]);
+
+  useEffect(() => {
+    loadLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, debouncedSearch, activeFilter]);
+
+  // ── Filter change: reset page ──
+  const handleFilterChange = (value: StockLogFilterType | "ALL") => {
+    setActiveFilter(value);
+    setPagination((p) => ({ ...p, page: 1 }));
+  };
+
+  // ── Pagination handlers ──
+  const goToPrev = () =>
+    setPagination((p) => ({ ...p, page: Math.max(1, p.page - 1) }));
+
+  const goToNext = () =>
+    setPagination((p) => ({ ...p, page: Math.min(p.totalPages, p.page + 1) }));
+
+  // ── Export ──
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const { startDate, endDate } = getCurrentYearExportRange();
+      await requestExport({
+        type: "STOCK",
+        format: "EXCEL",
+        startDate,
+        endDate,
+      });
+      showToast(
+        "Stock export requested. The Excel file will be sent to your email.",
+        "success",
+      );
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Failed to request stock export.",
+        "error",
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // ── Derived ──
+  const startEntry = (pagination.page - 1) * PAGE_LIMIT + 1;
+  const endEntry = Math.min(pagination.page * PAGE_LIMIT, pagination.total);
+
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
       {/* Header */}
@@ -131,6 +212,14 @@ const StockLogPage = () => {
           <h1>Stock Log</h1>
           <p>Track all stock additions and branch transfers in one place.</p>
         </div>
+        <button
+          className={styles.exportBtn}
+          onClick={handleExport}
+          disabled={isExporting}
+        >
+          <Download size={16} />
+          {isExporting ? "Requesting..." : "Export Excel"}
+        </button>
       </div>
 
       {/* Summary Cards */}
@@ -141,7 +230,7 @@ const StockLogPage = () => {
           </div>
           <div>
             <p className={styles.summaryLabel}>Total Entries</p>
-            <p className={styles.summaryValue}>{MOCK_LOGS.length}</p>
+            <p className={styles.summaryValue}>{summary.totalEntries}</p>
           </div>
         </div>
 
@@ -152,10 +241,7 @@ const StockLogPage = () => {
           <div>
             <p className={styles.summaryLabel}>New Stock Added</p>
             <p className={styles.summaryValue}>
-              {MOCK_LOGS.filter((l) => l.type === "new_stock").reduce(
-                (s, l) => s + l.amount,
-                0,
-              )}{" "}
+              {summary.newStockAdded}{" "}
               <span className={styles.summaryUnit}>units</span>
             </p>
           </div>
@@ -168,10 +254,7 @@ const StockLogPage = () => {
           <div>
             <p className={styles.summaryLabel}>Transfers Made</p>
             <p className={styles.summaryValue}>
-              {MOCK_LOGS.filter((l) => l.type === "transfer").reduce(
-                (s, l) => s + l.amount,
-                0,
-              )}{" "}
+              {summary.transfersMade}{" "}
               <span className={styles.summaryUnit}>units</span>
             </p>
           </div>
@@ -185,11 +268,11 @@ const StockLogPage = () => {
           <div className={styles.filterGroup}>
             {FILTERS.map((f) => (
               <button
-                key={f}
-                className={`${styles.filterBtn} ${activeFilter === f ? styles.filterActive : ""}`}
-                onClick={() => setActiveFilter(f)}
+                key={f.value}
+                className={`${styles.filterBtn} ${activeFilter === f.value ? styles.filterActive : ""}`}
+                onClick={() => handleFilterChange(f.value)}
               >
-                {f}
+                {f.label}
               </button>
             ))}
           </div>
@@ -206,192 +289,209 @@ const StockLogPage = () => {
           </div>
         </div>
 
+        {/* Loading / Error overlay */}
+        {isLoading && (
+          <div className={styles.loadingOverlay}>
+            <span className={styles.loadingSpinner} />
+            Loading…
+          </div>
+        )}
+
+        {!isLoading && error && (
+          <div className={styles.errorState}>
+            <p>{error}</p>
+            <button className={styles.retryBtn} onClick={loadLogs}>
+              Retry
+            </button>
+          </div>
+        )}
+
         {/* ── Desktop / Tablet: standard table ── */}
-        <div className={styles.tableScroll}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>User</th>
-                <th>Type</th>
-                <th>Product / SKU</th>
-                <th>Branch</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Time</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filtered.length === 0 ? (
+        {!error && (
+          <div className={styles.tableScroll}>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                  <td colSpan={7} className={styles.emptyRow}>
-                    No stock log entries found.
-                  </td>
+                  <th>User</th>
+                  <th>Type</th>
+                  <th>Product / SKU</th>
+                  <th>Branch</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Time</th>
                 </tr>
-              ) : (
-                filtered.map((log) => (
-                  <tr key={log.id}>
-                    {/* User */}
-                    <td>
-                      <div className={styles.userCell}>
-                        <div className={styles.avatar}>{log.avatar}</div>
-                        <div>
-                          <p className={styles.userName}>{log.user}</p>
-                          <p className={styles.userRole}>{log.userRole}</p>
-                        </div>
-                      </div>
-                    </td>
+              </thead>
 
-                    {/* Type */}
-                    <td>
-                      {log.type === "new_stock" ? (
-                        <span
-                          className={`${styles.typeBadge} ${styles.badgeGreen}`}
-                        >
-                          <ArrowDownToLine size={11} />
-                          New Stock
-                        </span>
-                      ) : (
-                        <span
-                          className={`${styles.typeBadge} ${styles.badgeOrange}`}
-                        >
-                          <ArrowLeftRight size={11} />
-                          Transfer
-                        </span>
-                      )}
+              <tbody>
+                {!isLoading && logs.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className={styles.emptyRow}>
+                      No stock log entries found.
                     </td>
+                  </tr>
+                ) : (
+                  logs.map((log) => {
+                    const badge = getTypeBadge(log.type);
+                    return (
+                      <tr key={log.id}>
+                        {/* User */}
+                        <td>
+                          <div className={styles.userCell}>
+                            <div className={styles.avatar}>
+                              {getInitials(log.user.name)}
+                            </div>
+                            <div>
+                              <p className={styles.userName}>{log.user.name}</p>
+                              <p className={styles.userRole}>{log.user.role}</p>
+                            </div>
+                          </div>
+                        </td>
 
-                    {/* Product */}
-                    <td>
-                      <span className={styles.productName}>{log.product}</span>
-                    </td>
+                        {/* Type */}
+                        <td>
+                          <span
+                            className={`${styles.typeBadge} ${badge.className}`}
+                          >
+                            {badge.icon}
+                            {badge.label}
+                          </span>
+                        </td>
 
-                    {/* Branch */}
-                    <td>
-                      {log.type === "transfer" && log.toBranch ? (
-                        <div className={styles.branchTransfer}>
-                          <span className={styles.branchFrom}>
+                        {/* Product / SKU */}
+                        <td>
+                          <span className={styles.productName}>
+                            {log.productSku}
+                          </span>
+                        </td>
+
+                        {/* Branch */}
+                        <td>
+                          <span className={styles.branchSingle}>
                             {log.branch}
                           </span>
-                          <ArrowLeftRight
-                            size={12}
-                            className={styles.branchArrow}
-                          />
-                          <span className={styles.branchTo}>
-                            {log.toBranch}
+                        </td>
+
+                        {/* Amount */}
+                        <td>
+                          <span className={styles.badge}>
+                            {log.amount} units
                           </span>
+                        </td>
+
+                        {/* Date */}
+                        <td className={styles.dateText}>
+                          {formatDate(log.date)}
+                        </td>
+
+                        {/* Time */}
+                        <td className={styles.timeText}>
+                          {formatTime(log.time)}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* ── Mobile: card list ── */}
+        {!error && (
+          <div className={styles.mobileCardList}>
+            {!isLoading && logs.length === 0 ? (
+              <div className={styles.emptyMobile}>
+                No stock log entries found.
+              </div>
+            ) : (
+              logs.map((log) => {
+                const badge = getTypeBadge(log.type);
+                return (
+                  <div key={log.id} className={styles.mobileCard}>
+                    {/* Card top row */}
+                    <div className={styles.mobileCardTop}>
+                      <div className={styles.userCell}>
+                        <div className={styles.avatar}>
+                          {getInitials(log.user.name)}
                         </div>
-                      ) : (
-                        <span className={styles.branchSingle}>
-                          {log.branch}
-                        </span>
-                      )}
-                    </td>
+                        <div>
+                          <p className={styles.userName}>{log.user.name}</p>
+                          <p className={styles.userRole}>{log.user.role}</p>
+                        </div>
+                      </div>
+                      <span
+                        className={`${styles.typeBadge} ${badge.className}`}
+                      >
+                        {badge.icon}
+                        {badge.label}
+                      </span>
+                    </div>
 
-                    {/* Amount */}
-                    <td>
+                    {/* Product */}
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Product</span>
+                      <span className={styles.productName}>
+                        {log.productSku}
+                      </span>
+                    </div>
+
+                    {/* Branch */}
+                    <div className={styles.mobileCardRow}>
+                      <span className={styles.mobileCardLabel}>Branch</span>
+                      <span className={styles.branchSingle}>{log.branch}</span>
+                    </div>
+
+                    {/* Bottom row */}
+                    <div className={styles.mobileCardBottom}>
                       <span className={styles.badge}>{log.amount} units</span>
-                    </td>
-
-                    {/* Date */}
-                    <td className={styles.dateText}>{formatDate(log.date)}</td>
-
-                    {/* Time */}
-                    <td className={styles.timeText}>{formatTime(log.date)}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ── Mobile: card list (hidden on desktop via CSS) ── */}
-        <div className={styles.mobileCardList}>
-          {filtered.length === 0 ? (
-            <div className={styles.emptyMobile}>
-              No stock log entries found.
-            </div>
-          ) : (
-            filtered.map((log) => (
-              <div key={log.id} className={styles.mobileCard}>
-                {/* Card top row: user + type badge */}
-                <div className={styles.mobileCardTop}>
-                  <div className={styles.userCell}>
-                    <div className={styles.avatar}>{log.avatar}</div>
-                    <div>
-                      <p className={styles.userName}>{log.user}</p>
-                      <p className={styles.userRole}>{log.userRole}</p>
+                      <span className={styles.mobileMeta}>
+                        <span className={styles.dateText}>
+                          {formatDate(log.date)}
+                        </span>
+                        <span className={styles.mobileMetaDot}>·</span>
+                        <span className={styles.timeText}>
+                          {formatTime(log.time)}
+                        </span>
+                      </span>
                     </div>
                   </div>
-                  {log.type === "new_stock" ? (
-                    <span
-                      className={`${styles.typeBadge} ${styles.badgeGreen}`}
-                    >
-                      <ArrowDownToLine size={11} />
-                      New Stock
-                    </span>
-                  ) : (
-                    <span
-                      className={`${styles.typeBadge} ${styles.badgeOrange}`}
-                    >
-                      <ArrowLeftRight size={11} />
-                      Transfer
-                    </span>
-                  )}
-                </div>
-
-                {/* Product */}
-                <div className={styles.mobileCardRow}>
-                  <span className={styles.mobileCardLabel}>Product</span>
-                  <span className={styles.productName}>{log.product}</span>
-                </div>
-
-                {/* Branch */}
-                <div className={styles.mobileCardRow}>
-                  <span className={styles.mobileCardLabel}>Branch</span>
-                  {log.type === "transfer" && log.toBranch ? (
-                    <div className={styles.branchTransfer}>
-                      <span className={styles.branchFrom}>{log.branch}</span>
-                      <ArrowLeftRight
-                        size={11}
-                        className={styles.branchArrow}
-                      />
-                      <span className={styles.branchTo}>{log.toBranch}</span>
-                    </div>
-                  ) : (
-                    <span className={styles.branchSingle}>{log.branch}</span>
-                  )}
-                </div>
-
-                {/* Bottom row: amount + date + time */}
-                <div className={styles.mobileCardBottom}>
-                  <span className={styles.badge}>{log.amount} units</span>
-                  <span className={styles.mobileMeta}>
-                    <span className={styles.dateText}>
-                      {formatDate(log.date)}
-                    </span>
-                    <span className={styles.mobileMetaDot}>·</span>
-                    <span className={styles.timeText}>
-                      {formatTime(log.date)}
-                    </span>
-                  </span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+                );
+              })
+            )}
+          </div>
+        )}
 
         {/* Pagination */}
         <div className={styles.pagination}>
           <span>
-            Showing {filtered.length} of {MOCK_LOGS.length} entries
+            {pagination.total === 0
+              ? "No entries"
+              : `Showing ${startEntry}–${endEntry} of ${pagination.total} entries`}
           </span>
+
           <div className={styles.paginationBtns}>
-            <button className={styles.btnPage} disabled>
+            <button
+              className={styles.btnPage}
+              onClick={goToPrev}
+              disabled={pagination.page <= 1 || isLoading}
+              aria-label="Previous page"
+            >
+              <ChevronLeft size={14} />
               Prev
             </button>
-            <button className={styles.btnPage} disabled>
+
+            <span className={styles.pageIndicator}>
+              {pagination.page} / {pagination.totalPages}
+            </span>
+
+            <button
+              className={styles.btnPage}
+              onClick={goToNext}
+              disabled={pagination.page >= pagination.totalPages || isLoading}
+              aria-label="Next page"
+            >
               Next
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>

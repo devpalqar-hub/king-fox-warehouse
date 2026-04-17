@@ -10,9 +10,9 @@ interface SalesChartProps {
 }
 
 const SalesChart = ({ data, loading = false }: SalesChartProps) => {
-  const [activeTab, setActiveTab] = useState<"Daily" | "Monthly" | "Yearly">(
-    "Daily",
-  );
+  // const [activeTab, setActiveTab] = useState<"Daily" | "Monthly" | "Yearly">(
+  //   "Daily",
+  // );
 
   // ─── Transform API data into chart format ──────────────────────────────────
   const chartData = data
@@ -72,16 +72,16 @@ const SalesChart = ({ data, loading = false }: SalesChartProps) => {
 
   return (
     <div className={styles.chartCard}>
-      <div className={styles.chartHeader}>
+      <div className={styles.chartHeaderResponsive}>
         <div>
           <h2 className={styles.chartTitle}>Sales Comparison</h2>
           <p className={styles.chartSub}>Online Store vs Physical Outlets</p>
         </div>
-        <div className={styles.chartTabs}>
+        {/* <div className={styles.chartTabs}>
           {["Daily", "Monthly", "Yearly"].map((tab) => (
             <button
               key={tab}
-              className={`${styles.chartTab} ${activeTab === tab ? styles.active : ""}`}
+              className={`${styles.chartTab} ${activeTab === tab ? styles.chartTabActive : ""}`}
               onClick={() =>
                 setActiveTab(tab as "Daily" | "Monthly" | "Yearly")
               }
@@ -89,7 +89,7 @@ const SalesChart = ({ data, loading = false }: SalesChartProps) => {
               {tab}
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
 
       {loading || !data || chartData.length === 0 ? (
@@ -100,113 +100,243 @@ const SalesChart = ({ data, loading = false }: SalesChartProps) => {
         </div>
       ) : (
         <>
-          <svg viewBox={`0 0 ${W} ${H}`} className={styles.chartSvg}>
-            {/* ── Y-axis ticks and labels ── */}
-            {yTicks.map((tick) => (
-              <g key={`tick-${tick.val}`}>
+          <div className={styles.chartSvgWrap}>
+            <svg viewBox={`0 0 ${W} ${H}`} className={styles.chartSvg}>
+              {/* ── Y-axis ticks and labels ── */}
+              {yTicks.map((tick) => (
+                <g key={`tick-${tick.val}`}>
+                  <line
+                    x1={PAD.left - 4}
+                    y1={tick.y}
+                    x2={PAD.left}
+                    y2={tick.y}
+                    stroke="#cbd5e1"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={PAD.left - 8}
+                    y={tick.y + 3}
+                    textAnchor="end"
+                    fontSize="11"
+                    fill="#64748b"
+                    fontFamily="inherit"
+                  >
+                    {fmt(tick.val)}
+                  </text>
+                </g>
+              ))}
+
+              {/* ── Grid lines ── */}
+              {yTicks.map((tick) => (
                 <line
-                  x1={PAD.left - 4}
+                  key={`grid-${tick.val}`}
+                  x1={PAD.left}
                   y1={tick.y}
-                  x2={PAD.left}
+                  x2={W - PAD.right}
                   y2={tick.y}
-                  stroke="#cbd5e1"
+                  stroke="#f1f5f9"
                   strokeWidth="1"
                 />
+              ))}
+
+              {/* ── Axis lines ── */}
+              <line
+                x1={PAD.left}
+                y1={PAD.top}
+                x2={PAD.left}
+                y2={PAD.top + chartH}
+                stroke="#cbd5e1"
+                strokeWidth="2"
+              />
+              <line
+                x1={PAD.left}
+                y1={PAD.top + chartH}
+                x2={W - PAD.right}
+                y2={PAD.top + chartH}
+                stroke="#cbd5e1"
+                strokeWidth="2"
+              />
+
+              {/* ── Areas ── */}
+              <path d={areaPath("online")} fill="#6366f1" opacity="0.15" />
+              <path d={areaPath("offline")} fill="#f59e0b" opacity="0.15" />
+
+              {/* ── Lines ── */}
+              <polyline
+                points={pts("online")}
+                fill="none"
+                stroke="#6366f1"
+                strokeWidth="2"
+              />
+              <polyline
+                points={pts("offline")}
+                fill="none"
+                stroke="#f59e0b"
+                strokeWidth="2"
+              />
+
+              {/* ── X-axis labels ── */}
+              {chartData.map((point, i) => (
                 <text
-                  x={PAD.left - 8}
-                  y={tick.y + 3}
-                  textAnchor="end"
+                  key={`label-${i}`}
+                  x={PAD.left + i * xStep}
+                  y={PAD.top + chartH + 18}
+                  textAnchor="middle"
                   fontSize="11"
                   fill="#64748b"
                   fontFamily="inherit"
                 >
-                  {fmt(tick.val)}
+                  {point.label}
                 </text>
-              </g>
-            ))}
+              ))}
+            </svg>
+          </div>
 
-            {/* ── Grid lines ── */}
-            {yTicks.map((tick) => (
-              <line
-                key={`grid-${tick.val}`}
-                x1={PAD.left}
-                y1={tick.y}
-                x2={W - PAD.right}
-                y2={tick.y}
-                stroke="#f1f5f9"
-                strokeWidth="1"
-              />
-            ))}
-
-            {/* ── Axis lines ── */}
-            <line
-              x1={PAD.left}
-              y1={PAD.top}
-              x2={PAD.left}
-              y2={PAD.top + chartH}
-              stroke="#cbd5e1"
-              strokeWidth="2"
-            />
-            <line
-              x1={PAD.left}
-              y1={PAD.top + chartH}
-              x2={W - PAD.right}
-              y2={PAD.top + chartH}
-              stroke="#cbd5e1"
-              strokeWidth="2"
-            />
-
-            {/* ── Areas ── */}
-            <path d={areaPath("online")} fill="#6366f1" opacity="0.15" />
-            <path d={areaPath("offline")} fill="#f59e0b" opacity="0.15" />
-
-            {/* ── Lines ── */}
-            <polyline
-              points={pts("online")}
-              fill="none"
-              stroke="#6366f1"
-              strokeWidth="2"
-            />
-            <polyline
-              points={pts("offline")}
-              fill="none"
-              stroke="#f59e0b"
-              strokeWidth="2"
-            />
-
-            {/* ── X-axis labels ── */}
-            {chartData.map((point, i) => (
-              <text
-                key={`label-${i}`}
-                x={PAD.left + i * xStep}
-                y={PAD.top + chartH + 18}
-                textAnchor="middle"
-                fontSize="11"
-                fill="#64748b"
-                fontFamily="inherit"
+          {/* ── Color Legend ── */}
+          <div className={styles.colorLegendResponsive}>
+            {/* Online Sales Legend */}
+            <div className={styles.colorLegendItem}>
+              <svg
+                width="40"
+                height="16"
+                viewBox="0 0 40 16"
+                style={{ flexShrink: 0 }}
               >
-                {point.label}
-              </text>
-            ))}
-          </svg>
+                <rect
+                  x="0"
+                  y="4"
+                  width="40"
+                  height="8"
+                  fill="#6366f1"
+                  opacity="0.15"
+                />
+                <polyline
+                  points="0,8 10,6 20,10 30,7 40,9"
+                  fill="none"
+                  stroke="#6366f1"
+                  strokeWidth="2"
+                />
+              </svg>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+              >
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#0f172a",
+                  }}
+                >
+                  Online Sales
+                </span>
+                <span style={{ fontSize: "10px", color: "#64748b" }}>
+                  {fmt(data.onlineSales.reduce((a, b) => a + b, 0))} Total
+                </span>
+              </div>
+            </div>
 
-          {/* ── Legend ── */}
-          <div className={styles.chartLegend}>
+            {/* Divider - Hidden on mobile */}
+            <div className={styles.colorLegendDivider} />
+
+            {/* Physical Sales Legend */}
+            <div className={styles.colorLegendItem}>
+              <svg
+                width="40"
+                height="16"
+                viewBox="0 0 40 16"
+                style={{ flexShrink: 0 }}
+              >
+                <rect
+                  x="0"
+                  y="4"
+                  width="40"
+                  height="8"
+                  fill="#f59e0b"
+                  opacity="0.15"
+                />
+                <polyline
+                  points="0,9 10,7 20,11 30,6 40,10"
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="2"
+                />
+              </svg>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+              >
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#0f172a",
+                  }}
+                >
+                  Physical Sales
+                </span>
+                <span style={{ fontSize: "10px", color: "#64748b" }}>
+                  {fmt(data.physicalSales.reduce((a, b) => a + b, 0))} Total
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Data Legend with Backend Data ── */}
+          {/* <div className={styles.chartLegend}>
+            <div
+              style={{
+                marginRight: "auto",
+                fontSize: "12px",
+                color: "#64748b",
+                fontWeight: "600",
+              }}
+            >
+              Comparison Data:
+            </div>
             <div className={styles.legendItem}>
               <span
                 className={styles.legendDot}
                 style={{ background: "#6366f1" }}
               />
-              <span>Online Sales</span>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+              >
+                <span
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    color: "#0f172a",
+                  }}
+                >
+                  Online Sales
+                </span>
+                <span style={{ fontSize: "11px", color: "#64748b" }}>
+                  {fmt(data.onlineSales.reduce((a, b) => a + b, 0))} Total
+                </span>
+              </div>
             </div>
             <div className={styles.legendItem}>
               <span
                 className={styles.legendDot}
                 style={{ background: "#f59e0b" }}
               />
-              <span>Physical Sales</span>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: "2px" }}
+              >
+                <span
+                  style={{
+                    fontWeight: "600",
+                    fontSize: "13px",
+                    color: "#0f172a",
+                  }}
+                >
+                  Physical Sales
+                </span>
+                <span style={{ fontSize: "11px", color: "#64748b" }}>
+                  {fmt(data.physicalSales.reduce((a, b) => a + b, 0))} Total
+                </span>
+              </div>
             </div>
-          </div>
+          </div> */}
         </>
       )}
     </div>

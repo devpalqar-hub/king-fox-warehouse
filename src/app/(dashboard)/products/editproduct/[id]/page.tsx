@@ -59,6 +59,7 @@ export default function EditProductPage() {
   const [variantImageFile, setVariantImageFile] = useState<File | null>(null);
   const [variantImagePreview, setVariantImagePreview] = useState<string>("");
   const [variantEditLoading, setVariantEditLoading] = useState(false);
+  const [product, setProduct] = useState<any>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -69,6 +70,7 @@ export default function EditProductPage() {
     metaInfo: [] as { title: string; text: string; imageUrl: string }[],
     tagIds: [] as number[],
     isFreeShipping: false,
+    isOnlineAvailable: false,
   });
 
   // ── Fetch categories ──
@@ -87,6 +89,7 @@ export default function EditProductPage() {
   useEffect(() => {
     if (!productId) return;
     getProductById(Number(productId)).then((data) => {
+      setProduct(data);
       setForm({
         name: data?.name || "",
         description: data?.description || "",
@@ -100,6 +103,7 @@ export default function EditProductPage() {
         })),
         tagIds: data?.tagIds || [],
         isFreeShipping: data?.isFreeShipping ?? false,
+        isOnlineAvailable: data?.isOnlineAvailable ?? false,
       });
     });
   }, [productId]);
@@ -188,6 +192,7 @@ export default function EditProductPage() {
         metaInfo: form.metaInfo,
         tagIds: form.tagIds,
         isFreeShipping: form.isFreeShipping,
+        isOnlineAvailable: form.isOnlineAvailable,
       });
       await Promise.all(
         variants.map((v) =>
@@ -282,7 +287,23 @@ export default function EditProductPage() {
           </p>
         </div>
         <div className={styles.headerActions}>
-          <button className={styles.btnSecondary}>View on Store</button>
+          <button
+            className={styles.btnSecondary}
+            onClick={() => {
+              if (product?.slug) {
+                const userSiteUrl =
+                  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+                window.open(
+                  `${userSiteUrl}/products/${product.slug}`,
+                  "_blank",
+                );
+              } else {
+                showToast("Product slug not available", "error");
+              }
+            }}
+          >
+            View on Store
+          </button>
           {/* <button className={styles.btnDanger}>Archive</button> */}
         </div>
       </header>
@@ -341,6 +362,26 @@ export default function EditProductPage() {
               </div>
               <p className={styles.checkboxDesc}>
                 Enable this option to offer free shipping for this product.
+              </p>
+            </div>
+
+            <div className={styles.formGroup}>
+              <div className={styles.checkboxRow}>
+                <input
+                  type="checkbox"
+                  checked={form.isOnlineAvailable}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      isOnlineAvailable: e.target.checked,
+                    })
+                  }
+                />
+                <span>Online Available</span>
+              </div>
+              <p className={styles.checkboxDesc}>
+                Enable this option to make the product available for online
+                purchase.
               </p>
             </div>
           </section>
@@ -552,10 +593,10 @@ export default function EditProductPage() {
                           </div>
                           <div className={styles.mobilePrices}>
                             <span>
-                              Cost: <b>${Number(v.costPrice).toFixed(2)}</b>
+                              Cost: <b>₹{Number(v.costPrice).toFixed(2)}</b>
                             </span>
                             <span>
-                              Sell: <b>${Number(v.sellingPrice).toFixed(2)}</b>
+                              Sell: <b>₹{Number(v.sellingPrice).toFixed(2)}</b>
                             </span>
                           </div>
                         </div>
@@ -701,7 +742,7 @@ export default function EditProductPage() {
               <div className={styles.modalRow}>
                 <div className={styles.modalField}>
                   <label className={styles.modalFieldLabel}>
-                    Cost Price ($)
+                    Cost Price (₹)
                   </label>
                   <input
                     type="number"
@@ -718,7 +759,7 @@ export default function EditProductPage() {
                 </div>
                 <div className={styles.modalField}>
                   <label className={styles.modalFieldLabel}>
-                    Selling Price ($)
+                    Selling Price (₹)
                   </label>
                   <input
                     type="number"

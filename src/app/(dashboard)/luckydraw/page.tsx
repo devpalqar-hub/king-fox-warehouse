@@ -1,7 +1,7 @@
 "use client";
 
 import styles from "./luckydraw.module.css";
-import { Plus, Calendar, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Calendar, Eye, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -77,7 +77,7 @@ const LuckyDrawPage = () => {
 
       {/* Tabs */}
       <div className={styles.tabs}>
-        {["all", "active", "draft", "completed"].map((tab) => (
+        {["all", "active", "closed"].map((tab) => (
           <button
             key={tab}
             className={`${styles.tab} ${activeTab === tab ? styles.activeTab : ""}`}
@@ -179,12 +179,6 @@ const LuckyDrawPage = () => {
                         onClick={() => router.push(`/luckydraw/${c.id}/edit`)}
                       >
                         <Pencil size={15} />
-                      </button>
-                      <button
-                        className={`${styles.actionBtn} ${styles.danger}`}
-                        title="Delete"
-                      >
-                        <Trash2 size={15} />
                       </button>
                     </div>
                   </td>

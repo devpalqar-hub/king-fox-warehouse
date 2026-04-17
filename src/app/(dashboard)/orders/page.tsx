@@ -2,25 +2,32 @@
 
 import {
   Search,
-  Filter,
   ChevronLeft,
   ChevronRight,
   ShoppingBag,
   Banknote,
   ClipboardList,
   Truck,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import styles from "./orders.module.css";
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { getOrders } from "@/services/order.service";
-import { Order } from "@/types/order.types";
-import { OrderSummary } from "@/types/order.types";
+import { Order, OrderResponse, OrderSummary } from "@/types/order.types";
 import { getOrderSummary } from "@/services/order.service";
+import {
+  getCurrentYearExportRange,
+  requestExport,
+} from "@/services/export.service";
+import { useToast } from "@/components/toast/ToastProvider";
 
 export default function OrdersPage() {
+  const { showToast } = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
-  const [pagination, setPagination] = useState<any>(null);
+  const [pagination, setPagination] = useState<
+    OrderResponse["pagination"] | null
+  >(null);
 
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
@@ -28,22 +35,7 @@ export default function OrdersPage() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState<OrderSummary | null>(null);
-
-  useEffect(() => {
-    const fetchOrders = async () => {
-      const res = await getOrders({
-        page: 1,
-        limit: 20,
-      });
-
-      if (res) {
-        setOrders(res.data);
-        setPagination(res.pagination);
-      }
-    };
-
-    fetchOrders();
-  }, []);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -54,31 +46,56 @@ export default function OrdersPage() {
     fetchSummary();
   }, []);
 
-  const fetchOrders = async () => {
-    const res = await getOrders({
-      page,
-      limit,
-      status,
-      search,
-    });
-
-    if (res) {
-      setOrders(res.data);
-      setPagination(res.pagination);
-    }
-  };
-
   useEffect(() => {
-    fetchOrders();
-  }, [page, status, search]);
+    const delay = setTimeout(
+      async () => {
+        const res = await getOrders({
+          page,
+          limit,
+          status,
+          search,
+        });
 
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      fetchOrders();
-    }, 500);
+        if (res) {
+          setOrders(res.data);
+          setPagination(res.pagination);
+        }
+      },
+      search ? 500 : 0,
+    );
 
     return () => clearTimeout(delay);
-  }, [search]);
+  }, [limit, page, search, status]);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+
+    try {
+      const { startDate, endDate } = getCurrentYearExportRange();
+
+      await requestExport({
+        type: "INVOICES",
+        format: "EXCEL",
+        startDate,
+        endDate,
+      });
+
+      showToast(
+        "Invoice export requested. The Excel file will be sent to your email.",
+        "success",
+      );
+    } catch (error) {
+      console.error(error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to request invoice export.",
+        "error",
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -88,6 +105,15 @@ export default function OrdersPage() {
           <h1>Order Management</h1>
           <p>Manage and track your customer orders in real-time.</p>
         </div>
+
+        <button
+          className={styles.createBtn}
+          onClick={handleExport}
+          disabled={isExporting}
+        >
+          <Download size={16} />
+          {isExporting ? "Requesting..." : "Export Excel"}
+        </button>
       </div>
 
       {/* Stats Section */}
@@ -175,46 +201,54 @@ export default function OrdersPage() {
             </tr>
           </thead>
           <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td data-label="Order ID" className={styles.orderId}>
-                  #{order.orderNumber}
-                </td>
+            {orders.map((order) => {
+              const isCOD = order.paymentMethod === "COD";
+              const displayStatus =
+                isCOD && order.status === "SHIPPED"
+                  ? "READY TO PICKUP"
+                  : order.status;
 
-                <td data-label="Date">
-                  {new Date(order.createdAt).toLocaleDateString()}
-                </td>
+              return (
+                <tr key={order.id}>
+                  <td data-label="Order ID" className={styles.orderId}>
+                    #{order.orderNumber}
+                  </td>
 
-                <td data-label="Customer">
-                  <div className={styles.customer}>
-                    <span>{order.customer.name}</span>
-                  </div>
-                </td>
+                  <td data-label="Date">
+                    {new Date(order.createdAt).toLocaleDateString()}
+                  </td>
 
-                <td data-label="Amount" className={styles.amount}>
-                  ₹{order.finalAmount}
-                </td>
+                  <td data-label="Customer">
+                    <div className={styles.customer}>
+                      <span>{order.customer.name}</span>
+                    </div>
+                  </td>
 
-                <td data-label="Payment" className={styles.payment}>
-                  {order.paymentMethod}
-                </td>
+                  <td data-label="Amount" className={styles.amount}>
+                    ₹{order.finalAmount}
+                  </td>
 
-                <td data-label="Status">
-                  <span
-                    className={`${styles.status} ${styles[order.status.toLowerCase()]}`}
-                  >
-                    <span className={styles.dot}></span>
-                    {order.status}
-                  </span>
-                </td>
+                  <td data-label="Payment" className={styles.payment}>
+                    {order.paymentMethod}
+                  </td>
 
-                <td data-label="Actions">
-                  <Link href={`/orders/${order.id}`}>
-                    <button className={styles.viewBtn}>View</button>
-                  </Link>
-                </td>
-              </tr>
-            ))}
+                  <td data-label="Status">
+                    <span
+                      className={`${styles.status} ${styles[order.status.toLowerCase()]}`}
+                    >
+                      <span className={styles.dot}></span>
+                      {displayStatus}
+                    </span>
+                  </td>
+
+                  <td data-label="Actions">
+                    <Link href={`/orders/${order.id}`}>
+                      <button className={styles.viewBtn}>View</button>
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
@@ -266,7 +300,14 @@ export default function OrdersPage() {
   );
 }
 
-function StatCard({ icon, label, value, trend }: any) {
+type StatCardProps = {
+  icon: ReactNode;
+  label: string;
+  value: number | string;
+  trend?: string;
+};
+
+function StatCard({ icon, label, value, trend }: StatCardProps) {
   return (
     <div className={styles.statCard}>
       <div className={styles.cardHeader}>

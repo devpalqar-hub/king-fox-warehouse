@@ -156,6 +156,42 @@ export default function AddVariationPage() {
 
   const handleAddToList = async () => {
     if (!productId) return showToast("Product ID missing", "error");
+
+    // Validation
+    if (variation.size.length === 0) {
+      return showToast("Please select at least one size", "error");
+    }
+    if (!variation.color.trim()) {
+      return showToast("Please select or enter a color", "error");
+    }
+    const costPrice = Number(variation.costPrice);
+    if (isNaN(costPrice) || costPrice <= 0) {
+      return showToast(
+        "Please enter a valid cost price greater than 0",
+        "error",
+      );
+    }
+    const sellingPrice = Number(variation.sellingPrice);
+    if (isNaN(sellingPrice) || sellingPrice <= 0) {
+      return showToast(
+        "Please enter a valid selling price greater than 0",
+        "error",
+      );
+    }
+    if (sellingPrice < costPrice) {
+      return showToast(
+        "Selling price must be greater than or equal to cost price",
+        "error",
+      );
+    }
+    const weight = Number(variation.weight);
+    if (isNaN(weight) || weight <= 0) {
+      return showToast("Please enter a valid weight greater than 0", "error");
+    }
+    if (!imageFile) {
+      return showToast("Please upload an image for the variation", "error");
+    }
+
     try {
       setLoading(true);
       let imageUrl = "";
@@ -241,6 +277,45 @@ export default function AddVariationPage() {
 
   const handleEditSave = async () => {
     if (!editingVariant) return;
+
+    // Validation
+    if (!editingVariant.size.trim()) {
+      return showToast("Please select a size", "error");
+    }
+    if (!editingVariant.color.trim()) {
+      return showToast("Please select or enter a color", "error");
+    }
+    const costPrice = Number(editingVariant.costPrice);
+    if (isNaN(costPrice) || costPrice <= 0) {
+      return showToast(
+        "Please enter a valid cost price greater than 0",
+        "error",
+      );
+    }
+    const sellingPrice = Number(editingVariant.sellingPrice);
+    if (isNaN(sellingPrice) || sellingPrice <= 0) {
+      return showToast(
+        "Please enter a valid selling price greater than 0",
+        "error",
+      );
+    }
+    if (sellingPrice < costPrice) {
+      return showToast(
+        "Selling price must be greater than or equal to cost price",
+        "error",
+      );
+    }
+    const weight = Number(editingVariant.weight);
+    if (isNaN(weight) || weight <= 0) {
+      return showToast("Please enter a valid weight greater than 0", "error");
+    }
+    const hasExistingImage =
+      editingVariant.image &&
+      editingVariant.image !== "https://via.placeholder.com/150";
+    if (!editImageFile && !hasExistingImage) {
+      return showToast("Please upload an image for the variation", "error");
+    }
+
     try {
       setEditLoading(true);
       let imageUrl = editingVariant.image || "";
@@ -455,7 +530,7 @@ export default function AddVariationPage() {
 
             <div className={styles.inputRow}>
               <div className={styles.inputGroup}>
-                <label className={styles.fieldLabel}>Cost Price ($)</label>
+                <label className={styles.fieldLabel}>Cost Price (₹)</label>
                 <input
                   type="number"
                   placeholder="0.00"
@@ -467,7 +542,7 @@ export default function AddVariationPage() {
                 />
               </div>
               <div className={styles.inputGroup}>
-                <label className={styles.fieldLabel}>Selling Price ($)</label>
+                <label className={styles.fieldLabel}>Selling Price (₹)</label>
                 <input
                   type="number"
                   placeholder="0.00"
@@ -806,7 +881,7 @@ export default function AddVariationPage() {
               </div>
               <div className={styles.modalRow}>
                 <div className={styles.modalField}>
-                  <label className={styles.fieldLabel}>Cost Price ($)</label>
+                  <label className={styles.fieldLabel}>Cost Price (₹)</label>
                   <input
                     type="number"
                     className={styles.inputField}
@@ -821,7 +896,7 @@ export default function AddVariationPage() {
                   />
                 </div>
                 <div className={styles.modalField}>
-                  <label className={styles.fieldLabel}>Selling Price ($)</label>
+                  <label className={styles.fieldLabel}>Selling Price (₹)</label>
                   <input
                     type="number"
                     className={styles.inputField}

@@ -291,7 +291,7 @@ const ProductsPage = () => {
 
                       <td data-label="Price Range" className={styles.priceText}>
                         {prices.length
-                          ? `$${minPrice}${minPrice !== maxPrice ? ` – $${maxPrice}` : ""}`
+                          ? `₹${minPrice}${minPrice !== maxPrice ? ` – ₹${maxPrice}` : ""}`
                           : "—"}
                       </td>
 
@@ -310,6 +310,32 @@ const ProductsPage = () => {
 
                       <td data-label="Actions">
                         <div className={styles.actions}>
+                          <button
+                            className={styles.actionBtn}
+                            title="View on Store"
+                            onClick={() => {
+                              const userSiteUrl =
+                                process.env.NEXT_PUBLIC_SITE_URL ||
+                                "http://localhost:3001";
+                              window.open(
+                                `${userSiteUrl}/products/${product.slug}`,
+                                "_blank",
+                              );
+                            }}
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                              <polyline points="15,3 21,3 21,9" />
+                              <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                          </button>
                           <button
                             className={styles.actionBtn}
                             title="Edit"

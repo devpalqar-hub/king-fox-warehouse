@@ -21,9 +21,10 @@ import {
   Contact,
   HomeIcon,
   Logs,
+  TrendingUp
 } from "lucide-react";
 import { MdReviews } from "react-icons/md";
-import Home from "@/app/page";
+// import Home from "@/app/page";
 
 const menuItems = [
   {
@@ -45,6 +46,11 @@ const menuItems = [
     name: "User Management",
     icon: <Users size={20} />,
     path: "/usermanagement",
+  },
+  {
+    name: "Staff Performance",
+    icon: <TrendingUp size={20} />,
+    path: "/staffperformance",
   },
   { name: "Reviews", icon: <MdReviews size={20} />, path: "/reviews" },
 ];

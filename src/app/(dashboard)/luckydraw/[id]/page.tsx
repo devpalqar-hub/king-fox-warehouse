@@ -22,17 +22,48 @@ import {
 } from "@/services/luckydraw.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import { AlertTriangle, X } from "lucide-react";
+import { formatExportDate, requestExport } from "@/services/export.service";
 
-const html2pdf = require("html2pdf.js");
+type CampaignBranch = {
+  id: number;
+  name: string;
+};
+
+type CampaignVoucher = {
+  id: number;
+  voucherCode: string;
+  issuedAt: string;
+  branch?: CampaignBranch | null;
+  customer?: {
+    name?: string | null;
+    phone?: string | null;
+  } | null;
+};
+
+type Campaign = {
+  name: string;
+  description: string;
+  status: string;
+  startDate: string;
+  endDate: string;
+  image?: string | null;
+  totalVouchersLimit: number;
+  vouchersIssued: number;
+  priority?: string | null;
+  filterType?: string | null;
+  branches?: CampaignBranch[];
+  vouchers?: CampaignVoucher[];
+};
 
 const LuckyDrawViewPage = () => {
   const { id } = useParams();
   const router = useRouter();
   const { showToast } = useToast();
-  const [campaign, setCampaign] = useState<any>(null);
+  const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusChanging, setStatusChanging] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,24 +102,6 @@ const LuckyDrawViewPage = () => {
     handleStatusChange("CLOSED");
   };
 
-  const handleExportPDF = () => {
-    if (!campaign) return;
-
-    const element = document.getElementById("campaign-pdf-content");
-    if (!element) return;
-
-    const opt = {
-      margin: 10,
-      filename: `${campaign.name}-campaign-details.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { orientation: "portrait", unit: "mm", format: "a4" },
-    };
-
-    html2pdf().set(opt).from(element).save();
-    showToast("PDF downloaded successfully", "success");
-  };
-
   if (loading) {
     return (
       <div className={styles.loadingWrapper}>
@@ -118,67 +131,58 @@ const LuckyDrawViewPage = () => {
     Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
   );
   const participants = campaign.vouchers?.length ?? 0;
-  const uniqueBranches = campaign.branches?.length
+  const uniqueBranches: CampaignBranch[] = campaign.branches?.length
     ? campaign.branches
     : Array.from(
         new Map(
           (campaign.vouchers ?? [])
-            .map((v: any) => v.branch)
-            .filter(Boolean)
-            .map((b: any) => [b.id, b]),
+            .map((voucher) => voucher.branch)
+            .filter(
+              (branch): branch is CampaignBranch =>
+                Boolean(branch && Number.isFinite(branch.id)),
+            )
+            .map((branch) => [branch.id, branch]),
         ).values(),
       );
+  const campaignBranchIds = uniqueBranches.map((branch) => branch.id);
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+
+    try {
+      await requestExport({
+        type: "VOUCHERS",
+        format: "PDF",
+        startDate: formatExportDate(campaign.startDate),
+        endDate: formatExportDate(campaign.endDate),
+        branchIds: campaignBranchIds,
+      });
+
+      showToast(
+        "Voucher export requested. The PDF will be sent to your email.",
+        "success",
+      );
+    } catch (error) {
+      console.error(error);
+      showToast(
+        error instanceof Error
+          ? error.message
+          : "Failed to request voucher export.",
+        "error",
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <div className={styles.container}>
       {/* Back nav */}
-      <button className={styles.backBtn} onClick={() => router.back()}>
+      <button className={styles.backBtn} onClick={() => router.push("/luckydraw")}>
         <ArrowLeft size={16} />
         Back to Campaigns
       </button>
 
-      {/* PDF Content for export */}
-      <div
-        id="campaign-pdf-content"
-        style={{ display: "none" }}
-        className={styles.pdfContainer}
-      >
-        <div className={styles.pdfHeader}>
-          <h1>{campaign.name}</h1>
-          <p>{campaign.description}</p>
-        </div>
-        {campaign.image && (
-          <img
-            src={campaign.image}
-            alt={campaign.name}
-            style={{ maxWidth: "100%", marginBottom: "20px" }}
-          />
-        )}
-        <div className={styles.pdfDetails}>
-          <h3>Campaign Details</h3>
-          <p>
-            <strong>Status:</strong> {campaign.status}
-          </p>
-          <p>
-            <strong>Start Date:</strong> {startDate.toLocaleDateString()}
-          </p>
-          <p>
-            <strong>End Date:</strong> {endDate.toLocaleDateString()}
-          </p>
-          <p>
-            <strong>Total Vouchers:</strong> {campaign.totalVouchersLimit}
-          </p>
-          <p>
-            <strong>Issued Vouchers:</strong> {campaign.vouchersIssued}
-          </p>
-          <p>
-            <strong>Priority:</strong> {campaign.priority}
-          </p>
-          <p>
-            <strong>Filter Type:</strong> {campaign.filterType}
-          </p>
-        </div>
-      </div>
 
       {/* ── Hero Banner ────────────────────────────── */}
       <div className={styles.hero}>
@@ -275,9 +279,9 @@ const LuckyDrawViewPage = () => {
               <span className={styles.detailLabel}>Active Branches</span>
               <div className={styles.branchTags}>
                 {uniqueBranches.length > 0 ? (
-                  (uniqueBranches as any[]).map((b: any) => (
-                    <span key={b.id} className={styles.branchTag}>
-                      {b.name.toUpperCase()}
+                  uniqueBranches.map((branch) => (
+                    <span key={branch.id} className={styles.branchTag}>
+                      {branch.name.toUpperCase()}
                     </span>
                   ))
                 ) : (
@@ -315,17 +319,20 @@ const LuckyDrawViewPage = () => {
                       </td>
                     </tr>
                   ) : (
-                    campaign.vouchers.map((v: any) => (
-                      <tr key={v.id}>
+                    campaign.vouchers.map((voucher) => {
+                      const v = voucher;
+
+                      return (
+                        <tr key={voucher.id}>
                         <td>
                           <span className={styles.voucherCode}>
-                            {v.voucherCode}
+                            {voucher.voucherCode}
                           </span>
                         </td>
                         <td>
                           <div className={styles.customerCell}>
                             <div className={styles.avatar}>
-                              {v.customer?.name?.charAt(0) ?? "?"}
+                              {voucher.customer?.name?.charAt(0) ?? "?"}
                             </div>
                             <div>
                               <div className={styles.customerName}>
@@ -359,8 +366,9 @@ const LuckyDrawViewPage = () => {
                             ISSUED
                           </span>
                         </td>
-                      </tr>
-                    ))
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -376,10 +384,11 @@ const LuckyDrawViewPage = () => {
             <button
               className={styles.btnExport}
               onClick={handleExportPDF}
-              title="Download campaign details as PDF"
+              disabled={isExporting}
+              title="Email campaign details as PDF"
             >
               <Download size={15} />
-              Export PDF
+              {isExporting ? "Requesting..." : "Export PDF"}
             </button>
 
             <Link href={`/luckydraw/${id}/edit`} className={styles.btnEdit}>
@@ -495,7 +504,7 @@ const LuckyDrawViewPage = () => {
               <p className={styles.modalDesc}>
                 Are you sure you want to close the campaign{" "}
                 <strong className={styles.modalHighlight}>
-                  "{campaign.name}"
+                  &quot;{campaign.name}&quot;
                 </strong>
                 ? Once closed, customers will no longer be able to redeem
                 vouchers. This action cannot be undone.

@@ -84,8 +84,9 @@ export default function AddUser() {
       showToast("User created successfully", "success");
 
       router.push("/usermanagement");
-    } catch (error) {
-      showToast("Failed to create user", "error");
+    } catch (error: any) {
+      const errorMessage = error?.message || "Failed to create user";
+      showToast(errorMessage, "error");
     }
   };
   return (
