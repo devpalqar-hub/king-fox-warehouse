@@ -98,3 +98,25 @@ export const transferStock = async (payload: any) => {
 
   return res.json();
 };
+
+export const returnStock = async (payload: {
+  inventoryId: number;
+  variantId: number;
+  stockCount: number;
+  note?: string;
+}) => {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE_URL}/v1/inventory/return-stock`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error("Return stock failed");
+
+  return res.json();
+};

@@ -83,6 +83,114 @@
   margin-left: 6px;
 }
 
+.noteTextarea {
+  flex: 2;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: none;
+  min-height: 40px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.noteTextarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+/* Return Row Layout (Desktop) */
+.returnRow {
+  display: grid;
+  grid-template-columns: 1fr 100px 2fr auto;
+  gap: 10px;
+  align-items: start;
+  margin-top: 14px;
+}
+
+.returnRow select,
+.returnRow input,
+.returnRow textarea {
+  margin-bottom: 0 !important;
+}
+
+/* Note field polish */
+.noteTextarea {
+  flex: 2;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  resize: none;
+  min-height: 42px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.noteTextarea::placeholder {
+  color: #94a3b8;
+}
+
+.noteTextarea:focus {
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+@media (max-width: 1023px) {
+  .returnRow {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .returnRow select {
+    grid-column: 1 / -1; /* full width */
+  }
+
+  .returnRow input[type="number"] {
+    grid-column: 1;
+  }
+
+  .returnRow textarea {
+    grid-column: 2;
+  }
+
+  .returnRow button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+@media (max-width: 767px) {
+  .returnRow {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .returnRow select,
+  .returnRow input,
+  .returnRow textarea {
+    width: 100%;
+  }
+
+  .noteTextarea {
+    min-height: 60px; /* better typing space on mobile */
+  }
+
+  .returnRow button {
+    width: 100%;
+  }
+}
+@media (max-width: 480px) {
+  .noteTextarea {
+    font-size: 12px;
+    min-height: 55px;
+  }
+
+  .returnRow {
+    gap: 6px;
+  }
+}
 /* ── Grid ─────────────────────────────────────── */
 .grid {
   display: grid;

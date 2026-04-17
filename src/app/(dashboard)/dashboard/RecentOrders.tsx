@@ -70,7 +70,7 @@ const RecentOrders = ({ data, loading = false }: RecentOrdersProps) => {
                 <p className={styles.orderId}>{order.id}</p>
               </div>
               <div className={styles.orderRight}>
-                <p className={styles.orderAmount}>${order.amount.toFixed(2)}</p>
+                <p className={styles.orderAmount}>₹{order.amount.toFixed(2)}</p>
                 <span
                   className={`${styles.orderStatus} ${styles[`orderStatus_${getStatusVariant(order.status)}`]}`}
                 >

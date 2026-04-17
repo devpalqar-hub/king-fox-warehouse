@@ -186,7 +186,7 @@
   box-shadow:
     0 1px 3px rgba(15, 23, 42, 0.06),
     0 4px 16px rgba(15, 23, 42, 0.04);
-  overflow: hidden;
+  overflow-x: auto;
   transition: box-shadow 0.2s ease;
 }
 
@@ -200,7 +200,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: auto;
+  table-layout: fixed;
 }
 
 .colName {
@@ -216,10 +216,10 @@
   min-width: 120px;
 }
 .colDate {
-  min-width: 140px;
+  min-width: 160px;
 }
 .colActions {
-  width: 90px;
+  width: 120px;
 }
 
 .table th {
@@ -256,6 +256,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  word-break: break-word;
 }
 
 .table tr:hover td {
@@ -302,6 +303,8 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
+  max-width: 180px;
 }
 
 .subjectText {
@@ -310,13 +313,13 @@
 
 /* ── Date Cell ────────────────────────────────── */
 .dateCell {
-  display: flex;
+  display: inline-flex; /* ✅ important */
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   font-size: 13px;
   color: #64748b;
   font-weight: 500;
-  white-space: nowrap;
+  white-space: nowrap; /* keep date in one line */
 }
 
 .dateCell svg {
@@ -334,6 +337,95 @@
   letter-spacing: 0.05em;
   white-space: nowrap;
   text-transform: uppercase;
+}
+
+/* ── Status Action Buttons ───────────────────── */
+
+.statusActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* RESOLVED (Green) */
+.resolveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+
+  color: #fff;
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.resolveBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+}
+
+.resolveBtn:active:not(:disabled) {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* NEW (Reopen - Neutral) */
+.reopenBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1.5px solid #e2e8f0;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+
+  color: #0f172a;
+  background: #f8fafc;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.reopenBtn:hover:not(:disabled) {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+}
+
+.reopenBtn:active:not(:disabled) {
+  transform: translateY(0);
+  opacity: 0.9;
+}
+
+/* Disabled state */
+.resolveBtn:disabled,
+.reopenBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .statusNew {
@@ -1018,12 +1110,6 @@
   font-weight: 600;
   color: #0f172a;
   white-space: nowrap;
-}
-
-.emailText,
-.subjectText {
-  text-align: right;
-  max-width: 180px;
 }
 
 .dateCell {
