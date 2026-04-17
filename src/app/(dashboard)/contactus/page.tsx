@@ -13,7 +13,11 @@ import {
   Clock,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
-import { getContacts, createContact } from "@/services/contact.service";
+import {
+  getContacts,
+  createContact,
+  updateContactStatus,
+} from "@/services/contact.service";
 import type { ContactEntry, CreateContactPayload } from "@/types/contact";
 
 /* ─── Status helpers ─────────────────────────── */
@@ -31,7 +35,7 @@ const STATUS_CSS: Record<string, string> = {
   CLOSED: "statusClosed",
 };
 
-const TABS = ["all", "NEW", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const;
+const TABS = ["all", "NEW", "RESOLVED"] as const;
 
 const emptyForm: CreateContactPayload = {
   name: "",
@@ -61,6 +65,7 @@ const ContactPage = () => {
 
   const modalRef = useRef<HTMLDivElement>(null);
   const drawerRef = useRef<HTMLDivElement>(null);
+  const [statusLoading, setStatusLoading] = useState(false);
 
   /* Fetch */
   const fetchContacts = async (page: number = 1) => {
@@ -150,6 +155,24 @@ const ContactPage = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+
+  const handleStatusChange = async (status: "NEW" | "RESOLVED") => {
+    if (!selected) return;
+
+    try {
+      setStatusLoading(true);
+      await updateContactStatus(selected.id, status);
+      setStatusLoading(false);
+
+      // update UI instantly
+      setSelected((prev) => prev && { ...prev, status });
+
+      // refresh table
+      await fetchContacts(currentPage);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   /* ── Render ───────────────────────────────── */
   return (
@@ -357,6 +380,27 @@ const ContactPage = () => {
                 >
                   {STATUS_LABELS[selected.status] ?? selected.status}
                 </span>
+                <div className={styles.statusActions}>
+                  {selected.status !== "RESOLVED" && (
+                    <button
+                      className={styles.resolveBtn}
+                      onClick={() => handleStatusChange("RESOLVED")}
+                      disabled={statusLoading}
+                    >
+                      {statusLoading ? "Updating..." : "Mark as Resolved"}{" "}
+                    </button>
+                  )}
+
+                  {selected.status !== "NEW" && (
+                    <button
+                      className={styles.reopenBtn}
+                      onClick={() => handleStatusChange("NEW")}
+                      disabled={statusLoading}
+                    >
+                      {statusLoading ? "Updating..." : "Mark as New"}
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className={styles.drawerDivider} />

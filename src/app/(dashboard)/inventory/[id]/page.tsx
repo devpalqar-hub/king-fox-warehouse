@@ -9,9 +9,9 @@ import {
   getVariantStock,
   addStock,
   transferStock,
+  returnStock,
 } from "@/services/inventory.service";
 import { useToast } from "@/components/toast/ToastProvider";
-import { FaArrowLeft } from "react-icons/fa";
 import BackButton from "@/components/backButton/backButton";
 
 const InventoryDetailsPage = () => {
@@ -28,6 +28,10 @@ const InventoryDetailsPage = () => {
   const [fromBranch, setFromBranch] = useState("");
   const [toBranch, setToBranch] = useState("");
   const [transferQty, setTransferQty] = useState("");
+
+  const [returnBranch, setReturnBranch] = useState("");
+  const [returnQty, setReturnQty] = useState("");
+  const [returnNote, setReturnNote] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -111,6 +115,52 @@ const InventoryDetailsPage = () => {
       setToBranch("");
     } catch {
       showToast("Transfer failed", "error");
+    }
+  };
+
+  const handleReturnStock = async () => {
+    try {
+      if (!returnBranch || !returnQty) {
+        showToast("Fill all fields", "error");
+        return;
+      }
+
+      if (Number(returnQty) <= 0) {
+        showToast("Invalid quantity", "error");
+        return;
+      }
+
+      const selected = stock.find(
+        (b) => b.inventoryId === Number(returnBranch),
+      );
+
+      if (!selected) {
+        showToast("Invalid selection", "error");
+        return;
+      }
+
+      if (selected.stock === 0) {
+        showToast("Cannot return from zero stock", "error");
+        return;
+      }
+
+      await returnStock({
+        inventoryId: Number(returnBranch), // branch stock id
+        variantId,
+        stockCount: Number(returnQty),
+        note: returnNote || "Returned to supplier",
+      });
+
+      showToast("Stock returned successfully!", "success");
+
+      const updated = await getVariantStock(variantId);
+      setStock(updated);
+
+      setReturnBranch("");
+      setReturnQty("");
+      setReturnNote("");
+    } catch {
+      showToast("Return failed", "error");
     }
   };
 
@@ -225,6 +275,49 @@ const InventoryDetailsPage = () => {
 
               <button className={styles.transferBtn} onClick={handleTransfer}>
                 <ArrowRightLeft size={16} /> Transfer
+              </button>
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <h3>Return Stock</h3>
+
+            <div className={styles.returnRow}>
+              <select
+                value={returnBranch}
+                onChange={(e) => setReturnBranch(e.target.value)}
+              >
+                <option value="">Select Branch</option>
+                {stock.map((b) => (
+                  <option
+                    key={b.inventoryId}
+                    value={b.inventoryId}
+                    disabled={b.stock === 0}
+                  >
+                    {b.branchName} ({b.stock})
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="number"
+                placeholder="Qty"
+                value={returnQty}
+                onChange={(e) => setReturnQty(e.target.value)}
+              />
+
+              <input
+                placeholder="Reason for return (optional)"
+                value={returnNote}
+                onChange={(e) => setReturnNote(e.target.value)}
+                className={styles.noteTextarea}
+              />
+
+              <button
+                className={styles.transferBtn}
+                onClick={handleReturnStock}
+              >
+                Return
               </button>
             </div>
           </section>

@@ -315,8 +315,11 @@ const ProductsPage = () => {
                             title="View on Store"
                             onClick={() => {
                               const userSiteUrl =
-                                process.env.NEXT_PUBLIC_SITE_URL ||
-                                "http://localhost:3001";
+                                process.env.NEXT_PUBLIC_SITE_URL;
+                              if (!userSiteUrl) {
+                                console.error("URL not set");
+                                return;
+                              }
                               window.open(
                                 `${userSiteUrl}/products/${product.slug}`,
                                 "_blank",

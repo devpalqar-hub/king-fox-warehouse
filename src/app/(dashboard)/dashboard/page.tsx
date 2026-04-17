@@ -109,7 +109,7 @@ const DashboardPage = () => {
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
@@ -133,7 +133,7 @@ const DashboardPage = () => {
               ? "Loading..."
               : overview
                 ? formatCurrency(overview.revenue.total)
-                : "$0"
+                : "₹0"
           }
           trend={overview?.revenue.growth}
           trendLabel="vs. last month"

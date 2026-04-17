@@ -178,9 +178,9 @@ export default function AddVariationPage() {
         "error",
       );
     }
-    if (sellingPrice < costPrice) {
+    if (costPrice < sellingPrice) {
       return showToast(
-        "Selling price must be greater than or equal to cost price",
+        "Cost price must be greater than or equal to selling price",
         "error",
       );
     }

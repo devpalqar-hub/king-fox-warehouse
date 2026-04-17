@@ -54,3 +54,23 @@ export async function createContact(
   if (!res.ok) throw new Error(`Failed to create contact: ${res.status}`);
   return res.json();
 }
+
+export async function updateContactStatus(
+  id: number,
+  status: "NEW" | "RESOLVED",
+) {
+  const token = localStorage.getItem("token");
+
+  const res = await fetch(`${BASE_URL}/v1/contact-us/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!res.ok) throw new Error("Failed to update status");
+
+  return res.json();
+}
