@@ -14,6 +14,8 @@ import { ChevronDown, AlertCircle, Search } from "lucide-react";
 import type { Product } from "@/types/product";
 import type { Branch } from "@/types/branch.types";
 import type { Category } from "@/types/category";
+import RichTextEditor from "@/components/editor/RichTextEditor";
+import { uploadSingleImageToS3 } from "@/services/upload.service";
 
 type CampaignForm = {
   name: string;
@@ -188,26 +190,41 @@ const CreateCampaignPage = () => {
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
+    if (!file) return;
 
-      if (!file.type.startsWith("image/")) {
-        showToast("Only images allowed", "error");
-        return;
-      }
+    if (!file.type.startsWith("image/")) {
+      showToast("Only images allowed", "error");
+      return;
+    }
+
+    try {
+      const uploadedUrl = await uploadSingleImageToS3(file);
+
       setForm((prev) => ({
         ...prev,
-        image: previewUrl,
+        image: uploadedUrl,
       }));
+
+      showToast("Image uploaded successfully", "success");
+    } catch (err) {
+      console.error(err);
+      showToast("Image upload failed", "error");
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const cleanedMeta = [
+      {
+        title: "",
+        text: form.description,
+        imageUrl: "",
+      },
+    ];
     // Validation
     if (
       !form.name ||
@@ -238,16 +255,46 @@ const CreateCampaignPage = () => {
       showToast("Please select at least one product", "error");
       return;
     }
+    const stripHtml = (html: string) => {
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      return div.textContent || "";
+    };
 
     try {
-      await createCampaign({
-        ...form,
-        categoryIds: form.filterType === "CATEGORY" ? form.categoryIds : [],
-        tagIds: form.filterType === "TAG" ? form.tagIds : [],
-        productIds: form.filterType === "PRODUCT" ? form.productIds : [],
+      const payload = {
+        name: form.name,
+        description: stripHtml(form.description), // or keep if needed
+        image: form.image,
+
+        startDate: new Date(form.startDate).toISOString(),
+        endDate: new Date(form.endDate).toISOString(),
+
         totalVouchersLimit: Number(form.totalVouchersLimit),
         priority: Number(form.priority),
-      });
+
+        filterType: form.filterType,
+
+        branchIds: form.branchIds.map(Number),
+
+        categoryIds:
+          form.filterType === "CATEGORY" ? form.categoryIds.map(Number) : [],
+
+        tagIds: form.filterType === "TAG" ? form.tagIds.map(Number) : [],
+
+        productIds:
+          form.filterType === "PRODUCT" ? form.productIds.map(Number) : [],
+
+        // metaInfo: [
+        //   {
+        //     title: "",
+        //     text: form.description,
+        //     imageUrl: "",
+        //   },
+        // ],
+      };
+      console.log(payload);
+      await createCampaign(payload);
 
       showToast("Campaign created successfully!", "success");
       router.push("/luckydraw");
@@ -348,13 +395,11 @@ const CreateCampaignPage = () => {
 
               <div className={styles.fieldGroup}>
                 <label className={styles.label}>Description</label>
-                <textarea
-                  name="description"
+                <RichTextEditor
                   value={form.description}
-                  onChange={handleChange}
-                  placeholder="Describe your campaign..."
-                  className={styles.textarea}
-                  rows={3}
+                  onChange={(val) =>
+                    setForm((prev) => ({ ...prev, description: val }))
+                  }
                 />
               </div>
             </section>
