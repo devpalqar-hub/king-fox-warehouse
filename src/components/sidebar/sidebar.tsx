@@ -21,7 +21,9 @@ import {
   Contact,
   HomeIcon,
   Logs,
-  TrendingUp
+  TrendingUp,
+  Rocket,
+  GalleryHorizontal
 } from "lucide-react";
 import { MdReviews } from "react-icons/md";
 // import Home from "@/app/page";
@@ -40,6 +42,7 @@ const menuItems = [
   { name: "Orders", icon: <ShoppingBag size={20} />, path: "/orders" },
   { name: "Stock Log", icon: <Logs size={20} />, path: "/stock" },
   { name: "Lucky Draw", icon: <Trophy size={20} />, path: "/luckydraw" },
+  { name: "Banners", icon: <GalleryHorizontal size={20} />, path: "/banner" },
   { name: "Contact Us", icon: <Contact size={20} />, path: "/contactus" },
   { name: "Shipping Charge", icon: <Truck size={20} />, path: "/shipping" },
   {
