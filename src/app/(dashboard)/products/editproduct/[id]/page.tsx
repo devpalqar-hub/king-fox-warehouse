@@ -156,7 +156,7 @@ export default function EditProductPage() {
   const handleRemoveMetaImage = async (index: number) => {
     try {
       const imageUrl = form.metaInfo[index].imageUrl;
-      if (imageUrl) await deleteImageFromS3(imageUrl);
+      if (imageUrl) await deleteMediaFromS3(imageUrl);
       const updated = [...form.metaInfo];
       updated[index].imageUrl = "";
       setForm((prev) => ({ ...prev, metaInfo: updated }));
@@ -407,7 +407,7 @@ export default function EditProductPage() {
                     onClick={async () => {
                       try {
                         if (!img.startsWith("blob:"))
-                          await deleteImageFromS3(img);
+                          await deleteMediaFromS3(img);
                         setForm((prev) => ({
                           ...prev,
                           images: prev.images.filter((_, i) => i !== index),
