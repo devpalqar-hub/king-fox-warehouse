@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import {
   uploadImagesToS3,
-  deleteImageFromS3,
+  deleteMediaFromS3,
   uploadSingleImageToS3,
 } from "@/services/upload.service";
 import { useToast } from "@/components/toast/ToastProvider";
