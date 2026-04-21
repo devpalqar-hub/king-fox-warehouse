@@ -1,7 +1,6 @@
 "use client";
 
 import styles from "./dashboard.module.css";
-import { useState } from "react";
 import type { SalesComparison } from "@/types/dashboard";
 
 interface SalesChartProps {

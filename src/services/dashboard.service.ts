@@ -213,3 +213,40 @@ export const getWarehouseAnalytics = async (): Promise<WarehouseData[]> => {
     return [];
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET /v1/admin-dashboard/app/market-analytics
+// ─────────────────────────────────────────────────────────────────────────────
+export const getMarketAnalytics = async (params?: {
+  startDate?: string;
+  endDate?: string;
+  range?: "day" | "month" | "year";
+}) => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const query = new URLSearchParams();
+    if (params?.startDate) query.append("startdate", params.startDate);
+    if (params?.endDate) query.append("enddate", params.endDate);
+    if (params?.range) query.append("range", params.range);
+
+    const res = await fetch(
+      `${BASE_URL}/v1/admin-dashboard/app/market-analytics?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+      },
+    );
+
+    if (!res.ok) throw new Error("Failed to fetch market analytics");
+
+    return await res.json();
+  } catch (err) {
+    console.error("Market analytics error:", err);
+    return null;
+  }
+};

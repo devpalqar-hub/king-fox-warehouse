@@ -36,6 +36,7 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState<OrderSummary | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [sourceType, setSourceType] = useState("");
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -54,6 +55,7 @@ export default function OrdersPage() {
           limit,
           status,
           search,
+          sourceType,
         });
 
         if (res) {
@@ -65,7 +67,7 @@ export default function OrdersPage() {
     );
 
     return () => clearTimeout(delay);
-  }, [limit, page, search, status]);
+  }, [limit, page, search, status, sourceType]);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -174,11 +176,25 @@ export default function OrdersPage() {
           <option value="CANCELLED">Cancelled</option>
         </select>
 
+        <select
+          className={styles.selectInput}
+          value={sourceType}
+          onChange={(e) => {
+            setSourceType(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All</option>
+          <option value="ONLINE">Online</option>
+          <option value="OFFLINE">Offline</option>
+        </select>
+
         <button
           className={styles.resetBtn}
           onClick={() => {
             setSearch("");
             setStatus("");
+            setSourceType("");
             setPage(1);
           }}
         >
@@ -242,7 +258,13 @@ export default function OrdersPage() {
                   </td>
 
                   <td data-label="Actions">
-                    <Link href={`/orders/${order.id}`}>
+                    <Link
+                      href={
+                        order.sourceType === "OFFLINE"
+                          ? `/offline-orders/${order.id}`
+                          : `/orders/${order.id}`
+                      }
+                    >
                       <button className={styles.viewBtn}>View</button>
                     </Link>
                   </td>
