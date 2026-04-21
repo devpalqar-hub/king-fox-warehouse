@@ -220,7 +220,7 @@ export default function OrdersPage() {
 
                   <td data-label="Customer">
                     <div className={styles.customer}>
-                      <span>{order.customer.name}</span>
+                      <span>{order.customer?.name || "--"}</span>
                     </div>
                   </td>
 

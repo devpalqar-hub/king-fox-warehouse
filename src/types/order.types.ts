@@ -7,10 +7,10 @@ export interface Order {
   createdAt: string;
 
   customer: {
-    id: number;
-    name: string;
-    phone: string;
-  };
+  id: number;
+  name: string;
+  phone: string;
+} | null;
 
   warehouseBranch: {
     id: number;
