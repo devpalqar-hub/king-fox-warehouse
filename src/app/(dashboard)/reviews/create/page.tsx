@@ -8,6 +8,7 @@ import { getProducts } from "@/services/product.service";
 import { Product } from "@/types/product";
 import BackButton from "@/components/backButton/backButton";
 import { useToast } from "@/components/toast/ToastProvider";
+import { uploadImagesToS3 } from "@/services/upload.service";
 
 const CreateReviewPage = () => {
   const router = useRouter();
@@ -105,13 +106,23 @@ const CreateReviewPage = () => {
     setForm({ ...form, rating: value });
   };
 
-  const handleImageUpload = (e: any) => {
-    const files = Array.from(e.target.files);
+  const handleImageUpload = async (e: any) => {
+    try {
+      const files = Array.from(e.target.files);
 
-    const urls = files.map((file: any) => URL.createObjectURL(file));
+      const previewUrls = files.map((file: any) =>
+        URL.createObjectURL(file)
+      );
+      setPreview(previewUrls);
 
-    setPreview(urls);
-    setForm({ ...form, images: urls });
+      const uploadedUrls = await uploadImagesToS3(files as File[]);
+
+      setForm({ ...form, images: uploadedUrls });
+
+    } catch (err) {
+      console.error(err);
+      showToast("Image upload failed", "error");
+    }
   };
 
   const handleSubmit = async () => {
