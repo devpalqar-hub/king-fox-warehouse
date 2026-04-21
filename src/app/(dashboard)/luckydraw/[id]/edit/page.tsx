@@ -14,6 +14,7 @@ import BackButton from "@/components/backButton/backButton";
 import type { Product } from "@/types/product";
 import type { Branch } from "@/types/branch.types";
 import type { Category } from "@/types/category";
+import RichTextEditor from "@/components/editor/RichTextEditor";
 
 type CampaignForm = {
   name: string;
@@ -58,7 +59,9 @@ type EditableCampaignField = Exclude<
 >;
 
 const normalizeFilterType = (value: unknown): CampaignForm["filterType"] => {
-  const normalizedValue = String(value ?? "").trim().toUpperCase();
+  const normalizedValue = String(value ?? "")
+    .trim()
+    .toUpperCase();
 
   if (normalizedValue === "TAG" || normalizedValue === "TAGS") {
     return "TAG";
@@ -89,7 +92,9 @@ const toFiniteId = (value: unknown): number | null => {
 
   const numericValue = Number(value);
 
-  return Number.isFinite(numericValue) && numericValue > 0 ? numericValue : null;
+  return Number.isFinite(numericValue) && numericValue > 0
+    ? numericValue
+    : null;
 };
 
 const normalizeIdList = (values: unknown): number[] => {
@@ -258,7 +263,9 @@ const LuckyDrawEditPage = () => {
           ? productsData.data
           : [];
 
-        setProducts(mergeProducts(selectedProductIds, res.products, fetchedProducts));
+        setProducts(
+          mergeProducts(selectedProductIds, res.products, fetchedProducts),
+        );
       } catch (err) {
         console.error(err);
         showToast("Failed to load campaign", "error");
@@ -461,13 +468,11 @@ const LuckyDrawEditPage = () => {
 
               <div className={styles.field}>
                 <label className={styles.label}>Description</label>
-                <textarea
-                  name="description"
+                <RichTextEditor
                   value={form.description}
-                  onChange={handleChange}
-                  placeholder="Describe the campaign…"
-                  className={styles.textarea}
-                  rows={4}
+                  onChange={(val) =>
+                    setForm((prev) => ({ ...prev, description: val }))
+                  }
                 />
               </div>
             </section>
@@ -778,10 +783,15 @@ const LuckyDrawEditPage = () => {
                         </div>
                       ) : (
                         filteredProducts.map((product) => (
-                          <label key={product.id} className={styles.checkboxItem}>
+                          <label
+                            key={product.id}
+                            className={styles.checkboxItem}
+                          >
                             <input
                               type="checkbox"
-                              checked={form.productIds.includes(Number(product.id))}
+                              checked={form.productIds.includes(
+                                Number(product.id),
+                              )}
                               onChange={() => toggleProduct(Number(product.id))}
                               className={styles.checkbox}
                             />

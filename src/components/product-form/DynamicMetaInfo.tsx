@@ -4,7 +4,7 @@ import { Plus, X } from "lucide-react";
 import styles from "@/app/(dashboard)/products/addproduct/addproduct.module.css";
 import RichTextEditor from "@/components/editor/RichTextEditor";
 import { uploadSingleImageToS3 } from "@/services/upload.service";
-import { deleteImageFromS3 } from "@/services/upload.service";
+import { deleteMediaFromS3 } from "@/services/upload.service";
 export interface MetaItem {
   title: string;
   text: string;
@@ -27,7 +27,7 @@ export default function DynamicMetaInfo({ value, onChange }: Props) {
     const imageUrl = value[index]?.imageUrl;
 
     if (imageUrl) {
-      await deleteImageFromS3(imageUrl);
+      await deleteMediaFromS3(imageUrl);
     }
 
     onChange(value.filter((_, i) => i !== index));
@@ -88,7 +88,7 @@ const handleRemoveMetaImage = async (index: number) => {
 
     // Optional: delete from S3
     if (imageUrl) {
-      await deleteImageFromS3(imageUrl);
+      await deleteMediaFromS3(imageUrl);
     }
 
     const updated = [...value];
