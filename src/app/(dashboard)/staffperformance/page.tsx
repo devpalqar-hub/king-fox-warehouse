@@ -94,6 +94,19 @@ export default function StaffPerformancePage() {
   const [error, setError] = useState("");
   const [performance, setPerformance] =
     useState<StaffPerformanceResponse | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [exportFormat, setExportFormat] = useState<"EXCEL" | "PDF">("EXCEL");
+
+  useEffect(() => {
+    const rawUser = localStorage.getItem("user");
+    if (!rawUser) return;
+
+    try {
+      const parsed = JSON.parse(rawUser);
+      if (parsed.email) setExportEmail(parsed.email);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -179,38 +192,47 @@ export default function StaffPerformancePage() {
   };
   const showingFrom =
     rankings.length > 0 ? (pagination.page - 1) * pagination.limit + 1 : 0;
-  const showingTo =
-    rankings.length > 0 ? showingFrom + rankings.length - 1 : 0;
+  const showingTo = rankings.length > 0 ? showingFrom + rankings.length - 1 : 0;
   const topPerformer =
     performance?.topPerformer.trim() || rankings[0]?.name || "No data yet";
 
-  const handleExport = async () => {
+  const handleExport = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const trimmedEmail = exportEmail.trim();
+
+    if (!trimmedEmail) {
+      showToast("Please enter an email address.", "error");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      showToast("Invalid email address.", "error");
+      return;
+    }
+
     setIsExporting(true);
 
     try {
       const { startDate, endDate } = getCurrentYearExportRange();
 
       await requestExport({
-        type: "STAFF_PERFORMANCE",
-        format: "EXCEL",
+        type: "STAFF_PERFORMANCE", // 🔥 important
+        format: exportFormat,
+        email: trimmedEmail,
         startDate,
         endDate,
         branchIds: selectedBranch ? [Number(selectedBranch)] : undefined,
       });
 
       showToast(
-        "Staff performance export requested. The Excel file will be sent to your email.",
+        `Staff performance export requested. The ${exportFormat} file will be sent to your email.`,
         "success",
       );
-    } catch (exportError) {
-      console.error(exportError);
 
-      showToast(
-        exportError instanceof Error
-          ? exportError.message
-          : "Failed to request staff performance export.",
-        "error",
-      );
+      setIsExportModalOpen(false);
+    } catch (err) {
+      showToast("Failed to export staff performance.", "error");
     } finally {
       setIsExporting(false);
     }
@@ -229,11 +251,11 @@ export default function StaffPerformancePage() {
 
         <button
           className={styles.exportButton}
-          onClick={handleExport}
+          onClick={() => setIsExportModalOpen(true)}
           disabled={isExporting}
         >
           <Download size={16} />
-          {isExporting ? "Requesting..." : "Export Excel"}
+          {isExporting ? "Requesting..." : "Export"}
         </button>
       </div>
 
@@ -264,9 +286,7 @@ export default function StaffPerformancePage() {
       <section className={styles.filterCard}>
         <div className={styles.filterCopy}>
           <span className={styles.filterLabel}>Branch Filter</span>
-          <p className={styles.filterDescription}>
-            Filter by branch name
-          </p>
+          <p className={styles.filterDescription}>Filter by branch name</p>
         </div>
 
         <div className={styles.filterControls}>
@@ -403,8 +423,9 @@ export default function StaffPerformancePage() {
 
         <div className={styles.pagination}>
           <span className={styles.paginationInfo}>
-            Showing <strong>{showingFrom}</strong> to <strong>{showingTo}</strong>{" "}
-            of <strong>{pagination.total}</strong> personnel
+            Showing <strong>{showingFrom}</strong> to{" "}
+            <strong>{showingTo}</strong> of <strong>{pagination.total}</strong>{" "}
+            personnel
           </span>
 
           <div className={styles.paginationControls}>
@@ -416,24 +437,25 @@ export default function StaffPerformancePage() {
               <ChevronLeft size={16} />
             </button>
 
-            {getVisiblePages(page, pagination.totalPages).map((pageNumber, index) =>
-              pageNumber === "..." ? (
-                <span
-                  key={`ellipsis-${index}`}
-                  className={styles.pageEllipsis}
-                >
-                  ...
-                </span>
-              ) : (
-                <button
-                  key={pageNumber}
-                  className={`${styles.pageButton} ${page === pageNumber ? styles.pageButtonActive : ""}`}
-                  onClick={() => setPage(pageNumber)}
-                  disabled={loading}
-                >
-                  {pageNumber}
-                </button>
-              ),
+            {getVisiblePages(page, pagination.totalPages).map(
+              (pageNumber, index) =>
+                pageNumber === "..." ? (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className={styles.pageEllipsis}
+                  >
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={pageNumber}
+                    className={`${styles.pageButton} ${page === pageNumber ? styles.pageButtonActive : ""}`}
+                    onClick={() => setPage(pageNumber)}
+                    disabled={loading}
+                  >
+                    {pageNumber}
+                  </button>
+                ),
             )}
 
             <button
@@ -446,6 +468,71 @@ export default function StaffPerformancePage() {
           </div>
         </div>
       </section>
+      {isExportModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsExportModalOpen(false);
+          }}
+        >
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2>Export Staff Performance</h2>
+                <p>Select format and email</p>
+              </div>
+
+              <button
+                className={styles.modalCloseBtn}
+                onClick={() => setIsExportModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form className={styles.modalForm} onSubmit={handleExport}>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Mail ID</label>
+                <input
+                  type="email"
+                  className={styles.fieldInput}
+                  value={exportEmail}
+                  onChange={(e) => setExportEmail(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Export Type</label>
+                <select
+                  className={styles.fieldInput}
+                  value={exportFormat}
+                  onChange={(e) =>
+                    setExportFormat(e.target.value as "EXCEL" | "PDF")
+                  }
+                >
+                  <option value="EXCEL">EXCEL</option>
+                  <option value="PDF">PDF</option>
+                </select>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setIsExportModalOpen(false)}
+                >
+                  Cancel
+                </button>
+
+                <button type="submit" className={styles.primaryBtn}>
+                  <Download size={16} />
+                  {isExporting ? "Requesting..." : "Submit Export"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
