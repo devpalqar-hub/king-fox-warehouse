@@ -10,7 +10,6 @@ interface WarehouseAnalyticsProps {
   loading?: boolean;
 }
 
-// ─── Determine health variant based on health label ────────────────────────
 const getHealthVariant = (
   label: string,
 ): "healthy" | "lowstock" | "critical" => {
@@ -39,51 +38,63 @@ const WarehouseAnalytics = ({
     </div>
 
     {loading ? (
-      <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <div className={styles.stateBox}>
         <p className={styles.loadingText}>Loading warehouse data...</p>
       </div>
     ) : data && data.length > 0 ? (
-      <table className={styles.warehouseTable}>
-        <thead>
-          <tr>
-            <th>Hub Location</th>
-            <th>Manager</th>
-            <th>Stock Health</th>
-            <th>Utilisation</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((hub) => (
-            <tr key={hub.id}>
-              <td>
-                <div className={styles.hubLocation}>
-                  <MapPin size={13} className={styles.mapPin} />
-                  <span>{hub.location}</span>
-                </div>
-              </td>
-              <td className={styles.hubManager}>{hub.manager}</td>
-              <td>
-                <div className={styles.healthCell}>
-                  <div className={styles.healthBar}>
-                    <div
-                      className={`${styles.healthFill} ${styles[`health_${getHealthVariant(hub.healthLabel)}`]}`}
-                      style={{ width: `${hub.stockHealth}%` }}
-                    />
-                  </div>
-                  <span
-                    className={`${styles.healthLabel} ${styles[`healthTxt_${getHealthVariant(hub.healthLabel)}`]}`}
-                  >
-                    {hub.stockHealth}% {hub.healthLabel}
-                  </span>
-                </div>
-              </td>
-              <td className={styles.utilisationCell}>{hub.utilisation}%</td>
+      <div className={styles.warehouseTableWrapper}>
+        <table className={styles.warehouseTable}>
+          <thead>
+            <tr>
+              <th>Hub Location</th>
+              <th>Manager</th>
+              <th>Stock Health</th>
+              <th>Utilisation</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.map((hub) => {
+              const variant = getHealthVariant(hub.healthLabel);
+              return (
+                <tr key={hub.id}>
+                  <td data-label="Hub Location">
+                    <div className={styles.hubLocation}>
+                      <MapPin size={13} className={styles.mapPin} />
+                      <span>{hub.location}</span>
+                    </div>
+                  </td>
+                  <td data-label="Manager" className={styles.hubManager}>
+                    {hub.manager}
+                  </td>
+                  <td data-label="Stock Health">
+                    <div className={styles.healthCell}>
+                      <div className={styles.healthBar}>
+                        <div
+                          className={`${styles.healthFill} ${styles[`health_${variant}`]}`}
+                          style={{ width: `${hub.stockHealth}%` }}
+                        />
+                      </div>
+                      <span
+                        className={`${styles.healthLabel} ${styles[`healthTxt_${variant}`]}`}
+                      >
+                        {hub.stockHealth}% {hub.healthLabel}
+                      </span>
+                    </div>
+                  </td>
+                  <td
+                    data-label="Utilisation"
+                    className={styles.utilisationCell}
+                  >
+                    {hub.utilisation}%
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     ) : (
-      <div style={{ textAlign: "center", padding: "40px 20px" }}>
+      <div className={styles.stateBox}>
         <p className={styles.loadingText}>No warehouse data available</p>
       </div>
     )}

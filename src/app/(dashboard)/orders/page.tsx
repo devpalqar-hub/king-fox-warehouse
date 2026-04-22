@@ -9,10 +9,11 @@ import {
   ClipboardList,
   Truck,
   Download,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import styles from "./orders.module.css";
-import { ReactNode, useEffect, useState } from "react";
+import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { getOrders } from "@/services/order.service";
 import { Order, OrderResponse, OrderSummary } from "@/types/order.types";
 import { getOrderSummary } from "@/services/order.service";
@@ -20,6 +21,7 @@ import {
   getCurrentYearExportRange,
   requestExport,
 } from "@/services/export.service";
+import type { ExportFormat } from "@/services/export.service";
 import { useToast } from "@/components/toast/ToastProvider";
 
 export default function OrdersPage() {
@@ -36,6 +38,10 @@ export default function OrdersPage() {
   const [search, setSearch] = useState("");
   const [summary, setSummary] = useState<OrderSummary | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("EXCEL");
+  const [sourceType, setSourceType] = useState("");
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -47,6 +53,24 @@ export default function OrdersPage() {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const rawUser = localStorage.getItem("user");
+
+    if (!rawUser) return;
+
+    try {
+      const parsedUser = JSON.parse(rawUser) as { email?: string | null };
+
+      if (parsedUser.email) {
+        setExportEmail(parsedUser.email);
+      }
+    } catch (error) {
+      console.error("Failed to read stored user for export modal", error);
+    }
+  }, []);
+
+  useEffect(() => {
     const delay = setTimeout(
       async () => {
         const res = await getOrders({
@@ -54,6 +78,7 @@ export default function OrdersPage() {
           limit,
           status,
           search,
+          sourceType,
         });
 
         if (res) {
@@ -65,9 +90,28 @@ export default function OrdersPage() {
     );
 
     return () => clearTimeout(delay);
-  }, [limit, page, search, status]);
+  }, [limit, page, search, status, sourceType]);
 
-  const handleExport = async () => {
+  const closeExportModal = () => {
+    if (isExporting) return;
+    setIsExportModalOpen(false);
+  };
+
+  const handleExport = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const trimmedEmail = exportEmail.trim();
+
+    if (!trimmedEmail) {
+      showToast("Please enter an email address for the export.", "error");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      showToast("Please enter a valid email address.", "error");
+      return;
+    }
+
     setIsExporting(true);
 
     try {
@@ -75,15 +119,17 @@ export default function OrdersPage() {
 
       await requestExport({
         type: "INVOICES",
-        format: "EXCEL",
+        format: exportFormat,
+        email: trimmedEmail,
         startDate,
         endDate,
       });
 
       showToast(
-        "Invoice export requested. The Excel file will be sent to your email.",
+        `Invoice export requested. The ${exportFormat === "PDF" ? "PDF" : "Excel"} file will be sent to your email.`,
         "success",
       );
+      setIsExportModalOpen(false);
     } catch (error) {
       console.error(error);
       showToast(
@@ -108,11 +154,11 @@ export default function OrdersPage() {
 
         <button
           className={styles.createBtn}
-          onClick={handleExport}
+          onClick={() => setIsExportModalOpen(true)}
           disabled={isExporting}
         >
           <Download size={16} />
-          {isExporting ? "Requesting..." : "Export Excel"}
+          {isExporting ? "Requesting..." : "Export"}
         </button>
       </div>
 
@@ -174,11 +220,25 @@ export default function OrdersPage() {
           <option value="CANCELLED">Cancelled</option>
         </select>
 
+        <select
+          className={styles.selectInput}
+          value={sourceType}
+          onChange={(e) => {
+            setSourceType(e.target.value);
+            setPage(1);
+          }}
+        >
+          <option value="">All</option>
+          <option value="ONLINE">Online</option>
+          <option value="OFFLINE">Offline</option>
+        </select>
+
         <button
           className={styles.resetBtn}
           onClick={() => {
             setSearch("");
             setStatus("");
+            setSourceType("");
             setPage(1);
           }}
         >
@@ -209,7 +269,7 @@ export default function OrdersPage() {
                   : order.status;
 
               return (
-                <tr key={order.id}>
+                <tr key={`${order.id}-${order.orderNumber}`}>
                   <td data-label="Order ID" className={styles.orderId}>
                     #{order.orderNumber}
                   </td>
@@ -242,7 +302,13 @@ export default function OrdersPage() {
                   </td>
 
                   <td data-label="Actions">
-                    <Link href={`/orders/${order.id}`}>
+                    <Link
+                      href={
+                        order.sourceType === "OFFLINE"
+                          ? `/offline-orders/${order.id}`
+                          : `/orders/${order.id}`
+                      }
+                    >
                       <button className={styles.viewBtn}>View</button>
                     </Link>
                   </td>
@@ -296,6 +362,100 @@ export default function OrdersPage() {
           </div>
         </div>
       </div>
+
+      {isExportModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              closeExportModal();
+            }
+          }}
+        >
+          <div
+            className={styles.modalCard}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="invoice-export-title"
+          >
+            <div className={styles.modalHeader}>
+              <div>
+                <h2 id="invoice-export-title">Export Invoices</h2>
+                <p>Select a format and where the export should be sent.</p>
+              </div>
+
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={closeExportModal}
+                disabled={isExporting}
+                aria-label="Close export modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form className={styles.modalForm} onSubmit={handleExport}>
+              <div className={styles.fieldGroup}>
+                <label htmlFor="export-email" className={styles.fieldLabel}>
+                  Mail ID
+                </label>
+                <input
+                  id="export-email"
+                  type="email"
+                  className={styles.fieldInput}
+                  placeholder="admin@kingfox.com"
+                  value={exportEmail}
+                  onChange={(event) => setExportEmail(event.target.value)}
+                  disabled={isExporting}
+                />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label htmlFor="export-format" className={styles.fieldLabel}>
+                  Export Type
+                </label>
+                <select
+                  id="export-format"
+                  className={styles.fieldInput}
+                  value={exportFormat}
+                  onChange={(event) =>
+                    setExportFormat(event.target.value as ExportFormat)
+                  }
+                  disabled={isExporting}
+                >
+                  <option value="EXCEL">EXCEL</option>
+                  <option value="PDF">PDF</option>
+                </select>
+              </div>
+
+              <p className={styles.modalHint}>
+                This request exports invoice data from the start of the current
+                year through today.
+              </p>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={closeExportModal}
+                  disabled={isExporting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.primaryBtn}
+                  disabled={isExporting}
+                >
+                  <Download size={16} />
+                  {isExporting ? "Requesting..." : "Submit Export"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

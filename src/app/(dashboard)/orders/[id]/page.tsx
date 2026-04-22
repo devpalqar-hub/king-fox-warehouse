@@ -14,7 +14,6 @@ import {
   MapPin,
   Store,
   ChevronRight,
-  AlertTriangle,
 } from "lucide-react";
 import { getBranches } from "@/services/branch.service";
 import { updateOrderStatus } from "@/services/order.service";
@@ -407,7 +406,6 @@ export default function OrderDetailPage() {
               <div className={styles.avatar}></div>
               <div>
                 <strong>{order.customer.name}</strong>
-                <p>Active Customer since 2023</p>
               </div>
             </div>
             <div className={styles.contactList}>
@@ -419,7 +417,7 @@ export default function OrderDetailPage() {
               </div>
               <div className={styles.contactItem}>
                 <MapPin size={14} />
-                <span>{order.customer.address}</span>
+                <span>{order.shippingAddress}</span>
               </div>
             </div>
           </section>

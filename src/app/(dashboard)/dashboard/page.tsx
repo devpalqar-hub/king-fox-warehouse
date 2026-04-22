@@ -28,11 +28,17 @@ import type {
   WarehouseData,
 } from "@/types/dashboard";
 
+import BranchRevenueChart from "./BranchRevenueChart";
+import { getMarketAnalytics } from "@/services/dashboard.service";
+
 // ── Ratio bar for Digital vs Physical ────────────────────────────────────────
 const RatioBar = ({ online }: { online: number }) => (
   <div className={styles.ratioWrap}>
     <div className={styles.ratioBar}>
-      <div className={styles.ratioFillOnline} style={{ width: `${online.toFixed(2)}%` }} />
+      <div
+        className={styles.ratioFillOnline}
+        style={{ width: `${online.toFixed(2)}%` }}
+      />
     </div>
     <div className={styles.ratioLabels}>
       <span>{online.toFixed(2)}% Online</span>
@@ -67,6 +73,8 @@ const DashboardPage = () => {
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [marketData, setMarketData] = useState<any>(null);
+  const [marketLoading, setMarketLoading] = useState(false);
 
   // ─── Fetch all dashboard data ──────────────────────────────────────────────
   useEffect(() => {
@@ -115,6 +123,21 @@ const DashboardPage = () => {
     }).format(value);
   };
 
+  const fetchMarketData = async (filters?: any) => {
+    try {
+      setMarketLoading(true);
+      const res = await getMarketAnalytics(filters);
+      setMarketData(res);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setMarketLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchMarketData();
+  }, []);
+
   return (
     <div className={styles.container}>
       {/* ── Page Title ─────────────────────────────────────────── */}
@@ -135,7 +158,11 @@ const DashboardPage = () => {
                 ? formatCurrency(overview.revenue.total)
                 : "₹0"
           }
-          trend={overview?.revenue.growth}
+          trend={
+            overview?.revenue?.growth !== undefined
+              ? Number(overview.revenue.growth.toFixed(1))
+              : undefined
+          }
           trendLabel="vs. last month"
           accent="blue"
         />
@@ -217,11 +244,18 @@ const DashboardPage = () => {
       </section>
 
       {/* ── Charts Row ─────────────────────────────────────────── */}
+      <section>
+        <BranchRevenueChart
+          data={marketData}
+          loading={marketLoading}
+          onFilterChange={fetchMarketData}
+        />
+      </section>
+
       <section className={styles.chartsRow}>
         <SalesChart data={salesComparison} loading={loading} />
         <CategoryPerformance data={categories} loading={loading} />
       </section>
-
       {/* ── Warehouse Analytics ────────────────────────────────── */}
       <section>
         <WarehouseAnalytics data={warehouses} loading={loading} />

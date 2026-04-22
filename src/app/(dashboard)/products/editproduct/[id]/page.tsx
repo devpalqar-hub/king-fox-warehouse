@@ -22,13 +22,10 @@ import {
   Check,
   Pencil,
 } from "lucide-react";
-import {
-  uploadImagesToS3,
-  deleteMediaFromS3,
-  uploadSingleImageToS3,
-} from "@/services/upload.service";
+import { uploadImagesToS3, deleteMediaFromS3 } from "@/services/upload.service";
 import { useToast } from "@/components/toast/ToastProvider";
 import { useRouter } from "next/navigation";
+import { getTags } from "@/services/product.service";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -60,6 +57,8 @@ export default function EditProductPage() {
   const [variantImagePreview, setVariantImagePreview] = useState<string>("");
   const [variantEditLoading, setVariantEditLoading] = useState(false);
   const [product, setProduct] = useState<any>(null);
+  const [tags, setTags] = useState<any[]>([]);
+  const [tagsLoading, setTagsLoading] = useState(true);
 
   const [form, setForm] = useState({
     name: "",
@@ -85,6 +84,14 @@ export default function EditProductPage() {
       .catch(console.error);
   }, []);
 
+  useEffect(() => {
+    setTagsLoading(true);
+    getTags()
+      .then((data) => setTags(data))
+      .catch(console.error)
+      .finally(() => setTagsLoading(false));
+  }, []);
+
   // ── Fetch product ──
   useEffect(() => {
     if (!productId) return;
@@ -101,7 +108,7 @@ export default function EditProductPage() {
           text: m.text || "",
           imageUrl: m.imageUrl || "",
         })),
-        tagIds: data?.tagIds || [],
+        tagIds: (data?.tags || []).map((t: any) => t.tagId),
         isFreeShipping: data?.isFreeShipping ?? false,
         isOnlineAvailable: data?.isOnlineAvailable ?? false,
       });
@@ -125,45 +132,45 @@ export default function EditProductPage() {
       .catch(console.error);
   }, [productId]);
 
-  const fixFileType = (file: File) => {
-    if (!file.type || file.type === "application/octet-stream") {
-      const ext = file.name.split(".").pop()?.toLowerCase();
-      const mimeMap: any = {
-        jpg: "image/jpeg",
-        jpeg: "image/jpeg",
-        png: "image/png",
-        webp: "image/webp",
-        gif: "image/gif",
-      };
-      const correctType = mimeMap[ext || ""];
-      if (correctType)
-        return new File([file], file.name, { type: correctType });
-    }
-    return file;
-  };
+  // const fixFileType = (file: File) => {
+  //   if (!file.type || file.type === "application/octet-stream") {
+  //     const ext = file.name.split(".").pop()?.toLowerCase();
+  //     const mimeMap: any = {
+  //       jpg: "image/jpeg",
+  //       jpeg: "image/jpeg",
+  //       png: "image/png",
+  //       webp: "image/webp",
+  //       gif: "image/gif",
+  //     };
+  //     const correctType = mimeMap[ext || ""];
+  //     if (correctType)
+  //       return new File([file], file.name, { type: correctType });
+  //   }
+  //   return file;
+  // };
 
-  const handleMetaImageUpload = async (index: number, file: File) => {
-    try {
-      const uploadedUrl = await uploadSingleImageToS3(fixFileType(file));
-      const updated = [...form.metaInfo];
-      updated[index].imageUrl = uploadedUrl;
-      setForm((prev) => ({ ...prev, metaInfo: updated }));
-    } catch {
-      showToast("Image upload failed", "error");
-    }
-  };
+  // const handleMetaImageUpload = async (index: number, file: File) => {
+  //   try {
+  //     const uploadedUrl = await uploadSingleImageToS3(fixFileType(file));
+  //     const updated = [...form.metaInfo];
+  //     updated[index].imageUrl = uploadedUrl;
+  //     setForm((prev) => ({ ...prev, metaInfo: updated }));
+  //   } catch {
+  //     showToast("Image upload failed", "error");
+  //   }
+  // };
 
-  const handleRemoveMetaImage = async (index: number) => {
-    try {
-      const imageUrl = form.metaInfo[index].imageUrl;
-      if (imageUrl) await deleteMediaFromS3(imageUrl);
-      const updated = [...form.metaInfo];
-      updated[index].imageUrl = "";
-      setForm((prev) => ({ ...prev, metaInfo: updated }));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  // const handleRemoveMetaImage = async (index: number) => {
+  //   try {
+  //     const imageUrl = form.metaInfo[index].imageUrl;
+  //     if (imageUrl) await deleteMediaFromS3(imageUrl);
+  //     const updated = [...form.metaInfo];
+  //     updated[index].imageUrl = "";
+  //     setForm((prev) => ({ ...prev, metaInfo: updated }));
+  //   } catch (err) {
+  //     console.error(err);
+  //   }
+  // };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -212,6 +219,24 @@ export default function EditProductPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const selectedTags = tags.filter((tag) => form.tagIds.includes(tag.id));
+
+  const handleAddTag = (id: number) => {
+    if (!form.tagIds.includes(id)) {
+      setForm((prev) => ({
+        ...prev,
+        tagIds: [...prev.tagIds, id],
+      }));
+    }
+  };
+
+  const handleRemoveTag = (id: number) => {
+    setForm((prev) => ({
+      ...prev,
+      tagIds: prev.tagIds.filter((tagId) => tagId !== id),
+    }));
   };
 
   // ── Open edit modal ──
@@ -291,8 +316,7 @@ export default function EditProductPage() {
             className={styles.btnSecondary}
             onClick={() => {
               if (product?.slug) {
-                const userSiteUrl =
-                  process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+                const userSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
                 window.open(
                   `${userSiteUrl}/products/${product.slug}`,
                   "_blank",
@@ -346,6 +370,50 @@ export default function EditProductPage() {
                     {cat.name}
                   </option>
                 ))}
+              </select>
+            </div>
+            <div className={styles.formGroup}>
+              <label>Tags</label>
+
+              {/* Selected Tags */}
+              <div className={styles.tagContainer}>
+                {tagsLoading ? (
+                  <span className={styles.noTags}>Loading tags...</span>
+                ) : selectedTags.length === 0 ? (
+                  <span className={styles.noTags}>No tags selected</span>
+                ) : (
+                  selectedTags.map((tag) => (
+                    <div key={tag.id} className={styles.tagChip}>
+                      {tag.name}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTag(tag.id)}
+                        className={styles.tagRemove}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Add Tag Dropdown */}
+              <select
+                className={styles.selectInput}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (value) handleAddTag(value);
+                }}
+                value=""
+              >
+                <option value="">+ Add Tag</option>
+                {tags
+                  .filter((tag) => !form.tagIds.includes(tag.id))
+                  .map((tag) => (
+                    <option key={tag.id} value={tag.id}>
+                      {tag.name}
+                    </option>
+                  ))}
               </select>
             </div>
 

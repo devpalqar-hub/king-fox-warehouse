@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./sidebar.module.css";
 import {
@@ -10,6 +10,7 @@ import {
   Package,
   Ticket,
   ShoppingBag,
+  ClipboardList,
   Trophy,
   Tag,
   Store,
@@ -22,7 +23,6 @@ import {
   HomeIcon,
   Logs,
   TrendingUp,
-  Rocket,
   GalleryHorizontal
 } from "lucide-react";
 import { MdReviews } from "react-icons/md";
@@ -40,6 +40,11 @@ const menuItems = [
   { name: "Category", icon: <Tag size={20} />, path: "/category" },
   { name: "Coupons", icon: <Ticket size={20} />, path: "/coupons" },
   { name: "Orders", icon: <ShoppingBag size={20} />, path: "/orders" },
+  // {
+  //   name: "Offline Orders",
+  //   icon: <ClipboardList size={20} />,
+  //   path: "/offline-orders",
+  // },
   { name: "Stock Log", icon: <Logs size={20} />, path: "/stock" },
   { name: "Lucky Draw", icon: <Trophy size={20} />, path: "/luckydraw" },
   { name: "Banners", icon: <GalleryHorizontal size={20} />, path: "/banner" },
@@ -64,11 +69,6 @@ const Sidebar = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
-
-  // Close drawer on route change
-  useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
 
   // Lock body scroll when mobile drawer is open
   useEffect(() => {
@@ -153,6 +153,7 @@ const Sidebar = () => {
             <Link
               key={item.name}
               href={item.path}
+              onClick={() => setIsOpen(false)}
               className={`${styles.navItem} ${
                 pathname === item.path || pathname.startsWith(item.path + "/")
                   ? styles.active
@@ -186,7 +187,7 @@ const Sidebar = () => {
             </div>
             <h2 className={styles.dialogTitle}>Logout?</h2>
             <p className={styles.dialogDesc}>
-              You'll be signed out of Kingfox Admin and redirected to the login
+              You will be signed out of Kingfox Admin and redirected to the login
               page.
             </p>
             <div className={styles.dialogActions}>
