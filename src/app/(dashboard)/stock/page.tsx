@@ -117,7 +117,19 @@ const StockLogPage = () => {
   const [error, setError] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [exportFormat, setExportFormat] = useState<"EXCEL" | "PDF">("EXCEL");
 
+  useEffect(() => {
+    const rawUser = localStorage.getItem("user");
+    if (!rawUser) return;
+
+    try {
+      const parsed = JSON.parse(rawUser);
+      if (parsed.email) setExportEmail(parsed.email);
+    } catch {}
+  }, []);
   // ── Debounce search ──
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -136,7 +148,6 @@ const StockLogPage = () => {
     setError(null);
     try {
       const res = await fetchStockLogs({
-
         page: pagination.page,
         limit: PAGE_LIMIT,
         search: debouncedSearch,
@@ -175,25 +186,42 @@ const StockLogPage = () => {
     setPagination((p) => ({ ...p, page: Math.min(p.totalPages, p.page + 1) }));
 
   // ── Export ──
-  const handleExport = async () => {
+  const handleExport = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const trimmedEmail = exportEmail.trim();
+
+    if (!trimmedEmail) {
+      showToast("Please enter an email address.", "error");
+      return;
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      showToast("Invalid email address.", "error");
+      return;
+    }
+
     setIsExporting(true);
+
     try {
       const { startDate, endDate } = getCurrentYearExportRange();
+
       await requestExport({
-        type: "STOCK",
-        format: "EXCEL",
+        type: "STOCK", // 🔥 IMPORTANT
+        format: exportFormat,
+        email: trimmedEmail,
         startDate,
         endDate,
       });
+
       showToast(
-        "Stock export requested. The Excel file will be sent to your email.",
+        `Stock export requested. The ${exportFormat} file will be sent to your email.`,
         "success",
       );
+
+      setIsExportModalOpen(false);
     } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Failed to request stock export.",
-        "error",
-      );
+      showToast("Failed to export stock logs.", "error");
     } finally {
       setIsExporting(false);
     }
@@ -214,11 +242,11 @@ const StockLogPage = () => {
         </div>
         <button
           className={styles.exportBtn}
-          onClick={handleExport}
+          onClick={() => setIsExportModalOpen(true)}
           disabled={isExporting}
         >
           <Download size={16} />
-          {isExporting ? "Requesting..." : "Export Excel"}
+          {isExporting ? "Requesting..." : "Export"}
         </button>
       </div>
 
@@ -496,6 +524,71 @@ const StockLogPage = () => {
           </div>
         </div>
       </div>
+      {isExportModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsExportModalOpen(false);
+          }}
+        >
+          <div className={styles.modalCard}>
+            <div className={styles.modalHeader}>
+              <div>
+                <h2>Export Stock Logs</h2>
+                <p>Select format and destination email</p>
+              </div>
+
+              <button
+                className={styles.modalCloseBtn}
+                onClick={() => setIsExportModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <form className={styles.modalForm} onSubmit={handleExport}>
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Mail ID</label>
+                <input
+                  type="email"
+                  className={styles.fieldInput}
+                  value={exportEmail}
+                  onChange={(e) => setExportEmail(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.fieldLabel}>Export Type</label>
+                <select
+                  className={styles.fieldInput}
+                  value={exportFormat}
+                  onChange={(e) =>
+                    setExportFormat(e.target.value as "EXCEL" | "PDF")
+                  }
+                >
+                  <option value="EXCEL">EXCEL</option>
+                  <option value="PDF">PDF</option>
+                </select>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.secondaryBtn}
+                  onClick={() => setIsExportModalOpen(false)}
+                >
+                  Cancel
+                </button>
+
+                <button type="submit" className={styles.primaryBtn}>
+                  <Download size={16} />
+                  {isExporting ? "Requesting..." : "Submit Export"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
