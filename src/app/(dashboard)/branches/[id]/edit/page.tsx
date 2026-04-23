@@ -17,6 +17,7 @@ const BranchEditPage = () => {
     phone: "",
     address: "",
     type: "SHOP",
+    supportsPickup: false,
   });
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +35,7 @@ const BranchEditPage = () => {
           phone: data.phone,
           address: data.address,
           type: data.type,
+          supportsPickup: data.supportsPickup ?? false,
         });
       } catch (err: any) {
         setLoadError(err.message ?? "Failed to load branch.");
@@ -196,6 +198,25 @@ const BranchEditPage = () => {
                 />
               </div>
 
+              <div className={formStyles.formGroup}>
+                <label className={formStyles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={form.supportsPickup ?? false}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        supportsPickup: e.target.checked,
+                      }))
+                    }
+                  />
+                  <span>Supports Pickup</span>
+                </label>
+
+                <p className={formStyles.checkboxDesc}>
+                  Enable if customers can pick up orders from this branch.
+                </p>
+              </div>
               {error && <div className={styles.errorMsg}>{error}</div>}
 
               <div className={formStyles.formActions}>

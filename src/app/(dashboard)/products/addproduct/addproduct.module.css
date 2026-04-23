@@ -21,6 +21,10 @@
   background: white;
 }
 
+.ctaButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .tag {
   background: #eef2ff;
   color: #4f46e5;

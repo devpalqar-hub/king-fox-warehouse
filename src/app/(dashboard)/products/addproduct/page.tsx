@@ -55,9 +55,20 @@ export default function AddProductPage() {
     setImageFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const isSubmiting = React.useRef(false);
+
   const handleSaveProduct = async () => {
-    if (!name) return showToast("Product name is required", "error");
-    if (!categoryId) return showToast("Please select a category", "error");
+    if (isSubmiting.current) return;
+    isSubmiting.current = true;
+
+    if (!name) {
+      isSubmiting.current = false;
+      return showToast("Product name is required", "error");
+    }
+    if (!categoryId) {
+      isSubmiting.current = false;
+      return showToast("Please select a category", "error");
+    }
 
     try {
       setLoading(true);
@@ -89,19 +100,17 @@ export default function AddProductPage() {
         isFreeShipping,
         isOnlineAvailable,
       };
-
       const product = await createProduct(payload);
 
       showToast("Product created successfully ", "success");
 
-      setTimeout(() => {
-        router.push(`/products/addvariation?productId=${product.id}`);
-      }, 1000);
+      router.push(`/products/addvariation?productId=${product.id}`);
     } catch (err: any) {
       console.error(err);
       showToast(err.message || "Something went wrong ", "error");
     } finally {
       setLoading(false);
+      isSubmiting.current = false;
     }
   };
 
@@ -360,8 +369,12 @@ export default function AddProductPage() {
           </div>
 
           {/* Right Side: Button */}
-          <button className={styles.ctaButton} onClick={handleSaveProduct}>
-            Save & Next: Variations
+          <button
+            className={styles.ctaButton}
+            onMouseDown={handleSaveProduct}
+            disabled={loading}
+          >
+            {loading ? "Saving..." : "Save & Next: Variations"}
           </button>
         </section>
       </div>

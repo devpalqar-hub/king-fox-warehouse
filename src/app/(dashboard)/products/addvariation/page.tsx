@@ -15,6 +15,31 @@ import BackButton from "@/components/backButton/backButton";
 import DeleteConfirmModal from "@/components/DeleteConfirmModal/DeleteConfirmModal";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const PLACEHOLDER_IMAGE = "https://via.placeholder.com/150";
+
+type VariantWithImages = {
+  image?: string | null;
+  images?: (string | null | undefined)[];
+};
+
+const getVariantImages = (variant?: VariantWithImages | null): string[] => {
+  if (Array.isArray(variant?.images)) {
+    return variant.images.filter((image): image is string => Boolean(image));
+  }
+  return variant?.image ? [variant.image] : [];
+};
+
+const getVariantPrimaryImage = (variant: VariantWithImages) =>
+  getVariantImages(variant)[0] || variant?.image || "/tshirt.png";
+
+const normalizeVariantImages = <T extends VariantWithImages>(variant: T) => {
+  const images = getVariantImages(variant);
+  return {
+    ...variant,
+    images,
+    image: images[0] || variant?.image || "",
+  };
+};
 
 const deleteVariant = async (variantId: number) => {
   const token = localStorage.getItem("token");
@@ -35,8 +60,8 @@ export default function AddVariationPage() {
 
   const [variants, setVariants] = useState<any[]>([]);
   const [product, setProduct] = useState<any>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState<string>("");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -44,8 +69,8 @@ export default function AddVariationPage() {
   // Edit modal state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingVariant, setEditingVariant] = useState<any>(null);
-  const [editImageFile, setEditImageFile] = useState<File | null>(null);
-  const [editPreview, setEditPreview] = useState<string>("");
+  const [editImageFiles, setEditImageFiles] = useState<File[]>([]);
+  const [editPreviews, setEditPreviews] = useState<string[]>([]);
   const [editLoading, setEditLoading] = useState(false);
 
   // Delete confirmation state
@@ -137,7 +162,7 @@ export default function AddVariationPage() {
       .then((data) =>
         setVariants(
           data.map((v: any) => ({
-            ...v,
+            ...normalizeVariantImages(v),
             // Handle both camelCase and snake_case from backend
             costPrice: Number(v.costPrice ?? v.cost_price ?? 0),
             sellingPrice: Number(v.sellingPrice ?? v.selling_price ?? 0),
@@ -148,10 +173,19 @@ export default function AddVariationPage() {
   }, [productId]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setImageFile(file);
-    setPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setImageFiles((prev) => [...prev, ...files]);
+    setPreviews((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
+    e.target.value = "";
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleAddToList = async () => {
@@ -188,17 +222,13 @@ export default function AddVariationPage() {
     if (isNaN(weight) || weight <= 0) {
       return showToast("Please enter a valid weight greater than 0", "error");
     }
-    if (!imageFile) {
-      return showToast("Please upload an image for the variation", "error");
+    if (!imageFiles.length) {
+      return showToast("Please upload at least one image for the variation", "error");
     }
 
     try {
       setLoading(true);
-      let imageUrl = "";
-      if (imageFile) {
-        const uploaded = await uploadImagesToS3([imageFile]);
-        imageUrl = uploaded[0];
-      }
+      const imageUrls = await uploadImagesToS3(imageFiles);
       const createdVariants: any[] = [];
       for (const size of variation.size) {
         const payload = {
@@ -207,14 +237,22 @@ export default function AddVariationPage() {
           size,
           color: variation.color,
           weight: Number(variation.weight || 0),
-          image: imageUrl || "https://via.placeholder.com/150",
+          image: imageUrls[0] || PLACEHOLDER_IMAGE,
+          images: imageUrls,
         };
         const newVariant = await createVariant(Number(productId), payload);
+        const normalizedVariant = normalizeVariantImages({
+          ...newVariant,
+          image: newVariant.image || payload.image,
+          images: getVariantImages(newVariant).length
+            ? newVariant.images
+            : payload.images,
+        });
         // Ensure temporary ID if API doesn't return one
-        if (!newVariant.id) {
-          newVariant._tempId = `temp-${Date.now()}-${Math.random()}`;
+        if (!normalizedVariant.id) {
+          normalizedVariant._tempId = `temp-${Date.now()}-${Math.random()}`;
         }
-        createdVariants.push(newVariant);
+        createdVariants.push(normalizedVariant);
       }
       setVariants((prev) => [...prev, ...createdVariants]);
       setVariation({
@@ -225,8 +263,8 @@ export default function AddVariationPage() {
         weight: "",
         image: "",
       });
-      setImageFile(null);
-      setPreview("");
+      setImageFiles([]);
+      setPreviews([]);
       showToast("Variant(s) added successfully", "success");
     } catch (error: any) {
       showToast(error.message || "Failed to add variant", "error");
@@ -262,17 +300,41 @@ export default function AddVariationPage() {
   };
 
   const openEditModal = (variant: any) => {
-    setEditingVariant({ ...variant });
-    setEditPreview(variant.image || "");
-    setEditImageFile(null);
+    const normalizedVariant = normalizeVariantImages(variant);
+    setEditingVariant(normalizedVariant);
+    setEditPreviews(getVariantImages(normalizedVariant));
+    setEditImageFiles([]);
     setEditModalOpen(true);
   };
 
   const handleEditImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setEditImageFile(file);
-    setEditPreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setEditImageFiles((prev) => [...prev, ...files]);
+    setEditPreviews((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
+    e.target.value = "";
+  };
+
+  const removeEditImage = (index: number) => {
+    const existingImages = getVariantImages(editingVariant);
+    const existingCount = existingImages.length;
+
+    if (index < existingCount) {
+      const images = existingImages.filter((_, i) => i !== index);
+      setEditingVariant({
+        ...editingVariant,
+        images,
+        image: images[0] || "",
+      });
+    } else {
+      const fileIndex = index - existingCount;
+      setEditImageFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
+
+    setEditPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleEditSave = async () => {
@@ -309,32 +371,32 @@ export default function AddVariationPage() {
     if (isNaN(weight) || weight <= 0) {
       return showToast("Please enter a valid weight greater than 0", "error");
     }
-    const hasExistingImage =
-      editingVariant.image &&
-      editingVariant.image !== "https://via.placeholder.com/150";
-    if (!editImageFile && !hasExistingImage) {
-      return showToast("Please upload an image for the variation", "error");
+    const hasExistingImages = getVariantImages(editingVariant).length > 0;
+    if (!editImageFiles.length && !hasExistingImages) {
+      return showToast("Please upload at least one image for the variation", "error");
     }
 
     try {
       setEditLoading(true);
-      let imageUrl = editingVariant.image || "";
-      if (editImageFile) {
-        const uploaded = await uploadImagesToS3([editImageFile]);
-        imageUrl = uploaded[0];
-      }
+      const uploadedUrls = editImageFiles.length
+        ? await uploadImagesToS3(editImageFiles)
+        : [];
+      const finalImages = [...getVariantImages(editingVariant), ...uploadedUrls];
       const payload = {
         size: editingVariant.size,
         color: editingVariant.color,
         costPrice: Number(editingVariant.costPrice || 0),
         sellingPrice: Number(editingVariant.sellingPrice || 0),
         weight: Number(editingVariant.weight || 0),
-        image: imageUrl,
+        image: finalImages[0] || "",
+        images: finalImages,
       };
       const updated = await updateVariant(editingVariant.id, payload);
       setVariants((prev) =>
         prev.map((v) =>
-          v.id === editingVariant.id ? { ...v, ...payload, ...updated } : v,
+          v.id === editingVariant.id
+            ? normalizeVariantImages({ ...v, ...payload, ...updated })
+            : v,
         ),
       );
       setEditModalOpen(false);
@@ -393,10 +455,10 @@ export default function AddVariationPage() {
         <div className={styles.configContent}>
           {/* Image Upload */}
           <div className={styles.uploadSection}>
-            <label className={styles.fieldLabel}>Variation Image</label>
-            <div className={styles.uploadBox}>
-              {preview ? (
-                <div className={styles.previewWrapper}>
+            <label className={styles.fieldLabel}>Variation Images</label>
+            <div className={styles.multiUploadBox}>
+              {previews.map((preview, index) => (
+                <div key={`${preview}-${index}`} className={styles.previewWrapper}>
                   <img
                     src={preview}
                     className={styles.previewImg}
@@ -404,26 +466,23 @@ export default function AddVariationPage() {
                   />
                   <button
                     className={styles.removeBtn}
-                    onClick={() => {
-                      setPreview("");
-                      setImageFile(null);
-                    }}
+                    onClick={() => removeImage(index)}
                   >
                     <X size={14} />
                   </button>
                 </div>
-              ) : (
-                <label className={styles.uploadPlaceholder}>
-                  <UploadCloud size={24} />
-                  <span>Upload Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    hidden
-                  />
-                </label>
-              )}
+              ))}
+              <label className={styles.uploadPlaceholder}>
+                <UploadCloud size={24} />
+                <span>{previews.length ? "Add Image" : "Upload Images"}</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  hidden
+                />
+              </label>
             </div>
           </div>
 
@@ -624,7 +683,7 @@ export default function AddVariationPage() {
                     <td>
                       <div className={styles.tableImgWrapper}>
                         <img
-                          src={variant.image || "/tshirt.png"}
+                          src={getVariantPrimaryImage(variant)}
                           className={styles.placeholderImg}
                           alt={variant.sku}
                         />
@@ -692,7 +751,7 @@ export default function AddVariationPage() {
                   <div className={styles.mobileVariantTop}>
                     <div className={styles.mobileImgWrapper}>
                       <img
-                        src={variant.image || "/tshirt.png"}
+                        src={getVariantPrimaryImage(variant)}
                         alt={variant.sku}
                       />
                     </div>
@@ -772,38 +831,37 @@ export default function AddVariationPage() {
 
             {/* Variant Image */}
             <div className={styles.modalImageSection}>
-              <label className={styles.fieldLabel}>Variant Image</label>
-              <div className={styles.modalUploadBox}>
-                {editPreview ? (
-                  <div className={styles.previewWrapper}>
+              <label className={styles.fieldLabel}>Variant Images</label>
+              <div className={styles.modalUploadGrid}>
+                {editPreviews.map((preview, index) => (
+                  <div
+                    key={`${preview}-${index}`}
+                    className={styles.previewWrapper}
+                  >
                     <img
-                      src={editPreview}
+                      src={preview}
                       className={styles.previewImg}
                       alt="edit preview"
                     />
                     <button
                       className={styles.removeBtn}
-                      onClick={() => {
-                        setEditPreview("");
-                        setEditImageFile(null);
-                        setEditingVariant({ ...editingVariant, image: "" });
-                      }}
+                      onClick={() => removeEditImage(index)}
                     >
                       <X size={12} />
                     </button>
                   </div>
-                ) : (
-                  <label className={styles.uploadPlaceholder}>
-                    <UploadCloud size={20} />
-                    <span>Upload Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleEditImageUpload}
-                      hidden
-                    />
-                  </label>
-                )}
+                ))}
+                <label className={styles.uploadPlaceholder}>
+                  <UploadCloud size={20} />
+                  <span>{editPreviews.length ? "Add Image" : "Upload Images"}</span>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleEditImageUpload}
+                    hidden
+                  />
+                </label>
               </div>
             </div>
 
