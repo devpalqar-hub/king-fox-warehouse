@@ -64,6 +64,19 @@ const LuckyDrawViewPage = () => {
   const [statusChanging, setStatusChanging] = useState(false);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [exportFormat, setExportFormat] = useState<"EXCEL" | "PDF">("EXCEL");
+
+  useEffect(() => {
+    const rawUser = localStorage.getItem("user");
+    if (!rawUser) return;
+
+    try {
+      const parsed = JSON.parse(rawUser);
+      if (parsed.email) setExportEmail(parsed.email);
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -137,39 +150,42 @@ const LuckyDrawViewPage = () => {
         new Map(
           (campaign.vouchers ?? [])
             .map((voucher) => voucher.branch)
-            .filter(
-              (branch): branch is CampaignBranch =>
-                Boolean(branch && Number.isFinite(branch.id)),
+            .filter((branch): branch is CampaignBranch =>
+              Boolean(branch && Number.isFinite(branch.id)),
             )
             .map((branch) => [branch.id, branch]),
         ).values(),
       );
   const campaignBranchIds = uniqueBranches.map((branch) => branch.id);
 
-  const handleExportPDF = async () => {
+  const handleExport = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!exportEmail.trim()) {
+      showToast("Please enter an email", "error");
+      return;
+    }
+
     setIsExporting(true);
 
     try {
       await requestExport({
         type: "VOUCHERS",
-        format: "PDF",
+        format: exportFormat,
+        email: exportEmail,
         startDate: formatExportDate(campaign.startDate),
         endDate: formatExportDate(campaign.endDate),
         branchIds: campaignBranchIds,
       });
 
       showToast(
-        "Voucher export requested. The PDF will be sent to your email.",
+        `Export requested. ${exportFormat} will be sent to your email.`,
         "success",
       );
-    } catch (error) {
-      console.error(error);
-      showToast(
-        error instanceof Error
-          ? error.message
-          : "Failed to request voucher export.",
-        "error",
-      );
+
+      setIsExportModalOpen(false);
+    } catch (err) {
+      showToast("Failed to export", "error");
     } finally {
       setIsExporting(false);
     }
@@ -178,11 +194,13 @@ const LuckyDrawViewPage = () => {
   return (
     <div className={styles.container}>
       {/* Back nav */}
-      <button className={styles.backBtn} onClick={() => router.push("/luckydraw")}>
+      <button
+        className={styles.backBtn}
+        onClick={() => router.push("/luckydraw")}
+      >
         <ArrowLeft size={16} />
         Back to Campaigns
       </button>
-
 
       {/* ── Hero Banner ────────────────────────────── */}
       <div className={styles.hero}>
@@ -324,48 +342,51 @@ const LuckyDrawViewPage = () => {
 
                       return (
                         <tr key={voucher.id}>
-                        <td>
-                          <span className={styles.voucherCode}>
-                            {voucher.voucherCode}
-                          </span>
-                        </td>
-                        <td>
-                          <div className={styles.customerCell}>
-                            <div className={styles.avatar}>
-                              {voucher.customer?.name?.charAt(0) ?? "?"}
-                            </div>
-                            <div>
-                              <div className={styles.customerName}>
-                                {v.customer?.name ?? "—"}
+                          <td>
+                            <span className={styles.voucherCode}>
+                              {voucher.voucherCode}
+                            </span>
+                          </td>
+                          <td>
+                            <div className={styles.customerCell}>
+                              <div className={styles.avatar}>
+                                {voucher.customer?.name?.charAt(0) ?? "?"}
                               </div>
-                              <div className={styles.customerPhone}>
-                                {v.customer?.phone ?? ""}
+                              <div>
+                                <div className={styles.customerName}>
+                                  {v.customer?.name ?? "—"}
+                                </div>
+                                <div className={styles.customerPhone}>
+                                  {v.customer?.phone ?? ""}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={styles.branchName}>
-                            {v.branch?.name ?? "—"}
-                          </span>
-                        </td>
-                        <td>
-                          <div className={styles.dateCell}>
-                            <Calendar size={12} />
-                            {new Date(v.issuedAt).toLocaleDateString("en-US", {
-                              day: "2-digit",
-                              month: "short",
-                              year: "numeric",
-                            })}
-                          </div>
-                        </td>
-                        <td>
-                          <span
-                            className={`${styles.statusPill} ${styles.pillActive}`}
-                          >
-                            ISSUED
-                          </span>
-                        </td>
+                          </td>
+                          <td>
+                            <span className={styles.branchName}>
+                              {v.branch?.name ?? "—"}
+                            </span>
+                          </td>
+                          <td>
+                            <div className={styles.dateCell}>
+                              <Calendar size={12} />
+                              {new Date(v.issuedAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                },
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <span
+                              className={`${styles.statusPill} ${styles.pillActive}`}
+                            >
+                              ISSUED
+                            </span>
+                          </td>
                         </tr>
                       );
                     })
@@ -383,7 +404,7 @@ const LuckyDrawViewPage = () => {
 
             <button
               className={styles.btnExport}
-              onClick={handleExportPDF}
+              onClick={() => setIsExportModalOpen(true)}
               disabled={isExporting}
               title="Email campaign details as PDF"
             >
@@ -528,6 +549,65 @@ const LuckyDrawViewPage = () => {
                 {statusChanging ? "Closing..." : "Close Campaign"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {isExportModalOpen && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsExportModalOpen(false);
+          }}
+        >
+          <div className={styles.modal}>
+            <button
+              className={styles.modalCloseBtn}
+              onClick={() => setIsExportModalOpen(false)}
+            >
+              ✕
+            </button>
+
+            <h2>Export Vouchers</h2>
+
+            <form onSubmit={handleExport}>
+              <div className={styles.fieldGroup}>
+                <label>Email</label>
+                <input
+                  type="email"
+                  className={styles.fieldInput}
+                  value={exportEmail}
+                  onChange={(e) => setExportEmail(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label>Format</label>
+                <select
+                  className={styles.fieldInput}
+                  value={exportFormat}
+                  onChange={(e) =>
+                    setExportFormat(e.target.value as "EXCEL" | "PDF")
+                  }
+                >
+                  <option value="EXCEL">EXCEL</option>
+                  <option value="PDF">PDF</option>
+                </select>
+              </div>
+
+              <div className={styles.modalActions}>
+                <button
+                className={styles.secondaryBtn}
+                  type="button"
+                  onClick={() => setIsExportModalOpen(false)}
+                >
+                  Cancel
+                </button>
+
+                <button type="submit" className={styles.primaryBtn}>
+                  {isExporting ? "Requesting..." : "Submit Export"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
