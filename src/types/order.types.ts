@@ -7,10 +7,10 @@ export interface Order {
   createdAt: string;
   sourceType: "ONLINE" | "OFFLINE";
   customer: {
-  id: number;
-  name: string;
-  phone: string;
-} | null;
+    id: number;
+    name: string;
+    phone: string;
+  } | null;
 
   warehouseBranch: {
     id: number;
@@ -209,4 +209,56 @@ export interface OfflineOrderDetail extends OfflineOrder {
   coupon: OfflineOrderCoupon | null;
   items: OfflineOrderItem[];
   payments: OfflineOrderPayment[];
+}
+
+// --- NEW: Return types ---
+
+export interface OfflineReturnItem {
+  id: number;
+  returnId: number;
+  variantId: number;
+  quantity: number;
+  refundAmount: string;
+  variant: {
+    id: number;
+    productId: number;
+    size: string | null;
+    color: string | null;
+    sku: string | null;
+    barcode: string | null;
+    weight: number | null;
+    costPrice: string | null;
+    sellingPrice: string | null;
+    createdAt: string;
+    image: string | null;
+    images: string[];
+    product: {
+      id: number;
+      name: string;
+      images: string[];
+    };
+  };
+}
+
+export interface OfflineReturn {
+  id: number;
+  returnType: string;
+  invoiceId: number;
+  onlineOrderId: number | null;
+  branchId: number | null;
+  customerId: number | null;
+  totalRefund: string;
+  reason: string | null;
+  createdAt: string;
+  exchangeInvoiceId: number | null;
+  items: OfflineReturnItem[];
+}
+
+// Update OfflineOrderDetail — add returns field:
+export interface OfflineOrderDetail extends OfflineOrder {
+  branch: OfflineOrderBranch | null;
+  coupon: OfflineOrderCoupon | null;
+  items: OfflineOrderItem[];
+  payments: OfflineOrderPayment[];
+  returns: OfflineReturn[]; 
 }
