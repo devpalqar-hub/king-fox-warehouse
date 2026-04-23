@@ -13,6 +13,7 @@ const emptyForm: CreateBranchPayload = {
   phone: "",
   address: "",
   type: "SHOP",
+  supportsPickup: false,
 };
 
 const BranchCreatePage = () => {
@@ -163,6 +164,26 @@ const BranchCreatePage = () => {
                   onChange={handleChange}
                   rows={3}
                 />
+              </div>
+
+              <div className={formStyles.formGroup}>
+                <label className={formStyles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    checked={form.supportsPickup}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        supportsPickup: e.target.checked,
+                      }))
+                    }
+                  />
+                  <span>Supports Pickup</span>
+                </label>
+
+                <p className={formStyles.checkboxDesc}>
+                  Enable if customers can pick up orders from this branch.
+                </p>
               </div>
 
               {error && <div className={styles.errorMsg}>{error}</div>}

@@ -29,6 +29,30 @@ import { getTags } from "@/services/product.service";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+type VariantWithImages = {
+  image?: string | null;
+  images?: (string | null | undefined)[];
+};
+
+const getVariantImages = (variant?: VariantWithImages | null): string[] => {
+  if (Array.isArray(variant?.images)) {
+    return variant.images.filter((image): image is string => Boolean(image));
+  }
+  return variant?.image ? [variant.image] : [];
+};
+
+const getVariantPrimaryImage = (variant: VariantWithImages) =>
+  getVariantImages(variant)[0] || variant?.image || "/tshirt.png";
+
+const normalizeVariantImages = <T extends VariantWithImages>(variant: T) => {
+  const images = getVariantImages(variant);
+  return {
+    ...variant,
+    images,
+    image: images[0] || variant?.image || "",
+  };
+};
+
 const deleteVariant = async (variantId: number) => {
   const token = localStorage.getItem("token");
   const res = await fetch(`${BASE_URL}/v1/products/variants/${variantId}`, {
@@ -53,8 +77,8 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
-  const [variantImageFile, setVariantImageFile] = useState<File | null>(null);
-  const [variantImagePreview, setVariantImagePreview] = useState<string>("");
+  const [variantImageFiles, setVariantImageFiles] = useState<File[]>([]);
+  const [variantImagePreviews, setVariantImagePreviews] = useState<string[]>([]);
   const [variantEditLoading, setVariantEditLoading] = useState(false);
   const [product, setProduct] = useState<any>(null);
   const [tags, setTags] = useState<any[]>([]);
@@ -122,7 +146,7 @@ export default function EditProductPage() {
       .then((data) =>
         setVariants(
           data.map((v: any) => ({
-            ...v,
+            ...normalizeVariantImages(v),
             // Handle both camelCase and snake_case from backend
             costPrice: v.costPrice ?? v.cost_price ?? 0,
             sellingPrice: v.sellingPrice ?? v.selling_price ?? 0,
@@ -202,15 +226,19 @@ export default function EditProductPage() {
         isOnlineAvailable: form.isOnlineAvailable,
       });
       await Promise.all(
-        variants.map((v) =>
-          updateVariant(v.id, {
+        variants.map((v) => {
+          const variantImages = getVariantImages(v);
+          return updateVariant(v.id, {
             sku: v.sku,
             size: v.size,
             color: v.color,
             costPrice: Number(v.costPrice),
             sellingPrice: Number(v.sellingPrice),
-          }),
-        ),
+            ...(variantImages.length
+              ? { image: variantImages[0], images: variantImages }
+              : {}),
+          });
+        }),
       );
       showToast("Product updated successfully", "success");
       router.push("/products");
@@ -241,28 +269,61 @@ export default function EditProductPage() {
 
   // ── Open edit modal ──
   const openVariantModal = (v: any) => {
-    setSelectedVariant({ ...v });
-    setVariantImagePreview(v.image || "");
-    setVariantImageFile(null);
+    const normalizedVariant = normalizeVariantImages(v);
+    setSelectedVariant(normalizedVariant);
+    setVariantImagePreviews(getVariantImages(normalizedVariant));
+    setVariantImageFiles([]);
     setIsModalOpen(true);
   };
 
   const handleVariantImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setVariantImageFile(file);
-    setVariantImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setVariantImageFiles((prev) => [...prev, ...files]);
+    setVariantImagePreviews((prev) => [
+      ...prev,
+      ...files.map((file) => URL.createObjectURL(file)),
+    ]);
+    e.target.value = "";
+  };
+
+  const removeVariantImage = (index: number) => {
+    if (!selectedVariant) return;
+    const existingImages = getVariantImages(selectedVariant);
+    const existingCount = existingImages.length;
+
+    if (index < existingCount) {
+      const images = existingImages.filter((_, i) => i !== index);
+      setSelectedVariant({
+        ...selectedVariant,
+        images,
+        image: images[0] || "",
+      });
+    } else {
+      const fileIndex = index - existingCount;
+      setVariantImageFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+    }
+
+    setVariantImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleVariantSave = async () => {
     if (!selectedVariant) return;
     try {
       setVariantEditLoading(true);
-      let imageUrl = selectedVariant.image || "";
-      if (variantImageFile) {
-        const uploaded = await uploadImagesToS3([variantImageFile]);
-        imageUrl = uploaded[0];
+      const uploadedUrls = variantImageFiles.length
+        ? await uploadImagesToS3(variantImageFiles)
+        : [];
+      const finalImages = [
+        ...getVariantImages(selectedVariant),
+        ...uploadedUrls,
+      ];
+
+      if (!finalImages.length) {
+        showToast("Please upload at least one image for the variant", "error");
+        return;
       }
+
       const payload = {
         sku: selectedVariant.sku,
         size: selectedVariant.size,
@@ -270,12 +331,15 @@ export default function EditProductPage() {
         costPrice: Number(selectedVariant.costPrice || 0),
         sellingPrice: Number(selectedVariant.sellingPrice || 0),
         weight: Number(selectedVariant.weight || 0),
-        image: imageUrl,
+        image: finalImages[0],
+        images: finalImages,
       };
       const updated = await updateVariant(selectedVariant.id, payload);
       setVariants((prev) =>
         prev.map((v) =>
-          v.id === selectedVariant.id ? { ...v, ...payload, ...updated } : v,
+          v.id === selectedVariant.id
+            ? normalizeVariantImages({ ...v, ...payload, ...updated })
+            : v,
         ),
       );
       setIsModalOpen(false);
@@ -564,7 +628,7 @@ export default function EditProductPage() {
                       {/* Image */}
                       <div className={styles.variantImgCell}>
                         <img
-                          src={v.image || "/tshirt.png"}
+                          src={getVariantPrimaryImage(v)}
                           alt={v.sku}
                           className={styles.variantThumb}
                         />
@@ -637,7 +701,7 @@ export default function EditProductPage() {
                     <div key={v.id} className={styles.mobileVariantCard}>
                       <div className={styles.mobileVariantRow}>
                         <div className={styles.mobileVariantImg}>
-                          <img src={v.image || "/tshirt.png"} alt={v.sku} />
+                          <img src={getVariantPrimaryImage(v)} alt={v.sku} />
                         </div>
                         <div className={styles.mobileVariantInfo}>
                           <span className={styles.mobileSku}>{v.sku}</span>
@@ -728,44 +792,45 @@ export default function EditProductPage() {
             {/* Image upload */}
             <div className={styles.modalImageRow}>
               <div>
-                <label className={styles.modalFieldLabel}>Variant Image</label>
-                <div className={styles.modalImgUploadBox}>
-                  {variantImagePreview ? (
-                    <div className={styles.modalImgPreviewWrap}>
+                <label className={styles.modalFieldLabel}>Variant Images</label>
+                <div className={styles.modalImgUploadGrid}>
+                  {variantImagePreviews.map((preview, index) => (
+                    <div
+                      key={`${preview}-${index}`}
+                      className={styles.modalImgPreviewWrap}
+                    >
                       <img
-                        src={variantImagePreview}
+                        src={preview}
                         alt="variant"
                         className={styles.modalImgPreview}
                       />
                       <button
                         className={styles.modalImgRemoveBtn}
-                        onClick={() => {
-                          setVariantImagePreview("");
-                          setVariantImageFile(null);
-                          setSelectedVariant({ ...selectedVariant, image: "" });
-                        }}
+                        onClick={() => removeVariantImage(index)}
                       >
                         <X size={12} />
                       </button>
                     </div>
-                  ) : (
-                    <label className={styles.modalImgUploadLabel}>
-                      <Upload size={20} />
-                      <span>Upload</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleVariantImageUpload}
-                        hidden
-                      />
-                    </label>
-                  )}
+                  ))}
+                  <label className={styles.modalImgUploadLabel}>
+                    <Upload size={20} />
+                    <span>
+                      {variantImagePreviews.length ? "Add Image" : "Upload"}
+                    </span>
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleVariantImageUpload}
+                      hidden
+                    />
+                  </label>
                 </div>
               </div>
 
               <div className={styles.modalImageRightInfo}>
                 <p className={styles.modalImageHint}>
-                  Upload a new image for this variant. Supported: JPG, PNG,
+                  Add or remove images for this variant. Supported: JPG, PNG,
                   WEBP.
                 </p>
                 {selectedVariant.sku && (

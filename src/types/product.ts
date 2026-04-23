@@ -18,6 +18,8 @@ export interface Variant {
   costPrice: string;
   sellingPrice: string;
   image: string | null;
+  images?: string[];
+  weight?: number;
   createdAt: string;
 }
 

@@ -7,6 +7,7 @@ export interface Branch {
   address: string;
   type: BranchType;
   createdAt: string;
+  supportsPickup: boolean;
 }
 
 export interface CreateBranchPayload {
@@ -14,6 +15,7 @@ export interface CreateBranchPayload {
   phone: string;
   address: string;
   type: BranchType;
+  supportsPickup: boolean;
 }
 
 export interface UpdateBranchPayload extends Partial<CreateBranchPayload> {}
