@@ -16,7 +16,12 @@ import {
 } from "lucide-react";
 import BackButton from "@/components/backButton/backButton";
 import { getOfflineOrderById } from "@/services/order.service";
-import { OfflineOrderDetail } from "@/types/order.types";
+import {
+  OfflineOrderDetail,
+  OfflineReturn,
+  OfflineReturnItem,
+} from "@/types/order.types";
+import { RotateCcw } from "lucide-react";
 import styles from "./offline-order-detail.module.css";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
@@ -300,6 +305,108 @@ export default function OfflineOrderDetailPage() {
               </div>
             )}
           </section>
+
+          {order.returns && order.returns.length > 0 && (
+            <section className={styles.card}>
+              <div className={styles.sectionHeader}>
+                <h2>
+                  <RotateCcw size={18} />
+                  Returns
+                </h2>
+                <span>
+                  {order.returns.length} return
+                  {order.returns.length > 1 ? "s" : ""}
+                </span>
+              </div>
+
+              <div className={styles.returnsList}>
+                {order.returns.map((ret) => (
+                  <div key={ret.id} className={styles.returnCard}>
+                    <div className={styles.returnCardHeader}>
+                      <div className={styles.returnMeta}>
+                        <span className={styles.returnType}>
+                          {ret.returnType.replaceAll("_", " ")}
+                        </span>
+                        <span className={styles.returnDate}>
+                          <CalendarClock size={13} />
+                          {formatDate(ret.createdAt)}
+                        </span>
+                      </div>
+                      <div className={styles.returnRefund}>
+                        <span>Total Refund</span>
+                        <strong>{formatCurrency(ret.totalRefund)}</strong>
+                      </div>
+                    </div>
+
+                    {ret.reason && (
+                      <p className={styles.returnReason}>
+                        Reason: {ret.reason}
+                      </p>
+                    )}
+
+                    <div className={styles.returnItemsTable}>
+                      <table className={styles.itemsTable}>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Qty Returned</th>
+                            <th>Refund</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {ret.items.map((item) => (
+                            <tr key={item.id}>
+                              <td data-label="Product">
+                                <div className={styles.productCell}>
+                                  {item.variant.image ? (
+                                    <img
+                                      src={item.variant.image}
+                                      alt={item.variant.product.name}
+                                      className={styles.productImage}
+                                    />
+                                  ) : (
+                                    <div className={styles.productPlaceholder}>
+                                      <Package size={18} />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <div className={styles.productName}>
+                                      {item.variant.product.name}
+                                    </div>
+                                    <div className={styles.productMeta}>
+                                      Size: {item.variant.size || "--"} | Color:{" "}
+                                      {item.variant.color || "--"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td data-label="SKU">
+                                <div className={styles.primaryValue}>
+                                  {item.variant.sku || "--"}
+                                </div>
+                                <div className={styles.secondaryValue}>
+                                  Barcode: {item.variant.barcode || "--"}
+                                </div>
+                              </td>
+                              <td data-label="Qty Returned">{item.quantity}</td>
+                              <td
+                                data-label="Refund"
+                                className={styles.boldValue}
+                              >
+                                {formatCurrency(item.refundAmount)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+          
         </div>
 
         <aside className={styles.sidebar}>

@@ -298,10 +298,10 @@ export default function OrderDetailPage() {
               <span className={styles.discountText}>Discount</span>
               <span className={styles.discountText}>- {order.discount}</span>
             </div>
-            <div className={styles.priceRow}>
+            {/* <div className={styles.priceRow}>
               <span>Voucher</span>
               <span className={styles.italicText}>New Year Lucky Draw</span>
-            </div>
+            </div> */}
             <div className={styles.priceRow}>
               <span>Shipping</span>
               <span>{order.shippingCharge}</span>

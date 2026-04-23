@@ -661,3 +661,94 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Returns ─────────────────────────────────────────────────────────────── */
+
+.returnsList {
+  display: grid;
+  gap: 1rem;
+}
+
+.returnCard {
+  border: 1px solid #e7edf5;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #fafbfc;
+}
+
+.returnCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e7edf5;
+  flex-wrap: wrap;
+}
+
+.returnMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.returnType {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e11d48;
+  background: #fff1f2;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.returnDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.returnRefund {
+  text-align: right;
+}
+
+.returnRefund span {
+  display: block;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+.returnRefund strong {
+  font-size: 1.1rem;
+  color: #0f172a;
+}
+
+.returnReason {
+  margin: 0;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+  color: #475569;
+  border-bottom: 1px solid #e7edf5;
+  background: #fffbeb;
+}
+
+.returnItemsTable {
+  padding: 0.5rem 0;
+}
+
+/* mobile */
+@media (max-width: 767px) {
+  .returnCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .returnRefund {
+    text-align: left;
+  }
+}
