@@ -429,7 +429,7 @@
 }
 
 .modalLarge {
-  max-width: 580px;
+  max-width: 440px;
 }
 
 @keyframes slideUp {
@@ -576,6 +576,7 @@
   border: 1px solid var(--border, #e5e7eb);
   aspect-ratio: 16 / 7;
   background: #000;
+  max-height: 120px;
 }
 
 .uploadPreview img,
