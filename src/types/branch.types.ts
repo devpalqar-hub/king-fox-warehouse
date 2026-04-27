@@ -5,6 +5,7 @@ export interface Branch {
   name: string;
   phone: string;
   address: string;
+  gstin: string | null;
   type: BranchType;
   createdAt: string;
   supportsPickup: boolean;
@@ -14,11 +15,12 @@ export interface CreateBranchPayload {
   name: string;
   phone: string;
   address: string;
+  gstin?: string | null;
   type: BranchType;
   supportsPickup: boolean;
 }
 
-export interface UpdateBranchPayload extends Partial<CreateBranchPayload> {}
+export type UpdateBranchPayload = Partial<CreateBranchPayload>;
 
 export interface PaginatedBranches {
   data: Branch[];

@@ -2,6 +2,7 @@
 
 import styles from "./create.module.css";
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createCampaign } from "@/services/luckydraw.service";
 import { useToast } from "@/components/toast/ToastProvider";
@@ -15,7 +16,10 @@ import type { Product } from "@/types/product";
 import type { Branch } from "@/types/branch.types";
 import type { Category } from "@/types/category";
 import RichTextEditor from "@/components/editor/RichTextEditor";
-import { uploadSingleImageToS3 } from "@/services/upload.service";
+import {
+  uploadSingleImageToS3,
+  uploadVideoToS3,
+} from "@/services/upload.service";
 
 type CampaignForm = {
   name: string;
@@ -38,6 +42,7 @@ type EditableCampaignField = Exclude<
 >;
 
 const DEFAULT_BANNER_IMAGE = "https://picsum.photos/800/250";
+type BannerMediaType = "image" | "video";
 
 const CreateCampaignPage = () => {
   const router = useRouter();
@@ -52,6 +57,9 @@ const CreateCampaignPage = () => {
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [productSearch, setProductSearch] = useState("");
+  const [bannerMediaType, setBannerMediaType] =
+    useState<BannerMediaType>("image");
+  const [bannerUploading, setBannerUploading] = useState(false);
   const branchRef = useRef<HTMLDivElement | null>(null);
   const filterRef = useRef<HTMLDivElement | null>(null);
   const productRef = useRef<HTMLDivElement | null>(null);
@@ -190,42 +198,57 @@ const CreateCampaignPage = () => {
     });
   };
 
+  const isVideoFile = (file: File) => file.type.startsWith("video/");
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      showToast("Only images allowed", "error");
+    const isImage = file.type.startsWith("image/");
+    const isVideo = isVideoFile(file);
+
+    if (!isImage && !isVideo) {
+      showToast("Only image or video files are allowed", "error");
+      e.target.value = "";
       return;
     }
 
     try {
-      const uploadedUrl = await uploadSingleImageToS3(file);
+      setBannerUploading(true);
+      const uploadedUrl = isVideo
+        ? await uploadVideoToS3(file)
+        : await uploadSingleImageToS3(file);
 
       setForm((prev) => ({
         ...prev,
         image: uploadedUrl,
       }));
+      setBannerMediaType(isVideo ? "video" : "image");
 
-      showToast("Image uploaded successfully", "success");
+      showToast(
+        isVideo
+          ? "Banner video uploaded successfully"
+          : "Banner image uploaded successfully",
+        "success",
+      );
     } catch (err) {
       console.error(err);
-      showToast("Image upload failed", "error");
+      showToast("Banner upload failed", "error");
+    } finally {
+      setBannerUploading(false);
+      e.target.value = "";
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    const cleanedMeta = [
-      {
-        title: "",
-        text: form.description,
-        imageUrl: "",
-      },
-    ];
     // Validation
+    if (bannerUploading) {
+      showToast("Please wait for the banner upload to finish", "error");
+      return;
+    }
+
     if (
       !form.name ||
       !form.startDate ||
@@ -350,11 +373,24 @@ const CreateCampaignPage = () => {
             {/* Banner Section */}
             <section className={styles.section}>
               <div className={styles.bannerContainer}>
-                <img
-                  src={form.image || DEFAULT_BANNER_IMAGE}
-                  alt="Campaign banner"
-                  className={styles.bannerImage}
-                />
+                {form.image && bannerMediaType === "video" ? (
+                  <video
+                    src={form.image}
+                    className={styles.bannerImage}
+                    controls
+                    muted
+                    playsInline
+                  />
+                ) : (
+                  <Image
+                    src={form.image || DEFAULT_BANNER_IMAGE}
+                    alt="Campaign banner"
+                    className={styles.bannerImage}
+                    fill
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 800px"
+                  />
+                )}
                 <div className={styles.bannerOverlay} />
                 <div className={styles.bannerContent}>
                   <h2>{form.name || "Campaign Preview"}</h2>
@@ -362,13 +398,14 @@ const CreateCampaignPage = () => {
                     type="button"
                     onClick={handleBannerClick}
                     className={styles.btnChangeBanner}
+                    disabled={bannerUploading}
                   >
-                    Change Image
+                    {bannerUploading ? "Uploading..." : "Change Banner Media"}
                   </button>
                 </div>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,video/*"
                   ref={fileInputRef}
                   onChange={handleFileChange}
                   style={{ display: "none" }}

@@ -12,6 +12,7 @@ const emptyForm: CreateBranchPayload = {
   name: "",
   phone: "",
   address: "",
+  gstin: "",
   type: "SHOP",
   supportsPickup: false,
 };
@@ -23,6 +24,9 @@ const BranchCreatePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const getErrorMessage = (err: unknown) =>
+    err instanceof Error ? err.message : "Something went wrong.";
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -44,6 +48,8 @@ const BranchCreatePage = () => {
     if (!/^\d{10}$/.test(form.phone.trim()))
       return "Phone must be a valid 10-digit number.";
     if (!form.address.trim()) return "Address is required.";
+    if (form.gstin && !/^[0-9A-Z]{15}$/.test(form.gstin.trim().toUpperCase()))
+      return "GST number must be a valid 15-character GSTIN.";
     return null;
   };
 
@@ -56,11 +62,19 @@ const BranchCreatePage = () => {
     setSubmitting(true);
     setError(null);
     try {
-      await createBranch(form);
+      await createBranch({
+        ...form,
+        name: form.name.trim(),
+        phone: form.phone.trim(),
+        address: form.address.trim(),
+        gstin: form.gstin?.trim()
+          ? form.gstin.trim().toUpperCase()
+          : null,
+      });
       setSuccess(true);
       setTimeout(() => router.push("/branches"), 1500);
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -151,6 +165,19 @@ const BranchCreatePage = () => {
                     inputMode="numeric"
                   />
                 </div>
+              </div>
+
+              <div className={formStyles.formGroup}>
+                <label className={formStyles.formLabel}>GST Number</label>
+                <input
+                  className={formStyles.formInput}
+                  name="gstin"
+                  placeholder="15-character GSTIN"
+                  value={form.gstin ?? ""}
+                  onChange={handleChange}
+                  maxLength={15}
+                  autoCapitalize="characters"
+                />
               </div>
 
               {/* Address */}
