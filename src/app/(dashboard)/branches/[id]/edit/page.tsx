@@ -16,6 +16,7 @@ const BranchEditPage = () => {
     name: "",
     phone: "",
     address: "",
+    gstin: "",
     type: "SHOP",
     supportsPickup: false,
   });
@@ -24,6 +25,11 @@ const BranchEditPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  const getErrorMessage = (
+    err: unknown,
+    fallback: string,
+  ) => (err instanceof Error ? err.message : fallback);
 
   /* Pre-fill */
   useEffect(() => {
@@ -34,11 +40,12 @@ const BranchEditPage = () => {
           name: data.name,
           phone: data.phone,
           address: data.address,
+          gstin: data.gstin ?? "",
           type: data.type,
           supportsPickup: data.supportsPickup ?? false,
         });
-      } catch (err: any) {
-        setLoadError(err.message ?? "Failed to load branch.");
+      } catch (err: unknown) {
+        setLoadError(getErrorMessage(err, "Failed to load branch."));
       } finally {
         setLoading(false);
       }
@@ -63,6 +70,8 @@ const BranchEditPage = () => {
     if (!/^\d{10}$/.test(form.phone.trim()))
       return "Phone must be a valid 10-digit number.";
     if (!form.address?.trim()) return "Address is required.";
+    if (form.gstin && !/^[0-9A-Z]{15}$/.test(form.gstin.trim().toUpperCase()))
+      return "GST number must be a valid 15-character GSTIN.";
     return null;
   };
 
@@ -75,11 +84,19 @@ const BranchEditPage = () => {
     setSubmitting(true);
     setError(null);
     try {
-      await updateBranch(Number(id), form);
+      await updateBranch(Number(id), {
+        ...form,
+        name: form.name?.trim(),
+        phone: form.phone?.trim(),
+        address: form.address?.trim(),
+        gstin: form.gstin?.trim()
+          ? form.gstin.trim().toUpperCase()
+          : null,
+      });
       setSuccess(true);
       setTimeout(() => router.push(`/branches/${id}`), 1500);
-    } catch (err: any) {
-      setError(err.message ?? "Something went wrong.");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Something went wrong."));
     } finally {
       setSubmitting(false);
     }
@@ -183,6 +200,19 @@ const BranchEditPage = () => {
                     inputMode="numeric"
                   />
                 </div>
+              </div>
+
+              <div className={formStyles.formGroup}>
+                <label className={formStyles.formLabel}>GST Number</label>
+                <input
+                  className={formStyles.formInput}
+                  name="gstin"
+                  placeholder="15-character GSTIN"
+                  value={form.gstin ?? ""}
+                  onChange={handleChange}
+                  maxLength={15}
+                  autoCapitalize="characters"
+                />
               </div>
 
               {/* Address */}

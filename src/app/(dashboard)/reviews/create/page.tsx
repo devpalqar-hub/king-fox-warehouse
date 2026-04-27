@@ -2,19 +2,28 @@
 
 import styles from "./createReview.module.css";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { ChevronDown, Search } from "lucide-react";
 import { createMockReview } from "@/services/review.service";
 import { getProducts } from "@/services/product.service";
 import { Product } from "@/types/product";
 import BackButton from "@/components/backButton/backButton";
 import { useToast } from "@/components/toast/ToastProvider";
 import { uploadImagesToS3 } from "@/services/upload.service";
+import { useRef } from "react";
 
 const CreateReviewPage = () => {
+  const PRODUCT_LIMIT = 20;
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProductId, setSelectedProductId] = useState<string>("");
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productSearch, setProductSearch] = useState("");
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
   const { showToast } = useToast();
+  const productRef = useRef<HTMLDivElement | null>(null);
 
   const [form, setForm] = useState({
     reviewerName: "",
@@ -29,22 +38,42 @@ const CreateReviewPage = () => {
   const [preview, setPreview] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await getProducts();
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
 
-        setProducts(res.data);
-
-        if (res.data.length > 0) {
-          setSelectedProductId(String(res.data[0].id));
-        }
-      } catch (err) {
-        console.error(err);
+      if (productRef.current && !productRef.current.contains(target)) {
+        setShowProductDropdown(false);
+        setProductSearch("");
       }
     };
 
-    fetchProducts();
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(async () => {
+      try {
+        setLoadingProducts(true);
+        const res = await getProducts({
+          search: productSearch.trim() || undefined,
+          page: 1,
+          limit: PRODUCT_LIMIT,
+        });
+
+        setProducts(res.data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [productSearch]);
 
   const validateForm = () => {
     if (!selectedProductId) {
@@ -98,7 +127,9 @@ const CreateReviewPage = () => {
     return true;
   };
 
-  const handleChange = (e: any) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
@@ -106,23 +137,47 @@ const CreateReviewPage = () => {
     setForm({ ...form, rating: value });
   };
 
-  const handleImageUpload = async (e: any) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
-      const files = Array.from(e.target.files);
+      const files = Array.from(e.target.files ?? []);
 
-      const previewUrls = files.map((file: any) =>
-        URL.createObjectURL(file)
-      );
+      if (files.length === 0) return;
+
+      const previewUrls = files.map((file) => URL.createObjectURL(file));
       setPreview(previewUrls);
 
       const uploadedUrls = await uploadImagesToS3(files as File[]);
 
       setForm({ ...form, images: uploadedUrls });
-
     } catch (err) {
       console.error(err);
       showToast("Image upload failed", "error");
     }
+  };
+
+  const productOptions =
+    selectedProduct &&
+    !products.some((product) => product.id === selectedProduct.id)
+      ? [selectedProduct, ...products]
+      : products;
+
+  const handleProductSelect = (productId: string) => {
+    setSelectedProductId(productId);
+    const product =
+      productOptions.find((item) => String(item.id) === productId) ?? null;
+    setSelectedProduct(product);
+    setShowProductDropdown(false);
+    setProductSearch("");
+  };
+
+  const handleProductDropdownToggle = () => {
+    setShowProductDropdown((prev) => {
+      if (prev) {
+        setProductSearch("");
+      }
+
+      return !prev;
+    });
   };
 
   const handleSubmit = async () => {
@@ -180,18 +235,70 @@ const CreateReviewPage = () => {
 
           <div>
             <label className={styles.label}>Select Product</label>
-            <select
-              className={styles.input}
-              value={selectedProductId}
-              onChange={(e) => setSelectedProductId(e.target.value)}
-            >
-              <option value="">-- Select Product --</option>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name}
-                </option>
-              ))}
-            </select>
+            <div className={styles.dropdownWrapper} ref={productRef}>
+              <button
+                type="button"
+                onClick={handleProductDropdownToggle}
+                className={styles.dropdownTrigger}
+              >
+                <span className={styles.dropdownText}>
+                  {selectedProduct?.name || "Select product..."}
+                </span>
+                <ChevronDown
+                  size={18}
+                  className={showProductDropdown ? styles.chevronOpen : ""}
+                />
+              </button>
+
+              {showProductDropdown && (
+                <div className={styles.dropdownMenu}>
+                  <div className={styles.dropdownSearch}>
+                    <Search size={16} className={styles.dropdownSearchIcon} />
+                    <input
+                      type="text"
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      placeholder="Search products..."
+                      className={styles.dropdownSearchInput}
+                    />
+                  </div>
+
+                  {loadingProducts ? (
+                    <div className={styles.emptyState}>
+                      Searching products...
+                    </div>
+                  ) : productOptions.length === 0 ? (
+                    <div className={styles.emptyState}>
+                      {productSearch.trim()
+                        ? `No products found for "${productSearch.trim()}".`
+                        : "No products available"}
+                    </div>
+                  ) : (
+                    productOptions.map((product) => (
+                      <label key={product.id} className={styles.checkboxItem}>
+                        <input
+                          type="radio"
+                          checked={selectedProductId === String(product.id)}
+                          onChange={() =>
+                            handleProductSelect(String(product.id))
+                          }
+                          className={styles.checkbox}
+                        />
+                        <span className={styles.checkboxLabel}>
+                          {product.name}
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              )}
+
+              {selectedProduct && (
+                <div className={styles.selectedTags}>
+                  <span className={styles.tag}>{selectedProduct.name}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div>
@@ -228,7 +335,15 @@ const CreateReviewPage = () => {
 
             <div className={styles.previewGrid}>
               {preview.map((img, i) => (
-                <img key={i} src={img} className={styles.previewImg} />
+                <Image
+                  key={i}
+                  src={img}
+                  alt={`Review upload preview ${i + 1}`}
+                  width={80}
+                  height={80}
+                  className={styles.previewImg}
+                  unoptimized
+                />
               ))}
             </div>
           </div>
