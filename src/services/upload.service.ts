@@ -1,5 +1,14 @@
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+type UploadedFile = {
+  url: string;
+};
+
+type UploadImagesResponse = {
+  files: UploadedFile[];
+  message?: string;
+};
+
 export const uploadImagesToS3 = async (
   imageFiles: File[],
 ): Promise<string[]> => {
@@ -13,9 +22,9 @@ export const uploadImagesToS3 = async (
     headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
-  const data = await res.json();
+  const data: UploadImagesResponse = await res.json();
   if (!res.ok) throw new Error(data.message || "Image upload failed");
-  return data.files.map((f: any) => f.url);
+  return data.files.map((file) => file.url);
 };
 
 export const uploadSingleImageToS3 = async (file: File): Promise<string> => {

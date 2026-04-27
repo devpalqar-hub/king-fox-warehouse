@@ -10,6 +10,7 @@ import {
   MapPin,
   Clock,
   Hash,
+  FileText,
   Pencil,
   Trash2,
   AlertTriangle,
@@ -34,13 +35,18 @@ const BranchViewPage = () => {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  const getErrorMessage = (
+    err: unknown,
+    fallback: string,
+  ) => (err instanceof Error ? err.message : fallback);
+
   useEffect(() => {
     (async () => {
       try {
         const data = await getBranch(Number(id));
         setBranch(data);
-      } catch (err: any) {
-        setError(err.message ?? "Failed to load branch.");
+      } catch (err: unknown) {
+        setError(getErrorMessage(err, "Failed to load branch."));
       } finally {
         setLoading(false);
       }
@@ -54,8 +60,8 @@ const BranchViewPage = () => {
     try {
       await deleteBranch(branch.id);
       router.push("/branches");
-    } catch (err: any) {
-      setDeleteError(err.message ?? "Failed to delete.");
+    } catch (err: unknown) {
+      setDeleteError(getErrorMessage(err, "Failed to delete."));
       setDeleting(false);
     }
   };
@@ -160,6 +166,18 @@ const BranchViewPage = () => {
             <div>
               <span className={formStyles.viewFieldLabel}>Phone</span>
               <span className={formStyles.viewFieldValue}>{branch.phone}</span>
+            </div>
+          </div>
+
+          <div className={formStyles.viewField}>
+            <div className={formStyles.viewFieldIcon}>
+              <FileText size={15} />
+            </div>
+            <div>
+              <span className={formStyles.viewFieldLabel}>GST Number</span>
+              <span className={formStyles.viewFieldValue}>
+                {branch.gstin || "—"}
+              </span>
             </div>
           </div>
 
